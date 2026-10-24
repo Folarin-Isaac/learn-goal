@@ -1,0 +1,10 @@
+export 'presentation/pages/class_details_page.dart';
+export 'presentation/pages/my_classes_hub_page.dart';
+export 'presentation/pages/my_classes_page.dart';
+export 'presentation/pages/payment_page.dart';
+export 'presentation/pages/payment_success_page.dart';
+export 'presentation/pages/quiz_intro_page.dart';
+export 'presentation/pages/quiz_results_page.dart';
+export 'presentation/pages/quiz_review_page.dart';
+export 'presentation/pages/quiz_taking_page.dart';
+export 'presentation/pages/recommended_classes_page.dart';

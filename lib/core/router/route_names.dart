@@ -1,0 +1,42 @@
+class RouteNames {
+  const new();
+
+  static const String splash = 'splash';
+  static const String login = 'login';
+  static const String register = 'register';
+  static const String otpVerify = 'otpVerify';
+  static const String emailConfirmed = 'emailConfirmed';
+  static const String forgotPassword = 'forgotPassword';
+  static const String resetPasswordSent = 'resetPasswordSent';
+  static const String resetPassword = 'resetPassword';
+  static const String resetPasswordSuccess = 'resetPasswordSuccess';
+  static const String dashboard = 'dashboard';
+  static const String myClasses = 'myClasses';
+  static const String recommendedClasses = 'recommendedClasses';
+  static const String calendar = 'calendar';
+  static const String classesHub = 'classesHub';
+  static const String classDetails = 'classDetails';
+  static const String quizIntro = 'quizIntro';
+  static const String quizTaking = 'quizTaking';
+  static const String quizResults = 'quizResults';
+  static const String quizReview = 'quizReview';
+  static const String payment = 'payment';
+  static const String paymentSuccess = 'paymentSuccess';
+  static const String profile = 'profile';
+  static const String updateProfile = 'updateProfile';
+  static const String support = 'support';
+  static const String subscriptionHistory = 'subscriptionHistory';
+  static const String practice = 'practice';
+  static const String practiceTopic = 'practiceTopic';
+  static const String practiceMockDetail = 'practiceMockDetail';
+  static const String practiceMockIntro = 'practiceMockIntro';
+  static const String practiceSession = 'practiceSession';
+  static const String practiceReview = 'practiceReview';
+  static const String community = 'community';
+  static const String communityPostDetail = 'communityPostDetail';
+  static const String chats = 'chats';
+  static const String chatThread = 'chatThread';
+  static const String goalCategory = 'goalCategory';
+  static const String goalExam = 'goalExam';
+  static const String goalStage = 'goalStage';
+}

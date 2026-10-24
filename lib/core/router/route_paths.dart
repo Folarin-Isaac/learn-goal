@@ -1,0 +1,42 @@
+class RoutePaths {
+  const new();
+
+  static const String splash = '/';
+  static const String login = '/login';
+  static const String register = '/register';
+  static const String otpVerify = '/register/otp';
+  static const String emailConfirmed = '/register/email-confirmed';
+  static const String forgotPassword = '/forgot-password';
+  static const String resetPasswordSent = '/forgot-password/sent';
+  static const String resetPassword = '/forgot-password/reset';
+  static const String resetPasswordSuccess = '/forgot-password/success';
+  static const String dashboard = '/dashboard';
+  static const String myClasses = '/dashboard/my-classes';
+  static const String recommendedClasses = '/dashboard/recommended-classes';
+  static const String calendar = '/dashboard/calendar';
+  static const String classesHub = '/classes';
+  static const String classDetails = '/classes/details';
+  static const String quizIntro = '/classes/quiz';
+  static const String quizTaking = '/classes/quiz/take';
+  static const String quizResults = '/classes/quiz/results';
+  static const String quizReview = '/classes/quiz/review';
+  static const String payment = '/classes/payment';
+  static const String paymentSuccess = '/classes/payment/success';
+  static const String profile = '/profile';
+  static const String updateProfile = '/profile/update';
+  static const String support = '/profile/support';
+  static const String subscriptionHistory = '/profile/subscription-history';
+  static const String practice = '/practice';
+  static const String practiceTopic = '/practice/topic';
+  static const String practiceMockDetail = '/practice/mock';
+  static const String practiceMockIntro = '/practice/mock/intro';
+  static const String practiceSession = '/practice/session';
+  static const String practiceReview = '/practice/review';
+  static const String community = '/community';
+  static const String communityPostDetail = '/community/post';
+  static const String chats = '/chats';
+  static const String chatThread = '/chats/thread';
+  static const String goalCategory = '/goals/category';
+  static const String goalExam = '/goals/exam';
+  static const String goalStage = '/goals/stage';
+}

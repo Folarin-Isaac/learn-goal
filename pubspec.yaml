@@ -1,0 +1,80 @@
+name: lengoal
+description: Lengoal Mobile app
+version: 1.0.0+1
+publish_to: none
+
+environment:
+  sdk: ^3.13.0
+  flutter: ^3.47.0
+
+dependencies:
+  bloc: ^9.2.1
+  connectivity_plus: ^6.1.0
+  device_preview: ^3.0.0
+  dio: ^5.7.0
+  equatable: ^2.0.5
+  flutter:
+    sdk: flutter
+  flutter_bloc: ^9.1.1
+  flutter_dotenv: ^5.2.1
+  flutter_localizations:
+    sdk: flutter
+  flutter_secure_storage: ^9.2.2
+  flutter_svg: ^2.0.10
+  fpdart: ^1.1.0
+  gap: ^3.0.1
+  get_it: ^8.0.2
+  go_router: ^15.0.0
+  image_picker: ^1.1.2
+  intl: ^0.20.2
+  material_ui: ^1.1.1
+
+dev_dependencies:
+  bloc_lint: ^0.4.2
+  bloc_test: ^10.0.0
+  bloc_tools: ^0.1.0-dev.24
+  build_runner: ^2.4.13
+  flutter_gen_runner: ^5.8.0
+  flutter_test:
+    sdk: flutter
+  mocktail: ^1.0.5
+  very_good_analysis: ^11.0.0
+
+flutter:
+  generate: true
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/icons/
+    - .env.development
+    - .env.staging
+    - .env.production
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-VariableFont.ttf
+    - family: Manrope
+      fonts:
+        - asset: assets/fonts/Manrope-VariableFont.ttf
+
+flutter_gen:
+  output: lib/gen/
+  line_length: 100
+  integrations:
+    flutter_svg: true
+  assets:
+    # .env.* are plain config files loaded by explicit path via
+    # flutter_dotenv (see lib/core/env/env.dart) — never through the
+    # generated Assets class. They still need to stay in flutter.assets
+    # above so Flutter bundles them, but flutter_gen's name-from-file
+    # heuristic treats ".development"/".staging"/".production" as an
+    # extension the same way it strips ".png", leaving ".env" for all
+    # three — which collide into the same generated identifier (aEnv)
+    # and fail to compile. Excluding them here is the fix.
+    exclude:
+      - .env.development
+      - .env.staging
+      - .env.production
+
+    # fvm flutter run -t lib\main_development.dart --android-skip-build-dependency-validation
+    # fvm flutter build apk -t lib\main_development.dart --android-skip-build-dependency-validation
