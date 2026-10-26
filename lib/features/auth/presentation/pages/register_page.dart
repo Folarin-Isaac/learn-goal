@@ -122,7 +122,7 @@ class _RegisterViewState extends State<_RegisterView> {
                       controller: _phoneController,
                       label: context.l10n.registerPhoneLabel,
                       hint: context.l10n.registerPhoneHint,
-                      keyboardType: TextInputType.phone,
+                      keyboardType: TextInputType.number,
                       textInputAction: TextInputAction.next,
                       autofillHints: const [AutofillHints.telephoneNumber],
                       validator: (value) =>
