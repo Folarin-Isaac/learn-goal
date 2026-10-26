@@ -26,14 +26,14 @@ final _items = [
     Assets.icons.classesIcon,
     (context) => context.l10n.dashboardNavClasses,
   ),
-  _NavItem(
-    Assets.icons.practiceIcon,
-    (context) => context.l10n.dashboardNavPractice,
-  ),
-  _NavItem(
-    Assets.icons.communityIcon,
-    (context) => context.l10n.dashboardNavCommunity,
-  ),
+  // _NavItem(
+  //   Assets.icons.practiceIcon,
+  //   (context) => context.l10n.dashboardNavPractice,
+  // ),
+  // _NavItem(
+  //   Assets.icons.communityIcon,
+  //   (context) => context.l10n.dashboardNavCommunity,
+  // ),
   _NavItem(Assets.icons.chatsIcon, (context) => context.l10n.dashboardNavChats),
 ];
 
@@ -71,9 +71,9 @@ class DashboardBottomNav extends StatelessWidget {
                     : switch (i) {
                         0 => () => context.goNamed(RouteNames.dashboard),
                         1 => () => context.pushNamed(RouteNames.classesHub),
-                        2 => () => context.pushNamed(RouteNames.practice),
-                        3 => () => context.pushNamed(RouteNames.community),
-                        4 => () => context.pushNamed(RouteNames.chats),
+                        // 2 => () => context.pushNamed(RouteNames.practice),
+                        // 3 => () => context.pushNamed(RouteNames.community),
+                        2 => () => context.pushNamed(RouteNames.chats),
                         _ => null,
                       },
               ),
