@@ -5,9 +5,10 @@ import 'package:lengoal/core/core.dart';
 const _mockGoals = ['GATE, ESE and IIT-JAM', 'CUET', 'Foreign Studies'];
 
 class DashboardTopBar extends StatelessWidget {
-  const new({required this.firstName, super.key});
+  const new({required this.firstName, super.key, this.avatarUrl});
 
   final String? firstName;
+  final String? avatarUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +41,7 @@ class DashboardTopBar extends StatelessWidget {
           ),
         ),
         const Gap(AppSpacing.s8),
-        _Avatar(firstName: firstName),
+        _Avatar(firstName: firstName, avatarUrl: avatarUrl),
       ],
     );
   }
@@ -166,16 +167,37 @@ class _ComingSoonIconButton extends StatelessWidget {
   }
 }
 
-class _Avatar extends StatelessWidget {
-  const new({required this.firstName});
+class _Avatar extends StatefulWidget {
+  const new({required this.firstName, this.avatarUrl});
 
   final String? firstName;
+  final String? avatarUrl;
+
+  @override
+  State<_Avatar> createState() => _AvatarState();
+}
+
+class _AvatarState extends State<_Avatar> {
+  bool _imageFailed = false;
+
+  @override
+  void didUpdateWidget(covariant _Avatar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.avatarUrl != widget.avatarUrl) {
+      _imageFailed = false;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final initial = (firstName == null || firstName!.isEmpty)
+    final initial = (widget.firstName == null || widget.firstName!.isEmpty)
         ? '?'
-        : firstName![0].toUpperCase();
+        : widget.firstName![0].toUpperCase();
+    final hasAvatar =
+        !_imageFailed &&
+        widget.avatarUrl != null &&
+        widget.avatarUrl!.isNotEmpty;
+
     return GestureDetector(
       onTap: () {
         AppHaptics.selection();
@@ -185,10 +207,18 @@ class _Avatar extends StatelessWidget {
         radius: 18,
         backgroundColor: context.colors.primary,
         foregroundColor: Colors.white,
-        child: Text(
-          initial,
-          style: const TextStyle(fontWeight: FontWeight.w700),
-        ),
+        backgroundImage: hasAvatar ? NetworkImage(widget.avatarUrl!) : null,
+        onBackgroundImageError: hasAvatar
+            ? (error, stackTrace) {
+                if (mounted) setState(() => _imageFailed = true);
+              }
+            : null,
+        child: hasAvatar
+            ? null
+            : Text(
+                initial,
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
       ),
     );
   }

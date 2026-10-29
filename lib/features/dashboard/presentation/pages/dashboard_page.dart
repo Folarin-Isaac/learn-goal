@@ -14,16 +14,16 @@ class DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<DashboardPage> {
   final GetLearnerProfileUseCase _getProfile = getIt();
-  late String? _firstName = _getProfile.cached?.firstName;
+  late LearnerProfile? _profile = _getProfile.cached;
   StreamSubscription<LearnerProfile?>? _subscription;
 
   @override
   void initState() {
     super.initState();
     _subscription = _getProfile.stream.listen((profile) {
-      if (mounted) setState(() => _firstName = profile?.firstName);
+      if (mounted) setState(() => _profile = profile);
     });
-    unawaited(_resolveFirstName());
+    unawaited(_resolveProfile());
   }
 
   @override
@@ -32,19 +32,24 @@ class _DashboardPageState extends State<DashboardPage> {
     super.dispose();
   }
 
-  // Prefers the live profile so a name change shows without signing out;
-  // falls back to the token claims when the profile call is unavailable.
-  Future<void> _resolveFirstName() async {
+  Future<void> _resolveProfile() async {
     final result = await _getProfile();
     final profile = result.getRight().toNullable();
     if (!mounted) return;
     if (profile != null) {
-      setState(() => _firstName = profile.firstName);
+      setState(() => _profile = profile);
       return;
     }
     final user = await getIt<AuthRepository>().getCurrentUser();
-    if (!mounted || _firstName != null) return;
-    setState(() => _firstName = user?.firstName);
+    if (!mounted || user == null || _profile != null) return;
+    setState(() {
+      _profile = LearnerProfile(
+        learnerId: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+      );
+    });
   }
 
   @override
@@ -60,7 +65,7 @@ class _DashboardPageState extends State<DashboardPage> {
           bottom: false,
           child: Builder(
             builder: (context) {
-              final firstName = _firstName;
+              final firstName = _profile?.firstName;
               const myClassesIndex = 3;
               final recommendedIndex =
                   myClassesIndex + 1 + mockMyClasses.length;
@@ -75,7 +80,12 @@ class _DashboardPageState extends State<DashboardPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Entrance(child: DashboardTopBar(firstName: firstName)),
+                    Entrance(
+                      child: DashboardTopBar(
+                        firstName: firstName,
+                        avatarUrl: _profile?.avatar,
+                      ),
+                    ),
                     const Gap(AppSpacing.s24),
                     Entrance(
                       index: 1,
