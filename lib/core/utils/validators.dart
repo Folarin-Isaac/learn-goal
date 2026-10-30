@@ -35,7 +35,7 @@ class Validators {
   };
 
   static const Set<String> _disposableDomains = {
-    'yopmail.com',
+    //'yopmail.com',
     'yopmail.fr',
     'yopmail.net',
     'tempmail.com',

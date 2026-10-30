@@ -5,6 +5,7 @@ import 'package:lengoal/core/storage/secure_storage_service.dart';
 
 // Attaches the bearer token to requests, and on a 401 tries one silent
 // refresh before giving up. Refresh uses a bare Dio so it can't recurse.
+// Access tokens only live ~30 minutes, so this path runs constantly.
 class AuthInterceptor extends Interceptor {
   new(this._secureStorage, this._dio);
 
@@ -53,8 +54,17 @@ class AuthInterceptor extends Interceptor {
     }
 
     // Concurrent 401s share one refresh call, not one each.
-    final newAccessToken = await (_refreshInFlight ??= _refresh());
-    _refreshInFlight = null;
+    final String? newAccessToken;
+    try {
+      newAccessToken = await (_refreshInFlight ??= _refresh());
+    } on DioException {
+      // Refresh couldn't reach the server — keep the session so a flaky
+      // connection doesn't log the user out.
+      handler.next(err);
+      return;
+    } finally {
+      _refreshInFlight = null;
+    }
 
     if (newAccessToken == null) {
       await _secureStorage.delete(StorageKeys.accessToken);
@@ -73,18 +83,27 @@ class AuthInterceptor extends Interceptor {
     }
   }
 
-  // Swagger's refresh-token has no body/query params, so the refresh
-  // token itself travels in the Authorization header.
+  // Body is RefreshTokenCommand { refreshToken }. The endpoint is
+  // anonymous, but its summary mentions "the active session", so the
+  // expired access token (which carries session_id) is sent along too.
+  // Returns null when the server rejects the refresh; rethrows when it
+  // can't be reached at all.
   Future<String?> _refresh() async {
     final refreshToken = await _secureStorage.read(StorageKeys.refreshToken);
     if (refreshToken == null || refreshToken.isEmpty) return null;
+    final accessToken = await _secureStorage.read(StorageKeys.accessToken);
 
     try {
       final response = await Dio(BaseOptions(baseUrl: _dio.options.baseUrl))
           .post<Map<String, dynamic>>(
             ApiEndpoints.refreshToken,
+            data: {'refreshToken': refreshToken},
             options: Options(
-              headers: {'Authorization': 'Bearer $refreshToken'},
+              headers: {
+                'Content-Type': 'application/json',
+                if (accessToken != null && accessToken.isNotEmpty)
+                  'Authorization': 'Bearer $accessToken',
+              },
             ),
           );
       final data = response.data?['data'] as Map<String, dynamic>?;
@@ -95,7 +114,8 @@ class AuthInterceptor extends Interceptor {
       await _secureStorage.write(StorageKeys.accessToken, newAccessToken);
       await _secureStorage.write(StorageKeys.refreshToken, newRefreshToken);
       return newAccessToken;
-    } on DioException {
+    } on DioException catch (e) {
+      if (e.response == null) rethrow;
       return null;
     }
   }
