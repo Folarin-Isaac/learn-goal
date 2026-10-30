@@ -33,7 +33,9 @@ class AppTabBar extends StatelessWidget implements PreferredSizeWidget {
       labelColor: AppColors.accentBlue,
       unselectedLabelColor: AppColors.borderGray200,
       labelStyle: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600),
-      unselectedLabelStyle: AppTextStyles.body,
+      unselectedLabelStyle: AppTextStyles.body.copyWith(
+        fontWeight: FontWeight.w500,
+      ),
       labelPadding: EdgeInsets.symmetric(
         horizontal: isScrollable ? AppSpacing.s16 : AppSpacing.s4,
       ),

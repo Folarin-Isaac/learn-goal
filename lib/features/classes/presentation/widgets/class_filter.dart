@@ -99,50 +99,75 @@ class ClassFilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Builder(
-      builder: (buttonContext) {
-        final label = current == null
-            ? buttonContext.l10n.dashboardFilterAll
-            : classFilterLabel(buttonContext, current!);
+    final option = current;
+    final label = option == null
+        ? context.l10n.dashboardFilterAll
+        : classFilterLabel(context, option);
+    final (background, foreground, icon) = switch (option) {
+      ClassFilterOption.free => (
+        const Color(0xFFDAF2E4),
+        const Color(0xFF0E8C43),
+        Assets.icons.freeTagIcon,
+      ),
+      ClassFilterOption.premium => (
+        const Color(0xFFE0EBFF),
+        const Color(0xFF004DE6),
+        Assets.icons.premiumTagIcon,
+      ),
+      _ => (
+        context.colors.primary.withValues(alpha: 0.08),
+        context.colors.primary,
+        null,
+      ),
+    };
 
-        return GestureDetector(
-          onTap: () async {
-            AppHaptics.selection();
-            final result = await _showClassFilterMenu(buttonContext, current);
-            if (result != null) {
-              onChanged(result == ClassFilterOption.none ? null : result);
-            }
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.s16,
-              vertical: AppSpacing.s8,
-            ),
-            decoration: BoxDecoration(
-              color: buttonContext.colors.primary.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  buttonContext.l10n.dashboardFilterByLabel(label),
-                  style: buttonContext.textTheme.bodyMedium?.copyWith(
-                    color: buttonContext.colors.primary,
-                    fontWeight: FontWeight.w600,
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          context.l10n.dashboardFilterByLabel,
+          style: context.textTheme.bodySmall?.copyWith(
+            color: context.colors.onSurfaceVariant,
+          ),
+        ),
+        const Gap(AppSpacing.s8),
+        Builder(
+          builder: (buttonContext) => GestureDetector(
+            onTap: () async {
+              AppHaptics.selection();
+              final result = await _showClassFilterMenu(buttonContext, option);
+              if (result != null) {
+                onChanged(result == ClassFilterOption.none ? null : result);
+              }
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: background,
+                borderRadius: BorderRadius.circular(AppSpacing.r4),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (icon != null) ...[
+                    icon.svg(width: 14, height: 14),
+                    const Gap(AppSpacing.s4),
+                  ],
+                  Text(
+                    label,
+                    style: context.textTheme.bodySmall?.copyWith(
+                      color: foreground,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-                const Gap(4),
-                Icon(
-                  Icons.keyboard_arrow_down,
-                  size: 18,
-                  color: buttonContext.colors.primary,
-                ),
-              ],
+                  const Gap(2),
+                  Icon(Icons.keyboard_arrow_down, size: 16, color: foreground),
+                ],
+              ),
             ),
           ),
-        );
-      },
+        ),
+      ],
     );
   }
 }

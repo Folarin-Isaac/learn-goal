@@ -120,7 +120,7 @@
     "classSearchPrompt": "Busca clases por nombre o educador",
     "dashboardSubscribedClasses": "Clases suscritas",
     "dashboardSavedClasses": "Clases guardadas",
-    "dashboardFilterByLabel": "Filtrar por: {option}",
+    "dashboardFilterByLabel": "Filtrar por:",
 
     "classDetailsTitle": "Detalles de la clase",
     "classDetailsTabAbout": "Acerca de",

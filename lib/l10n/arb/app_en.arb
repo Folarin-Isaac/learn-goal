@@ -208,11 +208,8 @@
     "@dashboardSubscribedClasses": {"description": "My Classes hub tab: classes the user is enrolled in"},
     "dashboardSavedClasses": "Saved Classes",
     "@dashboardSavedClasses": {"description": "My Classes hub tab: classes the user has favorited"},
-    "dashboardFilterByLabel": "Filter by: {option}",
-    "@dashboardFilterByLabel": {
-        "description": "Labeled filter chip on the My Classes hub",
-        "placeholders": {"option": {"type": "String"}}
-    },
+    "dashboardFilterByLabel": "Filter by:",
+    "@dashboardFilterByLabel": {"description": "Label in front of the filter pill on the My Classes hub"},
 
     "classDetailsTitle": "Class Details",
     "@classDetailsTitle": {"description": "Heading on the class details screen"},

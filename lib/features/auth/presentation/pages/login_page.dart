@@ -169,9 +169,9 @@ class _LoginViewState extends State<_LoginView> {
                       isLoading: state.status == LoginStatus.submitting,
                       onPressed: () => _submit(context),
                     ),
-                    const Gap(AppSpacing.s16),
-                    GoogleSignInButton(onPressed: () {}),
-                    const Gap(AppSpacing.s16),
+                    // const Gap(AppSpacing.s16),
+                    // GoogleSignInButton(onPressed: () {}),
+                    const Gap(AppSpacing.s24),
                     Center(
                       child: Wrap(
                         children: [
