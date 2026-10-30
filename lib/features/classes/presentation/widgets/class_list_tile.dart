@@ -59,7 +59,9 @@ class ClassListTile extends StatelessWidget {
                       ),
                     ),
                     const Gap(AppSpacing.s16),
-                    Expanded(child: ClassInfoColumn(item: item)),
+                    Expanded(
+                      child: ClassInfoColumn(item: item, stackDate: true),
+                    ),
                   ],
                 );
               },

@@ -2,9 +2,10 @@ import 'package:lengoal/core/core.dart';
 import 'package:lengoal/features/classes/presentation/models/class_summary.dart';
 
 class ClassInfoColumn extends StatelessWidget {
-  const new({required this.item, super.key});
+  const new({required this.item, this.stackDate = false, super.key});
 
   final ClassSummary item;
+  final bool stackDate;
 
   @override
   Widget build(BuildContext context) {
@@ -20,48 +21,54 @@ class ClassInfoColumn extends StatelessWidget {
         ? Assets.icons.freeTagIcon
         : Assets.icons.premiumTagIcon;
 
+    final tag = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      decoration: BoxDecoration(
+        color: tagBackground,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          tagIcon.svg(width: 12, height: 12),
+          const Gap(4),
+          Flexible(
+            child: Text(
+              isFree ? context.l10n.dashboardFreeTag : item.priceLabel!,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: context.textTheme.bodySmall?.copyWith(
+                color: tagForeground,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    final date = Text(
+      item.dateRange,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: context.textTheme.bodySmall,
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-              decoration: BoxDecoration(
-                color: tagBackground,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  tagIcon.svg(width: 12, height: 12),
-                  const Gap(4),
-                  Flexible(
-                    child: Text(
-                      isFree ? context.l10n.dashboardFreeTag : item.priceLabel!,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: context.textTheme.bodySmall?.copyWith(
-                        color: tagForeground,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Gap(AppSpacing.s8),
-            Expanded(
-              child: Text(
-                item.dateRange,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: context.textTheme.bodySmall,
-              ),
-            ),
-          ],
-        ),
+        if (stackDate) ...[
+          tag,
+          const Gap(AppSpacing.s4),
+          date,
+        ] else
+          Row(
+            children: [
+              tag,
+              const Gap(AppSpacing.s8),
+              Expanded(child: date),
+            ],
+          ),
         const Gap(AppSpacing.s4),
         Text(
           item.title,
