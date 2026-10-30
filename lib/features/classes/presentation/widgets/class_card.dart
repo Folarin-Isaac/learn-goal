@@ -12,11 +12,6 @@ class ClassCard extends StatelessWidget {
 
   static const double thumbnailAspectRatio = 1.35;
 
-  static const double textBlockHeight = 170;
-
-  static double preferredHeight(double cardWidth) =>
-      cardWidth / thumbnailAspectRatio + AppSpacing.s8 + textBlockHeight;
-
   @override
   Widget build(BuildContext context) {
     return Pressable(

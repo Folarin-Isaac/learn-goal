@@ -18,12 +18,30 @@ class _MyClassesHubPageState extends State<MyClassesHubPage>
     length: 2,
     vsync: this,
   );
+  final _searchController = TextEditingController();
   ClassFilterOption? _filter;
+  bool _isSearching = false;
+  String _query = '';
 
   @override
   void dispose() {
     _tabController.dispose();
+    _searchController.dispose();
     super.dispose();
+  }
+
+  void _startSearch() {
+    AppHaptics.selection();
+    setState(() => _isSearching = true);
+  }
+
+  void _stopSearch() {
+    AppHaptics.selection();
+    setState(() {
+      _isSearching = false;
+      _query = '';
+      _searchController.clear();
+    });
   }
 
   @override
@@ -41,23 +59,51 @@ class _MyClassesHubPageState extends State<MyClassesHubPage>
                 0,
               ),
               child: Entrance(
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        context.l10n.dashboardMyClasses,
-                        style: context.textTheme.headlineSmall,
+                child: _isSearching
+                    ? Row(
+                        children: [
+                          IconButton(
+                            onPressed: _stopSearch,
+                            icon: const Icon(Icons.close),
+                          ),
+                          Expanded(
+                            child: TextField(
+                              controller: _searchController,
+                              autofocus: true,
+                              textInputAction: TextInputAction.search,
+                              onChanged: (value) =>
+                                  setState(() => _query = value),
+                              decoration: InputDecoration(
+                                hintText: context.l10n.dashboardSearchHint,
+                                prefixIcon: Padding(
+                                  padding: const EdgeInsets.all(14),
+                                  child: Assets.icons.searchIcon.svg(
+                                    width: 20,
+                                    height: 20,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
+                    : Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              context.l10n.dashboardMyClasses,
+                              style: context.textTheme.headlineSmall,
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: _startSearch,
+                            icon: Assets.icons.searchIcon.svg(
+                              width: 20,
+                              height: 20,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        AppHaptics.selection();
-                        AppSnackbar.info(context.l10n.dashboardComingSoon);
-                      },
-                      icon: Assets.icons.searchIcon.svg(width: 20, height: 20),
-                    ),
-                  ],
-                ),
               ),
             ),
             Entrance(
@@ -92,8 +138,13 @@ class _MyClassesHubPageState extends State<MyClassesHubPage>
                   _ClassTab(
                     source: ClassListSource.subscribed,
                     filter: _filter,
+                    query: _query,
                   ),
-                  _ClassTab(source: ClassListSource.saved, filter: _filter),
+                  _ClassTab(
+                    source: ClassListSource.saved,
+                    filter: _filter,
+                    query: _query,
+                  ),
                 ],
               ),
             ),
@@ -106,10 +157,11 @@ class _MyClassesHubPageState extends State<MyClassesHubPage>
 }
 
 class _ClassTab extends StatefulWidget {
-  const new({required this.source, required this.filter});
+  const new({required this.source, required this.filter, required this.query});
 
   final ClassListSource source;
   final ClassFilterOption? filter;
+  final String query;
 
   @override
   State<_ClassTab> createState() => _ClassTabState();
@@ -134,22 +186,26 @@ class _ClassTabState extends State<_ClassTab>
       loading: const ClassTileListSkeleton(padding: padding),
       builder: (context, classes) {
         final isSaved = widget.source == ClassListSource.saved;
+        final query = widget.query.trim().toLowerCase();
         final entries = [
           for (final c in classes)
-            (
-              lengoalClass: c,
-              summary: ClassSummary.fromClass(c, isFavorite: isSaved),
-            ),
+            if (query.isEmpty ||
+                c.cohortName.toLowerCase().contains(query) ||
+                c.educatorName.toLowerCase().contains(query))
+              (
+                lengoalClass: c,
+                summary: ClassSummary.fromClass(c, isFavorite: isSaved),
+              ),
         ].where((e) => matchesClassFilter(e.summary, widget.filter)).toList();
 
         if (entries.isEmpty) {
+          final message = classes.isEmpty
+              ? context.l10n.classesEmpty
+              : query.isNotEmpty
+              ? context.l10n.dashboardNoResults
+              : context.l10n.dashboardNoFilterResults;
           return Center(
-            child: Text(
-              classes.isEmpty
-                  ? context.l10n.classesEmpty
-                  : context.l10n.dashboardNoFilterResults,
-              style: context.textTheme.bodyMedium,
-            ),
+            child: Text(message, style: context.textTheme.bodyMedium),
           );
         }
         return ListView.separated(

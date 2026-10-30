@@ -1,5 +1,6 @@
 export 'domain/entities/lengoal_class.dart';
 export 'presentation/pages/class_details_page.dart';
+export 'presentation/pages/class_search_page.dart';
 export 'presentation/pages/my_classes_hub_page.dart';
 export 'presentation/pages/my_classes_page.dart';
 export 'presentation/pages/payment_page.dart';

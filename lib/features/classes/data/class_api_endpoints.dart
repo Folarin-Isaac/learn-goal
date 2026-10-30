@@ -6,6 +6,7 @@ class ClassApiEndpoints {
       '/api/v1/Landing/learner/categories/classes';
   static const String savedClasses = '/api/v1/Learner/GetLearnerSavedClasses';
   static const String classReplay = '/api/v1/Class/class-replay';
+  static const String searchClasses = '/api/v1/Landing/learner/search';
 
   static String classById(String id) => '/api/v1/Class/GetClass/$id';
 

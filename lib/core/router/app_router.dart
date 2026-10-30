@@ -144,6 +144,14 @@ class AppRouter {
         ),
       ),
       GoRoute(
+        path: RoutePaths.classSearch,
+        name: RouteNames.classSearch,
+        pageBuilder: (context, state) => AppPageTransitions.build(
+          state: state,
+          child: const ClassSearchPage(),
+        ),
+      ),
+      GoRoute(
         path: RoutePaths.calendar,
         name: RouteNames.calendar,
         pageBuilder: (context, state) =>

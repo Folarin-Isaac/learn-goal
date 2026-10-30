@@ -67,6 +67,36 @@ class LengoalClass extends Equatable {
 
   double get effectivePrice => discountPrice ?? price;
 
+  LengoalClass asSubscribed() {
+    if (isSubscribed) return this;
+    return LengoalClass(
+      id: id,
+      cohortName: cohortName,
+      educatorName: educatorName,
+      price: price,
+      isFree: isFree,
+      isSubscribed: true,
+      description: description,
+      educatorId: educatorId,
+      educatorImageUrl: educatorImageUrl,
+      educatorTierName: educatorTierName,
+      avatar: avatar,
+      useEducatorAsCoverImage: useEducatorAsCoverImage,
+      bgColorKey: bgColorKey,
+      startDate: startDate,
+      endDate: endDate,
+      discountPrice: discountPrice,
+      numberOfSubscribers: numberOfSubscribers,
+      isSubscriptionClosed: isSubscriptionClosed,
+      goalName: goalName,
+      categoryName: categoryName,
+      guaranteeBadge: guaranteeBadge,
+      refundPolicyDescription: refundPolicyDescription,
+      sessions: sessions,
+      materials: materials,
+    );
+  }
+
   List<ClassReview> get reviews => [
     for (final session in sessions) ...session.reviews,
   ];

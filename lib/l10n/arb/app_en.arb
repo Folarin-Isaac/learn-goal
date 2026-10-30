@@ -201,6 +201,8 @@
     "dashboardNoFilterResults": "No classes match this filter",
     "@dashboardNoFilterResults": {"description": "Empty state for a class section when the active filter matches nothing"},
     "classesEmpty": "No classes here yet",
+    "classSearchPrompt": "Search classes by name or educator",
+    "@classSearchPrompt": {"description": "Idle hint on the class search page before anything is typed"},
     "@classesEmpty": {"description": "Empty state for a class list the API returned no classes for"},
     "dashboardSubscribedClasses": "Subscribed Classes",
     "@dashboardSubscribedClasses": {"description": "My Classes hub tab: classes the user is enrolled in"},

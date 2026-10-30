@@ -20,18 +20,41 @@ class ClassRemoteDataSourceImpl implements ClassRemoteDataSource {
 
   @override
   Future<List<LengoalClassModel>> getSubscribedClasses({String? searchTerm}) {
-    return _getList(ClassApiEndpoints.subscribedClasses, searchTerm);
+    return _getList(
+      ClassApiEndpoints.subscribedClasses,
+      searchTerm,
+      forceSubscribed: true,
+    );
   }
 
   // GetAllClasses is admin-only. The learner landing feed's category list
   // returns every listed class when no CategoryId is given; the
   // upcoming-classes feed drops anything that has already started.
   @override
-  Future<List<LengoalClassModel>> getRecommendedClasses() async {
+  Future<List<LengoalClassModel>> getRecommendedClasses() {
+    return _getLandingList(ClassApiEndpoints.recommendedClasses);
+  }
+
+  @override
+  Future<List<LengoalClassModel>> searchClasses(String searchTerm) {
+    return _getLandingList(
+      ClassApiEndpoints.searchClasses,
+      extraParameters: {'SearchTerm': searchTerm},
+    );
+  }
+
+  Future<List<LengoalClassModel>> _getLandingList(
+    String path, {
+    Map<String, dynamic> extraParameters = const {},
+  }) async {
     try {
       final response = await _apiClient.dio.get<Map<String, dynamic>>(
-        ClassApiEndpoints.recommendedClasses,
-        queryParameters: {'PageSize': _pageSize, 'PageNumber': 1},
+        path,
+        queryParameters: {
+          'PageSize': _pageSize,
+          'PageNumber': 1,
+          ...extraParameters,
+        },
       );
       return _unwrapList(response.data!)
           .map(LengoalClassModel.fromLandingJson)
@@ -125,8 +148,9 @@ class ClassRemoteDataSourceImpl implements ClassRemoteDataSource {
 
   Future<List<LengoalClassModel>> _getList(
     String path,
-    String? searchTerm,
-  ) async {
+    String? searchTerm, {
+    bool forceSubscribed = false,
+  }) async {
     try {
       final response = await _apiClient.dio.get<Map<String, dynamic>>(
         path,
@@ -138,7 +162,12 @@ class ClassRemoteDataSourceImpl implements ClassRemoteDataSource {
         },
       );
       return _unwrapList(response.data!)
-          .map(LengoalClassModel.fromJson)
+          .map(
+            (json) => LengoalClassModel.fromJson(
+              json,
+              forceSubscribed: forceSubscribed,
+            ),
+          )
           .toList();
     } on DioException catch (e) {
       throw _mapException(e);

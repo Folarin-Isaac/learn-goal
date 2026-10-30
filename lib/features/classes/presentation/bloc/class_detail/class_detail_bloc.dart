@@ -45,10 +45,15 @@ class ClassDetailBloc extends Bloc<ClassDetailEvent, ClassDetailState> {
       _getClassUseCase(id),
       _getClassEducatorsUseCase(id),
     ).wait;
+    // The backend's isSubscribed flag isn't reliable; once a list has
+    // established the learner is subscribed, a refresh can't undo that.
+    final fresh = classResult.getRight().toNullable();
     emit(
       state.copyWith(
         isRefreshing: false,
-        lengoalClass: classResult.getRight().toNullable(),
+        lengoalClass: state.lengoalClass.isSubscribed
+            ? fresh?.asSubscribed()
+            : fresh,
         educators: educatorsResult.getRight().toNullable(),
       ),
     );

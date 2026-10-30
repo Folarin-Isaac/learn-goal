@@ -12,6 +12,8 @@ abstract class ClassRepository {
 
   Future<Either<Failure, List<LengoalClass>>> getRecommendedClasses();
 
+  Future<Either<Failure, List<LengoalClass>>> searchClasses(String searchTerm);
+
   Future<Either<Failure, List<LengoalClass>>> getSavedClasses({
     String? searchTerm,
   });

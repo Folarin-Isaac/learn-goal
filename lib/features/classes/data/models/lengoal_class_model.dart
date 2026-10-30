@@ -72,7 +72,10 @@ class LengoalClassModel extends LengoalClass {
     );
   }
 
-  factory fromJson(Map<String, dynamic> json) {
+  // subscribed-classes rows can carry isSubscribed: false, so callers
+  // reading that endpoint pass forceSubscribed to trust the endpoint
+  // over the flag.
+  factory fromJson(Map<String, dynamic> json, {bool forceSubscribed = false}) {
     final goal = json['goal'] as Map<String, dynamic>?;
     final category = json['classCategory'] as Map<String, dynamic>?;
     final pricing = json['pricingModel'] as Map<String, dynamic>?;
@@ -90,7 +93,7 @@ class LengoalClassModel extends LengoalClass {
       educatorName: json['educatorName'] as String? ?? '',
       price: price,
       isFree: (pricing?['isFree'] as bool? ?? false) || price <= 0,
-      isSubscribed: json['isSubscribed'] as bool? ?? false,
+      isSubscribed: forceSubscribed || (json['isSubscribed'] as bool? ?? false),
       description: json['description'] as String?,
       educatorId: json['educatorId'] as String?,
       educatorImageUrl: json['educatorImageUrl'] as String?,

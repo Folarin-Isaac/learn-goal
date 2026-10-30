@@ -117,43 +117,42 @@ class ClassTileListSkeleton extends StatelessWidget {
 }
 
 class ClassCardRowSkeleton extends StatelessWidget {
-  const new({required this.cardWidth, required this.cardHeight, super.key});
+  const new({required this.cardWidth, super.key});
 
   final double cardWidth;
-  final double cardHeight;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: cardHeight,
-      child: Shimmer(
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: 3,
-          separatorBuilder: (context, index) => const Gap(AppSpacing.s16),
-          itemBuilder: (context, index) => SizedBox(
-            width: cardWidth,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AspectRatio(
-                  aspectRatio: 1.35,
-                  child: SkeletonBox(
-                    width: cardWidth,
-                    height: double.infinity,
-                    radius: AppSpacing.r12,
-                  ),
+    return Shimmer(
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: const NeverScrollableScrollPhysics(),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (var i = 0; i < 3; i++) ...[
+              if (i > 0) const Gap(AppSpacing.s16),
+              SizedBox(
+                width: cardWidth,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SkeletonBox(
+                      width: cardWidth,
+                      height: cardWidth / 1.35,
+                      radius: AppSpacing.r12,
+                    ),
+                    const Gap(AppSpacing.s8),
+                    const SkeletonBox(width: 70),
+                    const Gap(AppSpacing.s8),
+                    const SkeletonBox(height: 16),
+                    const Gap(AppSpacing.s8),
+                    const SkeletonBox(width: 90),
+                  ],
                 ),
-                const Gap(AppSpacing.s8),
-                const SkeletonBox(width: 70),
-                const Gap(AppSpacing.s8),
-                const SkeletonBox(height: 16),
-                const Gap(AppSpacing.s8),
-                const SkeletonBox(width: 90),
-              ],
-            ),
-          ),
+              ),
+            ],
+          ],
         ),
       ),
     );

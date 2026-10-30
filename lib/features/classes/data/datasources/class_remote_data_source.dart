@@ -8,6 +8,8 @@ abstract class ClassRemoteDataSource {
 
   Future<List<LengoalClassModel>> getRecommendedClasses();
 
+  Future<List<LengoalClassModel>> searchClasses(String searchTerm);
+
   Future<List<LengoalClassModel>> getSavedClasses({String? searchTerm});
 
   Future<LengoalClassModel> getClass(String id);

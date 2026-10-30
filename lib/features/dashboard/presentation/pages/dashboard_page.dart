@@ -105,7 +105,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         readOnly: true,
                         onTap: () {
                           AppHaptics.selection();
-                          AppSnackbar.info(context.l10n.dashboardComingSoon);
+                          unawaited(context.pushNamed(RouteNames.classSearch));
                         },
                         decoration: InputDecoration(
                           hintText: context.l10n.dashboardSearchHint,

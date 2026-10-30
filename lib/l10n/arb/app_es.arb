@@ -117,6 +117,7 @@
     "dashboardFilterAll": "Todas",
     "dashboardNoFilterResults": "Ninguna clase coincide con este filtro",
     "classesEmpty": "Aún no hay clases aquí",
+    "classSearchPrompt": "Busca clases por nombre o educador",
     "dashboardSubscribedClasses": "Clases suscritas",
     "dashboardSavedClasses": "Clases guardadas",
     "dashboardFilterByLabel": "Filtrar por: {option}",

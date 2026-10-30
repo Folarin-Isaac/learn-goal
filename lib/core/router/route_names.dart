@@ -13,6 +13,7 @@ class RouteNames {
   static const String dashboard = 'dashboard';
   static const String myClasses = 'myClasses';
   static const String recommendedClasses = 'recommendedClasses';
+  static const String classSearch = 'classSearch';
   static const String calendar = 'calendar';
   static const String classesHub = 'classesHub';
   static const String classDetails = 'classDetails';

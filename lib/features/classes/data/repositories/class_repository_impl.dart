@@ -30,6 +30,11 @@ class ClassRepositoryImpl implements ClassRepository {
   }
 
   @override
+  Future<Either<Failure, List<LengoalClass>>> searchClasses(String searchTerm) {
+    return _guard(() => _remoteDataSource.searchClasses(searchTerm));
+  }
+
+  @override
   Future<Either<Failure, List<LengoalClass>>> getSavedClasses({
     String? searchTerm,
   }) {

@@ -13,6 +13,7 @@ class RoutePaths {
   static const String dashboard = '/dashboard';
   static const String myClasses = '/dashboard/my-classes';
   static const String recommendedClasses = '/dashboard/recommended-classes';
+  static const String classSearch = '/dashboard/search';
   static const String calendar = '/dashboard/calendar';
   static const String classesHub = '/classes';
   static const String classDetails = '/classes/details';

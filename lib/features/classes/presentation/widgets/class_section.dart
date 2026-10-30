@@ -31,7 +31,6 @@ class ClassSection extends StatelessWidget {
           _minCardWidth,
           _maxCardWidth,
         );
-        final cardHeight = ClassCard.preferredHeight(cardWidth);
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -57,10 +56,7 @@ class ClassSection extends StatelessWidget {
             ClassListLoader(
               source: source,
               compactError: true,
-              loading: ClassCardRowSkeleton(
-                cardWidth: cardWidth,
-                cardHeight: cardHeight,
-              ),
+              loading: ClassCardRowSkeleton(cardWidth: cardWidth),
               builder: (context, classes) {
                 if (classes.isEmpty) {
                   return Padding(
@@ -75,28 +71,31 @@ class ClassSection extends StatelessWidget {
                     ),
                   );
                 }
-                return SizedBox(
-                  height: cardHeight,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: classes.length,
-                    separatorBuilder: (context, index) =>
-                        const Gap(AppSpacing.s16),
-                    itemBuilder: (context, index) => Entrance(
-                      index: entranceIndex + 1 + index,
-                      offset: const Offset(20, 0),
-                      child: ClassCard(
-                        item: ClassSummary.fromClass(
-                          classes[index],
-                          isFavorite: source == ClassListSource.saved,
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  clipBehavior: Clip.none,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      for (var index = 0; index < classes.length; index++) ...[
+                        if (index > 0) const Gap(AppSpacing.s16),
+                        Entrance(
+                          index: entranceIndex + 1 + index,
+                          offset: const Offset(20, 0),
+                          child: ClassCard(
+                            item: ClassSummary.fromClass(
+                              classes[index],
+                              isFavorite: source == ClassListSource.saved,
+                            ),
+                            width: cardWidth,
+                            onTap: () => context.pushNamed(
+                              RouteNames.classDetails,
+                              extra: classes[index],
+                            ),
+                          ),
                         ),
-                        width: cardWidth,
-                        onTap: () => context.pushNamed(
-                          RouteNames.classDetails,
-                          extra: classes[index],
-                        ),
-                      ),
-                    ),
+                      ],
+                    ],
                   ),
                 );
               },
