@@ -11,6 +11,7 @@ export 'package:lengoal/core/theme/app_spacing.dart';
 export 'package:lengoal/core/theme/app_text_styles.dart';
 export 'package:lengoal/core/utils/extensions/context_extensions.dart';
 export 'package:lengoal/core/utils/extensions/string_extensions.dart';
+export 'package:lengoal/core/utils/external_links.dart';
 export 'package:lengoal/core/utils/haptics.dart';
 export 'package:lengoal/core/utils/validators.dart';
 export 'package:lengoal/core/widgets/app_back_button.dart';

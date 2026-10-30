@@ -1,4 +1,4 @@
-enum MaterialFileType { pdf, word, excel, link }
+enum MaterialFileType { pdf, word, excel, file, link }
 
 class ClassMaterial {
   const new({required this.name, required this.fileType, required this.url});

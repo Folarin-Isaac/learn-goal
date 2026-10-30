@@ -9,6 +9,8 @@ class CalendarSession {
     required this.status,
     required this.meetingUrl,
     this.host,
+    this.id,
+    this.hasReplay = false,
   });
 
   final String title;
@@ -18,6 +20,8 @@ class CalendarSession {
   final CalendarSessionStatus status;
   final String meetingUrl;
   final String? host;
+  final String? id;
+  final bool hasReplay;
 }
 
 const mockCalendarSessions = [

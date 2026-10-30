@@ -12,9 +12,11 @@ class ClassMaterialFile extends Equatable {
   final String name;
   final String url;
 
-  // Raw backend `classMaterialType` code; its meaning isn't documented
-  // yet, so the UI infers the file kind from the name/URL instead.
+  // Backend `classMaterialType`: 0 is an external link, anything else an
+  // uploaded file whose kind (pdf, docx, ...) is read from its URL.
   final int type;
+
+  bool get isLink => type == 0;
 
   @override
   List<Object?> get props => [id, name, url, type];

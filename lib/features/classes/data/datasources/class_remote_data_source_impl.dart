@@ -3,7 +3,10 @@ import 'package:lengoal/core/error/exceptions.dart';
 import 'package:lengoal/core/network/api_client.dart';
 import 'package:lengoal/features/classes/data/class_api_endpoints.dart';
 import 'package:lengoal/features/classes/data/datasources/class_remote_data_source.dart';
+import 'package:lengoal/features/classes/data/models/class_educator_model.dart';
 import 'package:lengoal/features/classes/data/models/lengoal_class_model.dart';
+import 'package:lengoal/features/classes/domain/entities/class_referral.dart';
+import 'package:lengoal/features/classes/domain/entities/class_replay.dart';
 
 class ClassRemoteDataSourceImpl implements ClassRemoteDataSource {
   new(this._apiClient);
@@ -36,11 +39,75 @@ class ClassRemoteDataSourceImpl implements ClassRemoteDataSource {
       final response = await _apiClient.dio.get<Map<String, dynamic>>(
         ClassApiEndpoints.classById(id),
       );
-      final body = _checkSucceeded(response.data!);
-      return LengoalClassModel.fromJson(body['data'] as Map<String, dynamic>);
+      return LengoalClassModel.fromJson(_unwrapObject(response.data!));
     } on DioException catch (e) {
       throw _mapException(e);
     }
+  }
+
+  @override
+  Future<List<ClassEducatorModel>> getClassEducators(String classId) async {
+    try {
+      final response = await _apiClient.dio.get<Map<String, dynamic>>(
+        ClassApiEndpoints.classEducators(classId),
+      );
+      return _unwrapList(response.data!)
+          .map(ClassEducatorModel.fromJson)
+          .toList();
+    } on DioException catch (e) {
+      throw _mapException(e);
+    }
+  }
+
+  @override
+  Future<ClassReplay> getClassReplay(String classOutlineId) async {
+    try {
+      final response = await _apiClient.dio.get<Map<String, dynamic>>(
+        ClassApiEndpoints.classReplay,
+        queryParameters: {'ClassOutlineId': classOutlineId},
+      );
+      final data = _unwrapObject(response.data!);
+      final url = data['recordFileUrl'] as String?;
+      if (url == null || url.isEmpty) {
+        throw ServerException('This replay is not available yet.');
+      }
+      return ClassReplay(
+        recordFileUrl: url,
+        topic: data['topic'] as String?,
+        streamId: data['streamId'] as String?,
+      );
+    } on DioException catch (e) {
+      throw _mapException(e);
+    }
+  }
+
+  // Unlike GetClassReferral, `data` here is the bare link string, with
+  // the code carried in its `ref` query parameter.
+  @override
+  Future<ClassReferral> generateClassReferral(String classId) async {
+    try {
+      final response = await _apiClient.dio.post<Map<String, dynamic>>(
+        ClassApiEndpoints.generateReferral(classId),
+      );
+      final link = _checkSucceeded(response.data!)['data'];
+      if (link is! String || link.isEmpty) {
+        throw ServerException('Could not create a share link.');
+      }
+      return ClassReferral(
+        referralCode: Uri.tryParse(link)?.queryParameters['ref'] ?? '',
+        referralLink: link,
+      );
+    } on DioException catch (e) {
+      throw _mapException(e);
+    }
+  }
+
+  Map<String, dynamic> _unwrapObject(Map<String, dynamic> body) {
+    final data = _checkSucceeded(body)['data'];
+    if (data is! Map<String, dynamic>) {
+      throw ServerException();
+    }
+    return data;
   }
 
   Future<List<LengoalClassModel>> _getList(

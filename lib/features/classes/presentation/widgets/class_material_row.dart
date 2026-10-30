@@ -12,9 +12,12 @@ class ClassMaterialRow extends StatelessWidget {
 
     return Pressable(
       child: InkWell(
-        onTap: () {
+        onTap: () async {
           AppHaptics.selection();
-          AppSnackbar.info(context.l10n.dashboardComingSoon);
+          final failedMessage = context.l10n.classDetailsLinkOpenFailed;
+          if (!await openExternalUrl(material.url)) {
+            AppSnackbar.error(failedMessage);
+          }
         },
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: AppSpacing.s8),
@@ -69,14 +72,14 @@ class _FileIcon extends StatelessWidget {
         width: 36,
         height: 36,
       ),
-      MaterialFileType.link => Container(
-        width: 36,
-        height: 36,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: context.colors.primary.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(AppSpacing.r8),
+      MaterialFileType.file => _TintedIcon(
+        child: Icon(
+          Icons.insert_drive_file_outlined,
+          size: 18,
+          color: context.colors.primary,
         ),
+      ),
+      MaterialFileType.link => _TintedIcon(
         child: Assets.icons.linkIcon.svg(
           width: 18,
           height: 18,
@@ -87,5 +90,25 @@ class _FileIcon extends StatelessWidget {
         ),
       ),
     };
+  }
+}
+
+class _TintedIcon extends StatelessWidget {
+  const new({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 36,
+      height: 36,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: context.colors.primary.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(AppSpacing.r8),
+      ),
+      child: child,
+    );
   }
 }

@@ -84,6 +84,9 @@ CalendarSession _toCalendarSession(
     status: status,
     meetingUrl: '',
     host: host,
+    id: session.id,
+    hasReplay:
+        session.isClassRecorded && status == CalendarSessionStatus.concluded,
   );
 }
 
@@ -91,19 +94,21 @@ ClassMaterial _toMaterial(ClassMaterialFile file) {
   final name = file.name.isEmpty ? file.url : file.name;
   return ClassMaterial(
     name: name,
-    fileType: materialFileTypeFor('$name ${file.url}'),
+    fileType: file.isLink
+        ? MaterialFileType.link
+        : materialFileTypeFor(file.url),
     url: file.url,
   );
 }
 
-MaterialFileType materialFileTypeFor(String text) {
-  final lower = text.toLowerCase();
+MaterialFileType materialFileTypeFor(String url) {
+  final lower = url.toLowerCase();
   if (RegExp(r'\.pdf\b').hasMatch(lower)) return MaterialFileType.pdf;
   if (RegExp(r'\.docx?\b').hasMatch(lower)) return MaterialFileType.word;
   if (RegExp(r'\.(xlsx?|csv)\b').hasMatch(lower)) {
     return MaterialFileType.excel;
   }
-  return MaterialFileType.link;
+  return MaterialFileType.file;
 }
 
 String htmlToPlainText(String html) {
