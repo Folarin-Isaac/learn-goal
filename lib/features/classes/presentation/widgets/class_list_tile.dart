@@ -8,6 +8,7 @@ class ClassListTile extends StatelessWidget {
     required this.item,
     required this.showFavorite,
     this.showProgress = true,
+    this.centerInfo = false,
     this.onTap,
     super.key,
   });
@@ -15,6 +16,7 @@ class ClassListTile extends StatelessWidget {
   final ClassSummary item;
   final bool showFavorite;
   final bool showProgress;
+  final bool centerInfo;
   final VoidCallback? onTap;
 
   static const double _thumbnailFraction = 0.45;
@@ -50,6 +52,11 @@ class ClassListTile extends StatelessWidget {
                       _minThumbnailWidth,
                       _maxThumbnailWidth,
                     );
+                final info = ClassInfoColumn(
+                  item: item,
+                  stackDate: true,
+                  showProgress: showProgress,
+                );
                 return IntrinsicHeight(
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -68,16 +75,17 @@ class ClassListTile extends StatelessWidget {
                       ),
                       const Gap(12),
                       Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: AppSpacing.s4,
-                          ),
-                          child: ClassInfoColumn(
-                            item: item,
-                            stackDate: true,
-                            showProgress: showProgress,
-                          ),
-                        ),
+                        child: centerInfo
+                            ? Align(
+                                alignment: AlignmentDirectional.centerStart,
+                                child: info,
+                              )
+                            : Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: AppSpacing.s4,
+                                ),
+                                child: info,
+                              ),
                       ),
                     ],
                   ),

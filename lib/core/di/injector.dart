@@ -59,6 +59,11 @@ Future<void> setupInjector({bool enableNetworkLogging = false}) async {
   _initProfile();
   _initClasses();
 
+  // Resolve the stored session before the first frame and before the
+  // session syncs start, so the router never sees an "unknown" status
+  // and a not-kept session is ended exactly once, at launch.
+  await getIt<AuthRepository>().checkAuthStatus();
+
   getIt<ProfileSessionSync>().start();
   getIt<ClassListSessionSync>().start();
 }

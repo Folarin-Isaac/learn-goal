@@ -15,11 +15,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   final AuthRepository _authRepository;
 
-  Future<void> _onCheckRequested(
-    AuthCheckRequested event,
-    Emitter<AuthState> emit,
-  ) async {
-    await _authRepository.checkAuthStatus();
+  // The stored session is resolved once during app startup (see
+  // setupInjector); re-running that check here would end a session the
+  // learner just started without "Keep me signed in", because this bloc
+  // is only created when a screen first reads it.
+  void _onCheckRequested(AuthCheckRequested event, Emitter<AuthState> emit) {
     emit(
       _authRepository.currentAuthStatus == AuthStatus.authenticated
           ? const AuthAuthenticated()

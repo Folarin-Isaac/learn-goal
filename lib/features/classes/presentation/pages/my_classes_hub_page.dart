@@ -259,6 +259,7 @@ class _ClassTabState extends State<_ClassTab>
           item: entries[index].summary,
           showFavorite: true,
           showProgress: !isSaved,
+          centerInfo: isSaved,
           onTap: () => context.pushNamed(
             RouteNames.classDetails,
             extra: entries[index].lengoalClass,
