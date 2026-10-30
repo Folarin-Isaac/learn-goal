@@ -54,6 +54,7 @@ class _ResetPasswordViewState extends State<_ResetPasswordView> {
           }
         },
         builder: (context, state) {
+          final isSubmitting = state.status == ResetPasswordStatus.submitting;
           return SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(AppSpacing.s24),
@@ -85,6 +86,7 @@ class _ResetPasswordViewState extends State<_ResetPasswordView> {
                       isPassword: true,
                       textInputAction: TextInputAction.next,
                       autofillHints: const [AutofillHints.newPassword],
+                      enabled: !isSubmitting,
                       validator: (value) =>
                           Validators.strongPassword(context, value),
                       onChanged: (_) => setState(() {}),
@@ -97,6 +99,7 @@ class _ResetPasswordViewState extends State<_ResetPasswordView> {
                       isPassword: true,
                       textInputAction: TextInputAction.done,
                       autofillHints: const [AutofillHints.newPassword],
+                      enabled: !isSubmitting,
                       validator: (value) => Validators.confirmPassword(
                         context,
                         value,

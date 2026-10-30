@@ -55,6 +55,7 @@ class _LoginViewState extends State<_LoginView> {
           }
         },
         builder: (context, state) {
+          final isSubmitting = state.status == LoginStatus.submitting;
           return SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(AppSpacing.s24),
@@ -89,6 +90,7 @@ class _LoginViewState extends State<_LoginView> {
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
                       autofillHints: const [AutofillHints.email],
+                      enabled: !isSubmitting,
                       validator: (value) => Validators.email(context, value),
                     ),
                     const Gap(AppSpacing.s16),
@@ -99,6 +101,7 @@ class _LoginViewState extends State<_LoginView> {
                       textInputAction: TextInputAction.done,
                       isPassword: true,
                       autofillHints: const [AutofillHints.password],
+                      enabled: !isSubmitting,
                       validator: (value) => Validators.password(context, value),
                     ),
                     const Gap(AppSpacing.s16),

@@ -18,6 +18,7 @@ class AppTextField extends StatefulWidget {
     this.autofillHints,
     this.onChanged,
     this.readOnly = false,
+    this.enabled = true,
     this.onTap,
     this.inputFormatters,
   }) : assert(
@@ -32,6 +33,7 @@ class AppTextField extends StatefulWidget {
   final String? helperText;
   final bool isPassword;
   final bool readOnly;
+  final bool enabled;
   final VoidCallback? onTap;
   final TextInputType? keyboardType;
   final String? Function(String?)? validator;
@@ -74,6 +76,7 @@ class _AppTextFieldState extends State<AppTextField> {
                   textInputAction: widget.textInputAction,
                   autofillHints: widget.autofillHints,
                   readOnly: widget.readOnly,
+                  enabled: widget.enabled,
                   onTap: widget.onTap,
                   inputFormatters:
                       widget.inputFormatters ??
@@ -93,7 +96,7 @@ class _AppTextFieldState extends State<AppTextField> {
                     errorText: field.hasError ? '' : null,
                     errorStyle: const TextStyle(fontSize: 0, height: 0.01),
                     suffixIcon: widget.isPassword
-                        ? _visibilityToggle()
+                        ? _visibilityToggle(widget.enabled)
                         : widget.suffixIcon,
                   ),
                 ),
@@ -122,13 +125,15 @@ class _AppTextFieldState extends State<AppTextField> {
     );
   }
 
-  Widget _visibilityToggle() {
+  Widget _visibilityToggle(bool enabled) {
     return IconButton(
       icon: Icon(_obscured ? Icons.visibility_off : Icons.visibility),
-      onPressed: () {
-        AppHaptics.selection();
-        setState(() => _obscured = !_obscured);
-      },
+      onPressed: enabled
+          ? () {
+              AppHaptics.selection();
+              setState(() => _obscured = !_obscured);
+            }
+          : null,
     );
   }
 }

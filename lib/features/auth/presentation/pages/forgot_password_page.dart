@@ -1,4 +1,4 @@
-﻿import 'package:lengoal/core/core.dart';
+import 'package:lengoal/core/core.dart';
 import 'package:lengoal/features/auth/auth.dart';
 
 class ForgotPasswordPage extends StatelessWidget {
@@ -50,6 +50,7 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
           }
         },
         builder: (context, state) {
+          final isSubmitting = state.status == ForgotPasswordStatus.submitting;
           return SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(AppSpacing.s24),
@@ -81,6 +82,7 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.done,
                       autofillHints: const [AutofillHints.email],
+                      enabled: !isSubmitting,
                       validator: (value) => Validators.email(context, value),
                     ),
                     const Gap(AppSpacing.s48 * 4),

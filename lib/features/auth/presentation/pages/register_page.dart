@@ -58,6 +58,7 @@ class _RegisterViewState extends State<_RegisterView> {
           }
         },
         builder: (context, state) {
+          final isSubmitting = state.status == RegisterStatus.submitting;
           return SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(AppSpacing.s24),
@@ -88,6 +89,7 @@ class _RegisterViewState extends State<_RegisterView> {
                       hint: context.l10n.registerFirstNameHint,
                       textInputAction: TextInputAction.next,
                       autofillHints: const [AutofillHints.givenName],
+                      enabled: !isSubmitting,
                       validator: (value) => Validators.notEmpty(
                         context,
                         value,
@@ -101,6 +103,7 @@ class _RegisterViewState extends State<_RegisterView> {
                       hint: context.l10n.registerLastNameHint,
                       textInputAction: TextInputAction.next,
                       autofillHints: const [AutofillHints.familyName],
+                      enabled: !isSubmitting,
                       validator: (value) => Validators.notEmpty(
                         context,
                         value,
@@ -115,6 +118,7 @@ class _RegisterViewState extends State<_RegisterView> {
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
                       autofillHints: const [AutofillHints.email],
+                      enabled: !isSubmitting,
                       validator: (value) => Validators.email(context, value),
                     ),
                     const Gap(AppSpacing.s16),
@@ -125,6 +129,7 @@ class _RegisterViewState extends State<_RegisterView> {
                       keyboardType: TextInputType.number,
                       textInputAction: TextInputAction.next,
                       autofillHints: const [AutofillHints.telephoneNumber],
+                      enabled: !isSubmitting,
                       validator: (value) =>
                           Validators.phoneNumber(context, value),
                     ),
@@ -136,6 +141,7 @@ class _RegisterViewState extends State<_RegisterView> {
                       isPassword: true,
                       textInputAction: TextInputAction.next,
                       autofillHints: const [AutofillHints.newPassword],
+                      enabled: !isSubmitting,
                       validator: (value) =>
                           Validators.strongPassword(context, value),
                       onChanged: (_) => setState(() {}),
@@ -148,6 +154,7 @@ class _RegisterViewState extends State<_RegisterView> {
                       isPassword: true,
                       textInputAction: TextInputAction.done,
                       autofillHints: const [AutofillHints.newPassword],
+                      enabled: !isSubmitting,
                       validator: (value) => Validators.confirmPassword(
                         context,
                         value,
