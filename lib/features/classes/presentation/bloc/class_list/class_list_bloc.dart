@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lengoal/core/error/failures.dart';
 import 'package:lengoal/features/classes/domain/entities/lengoal_class.dart';
-import 'package:lengoal/features/classes/domain/usecases/get_all_classes_usecase.dart';
+import 'package:lengoal/features/classes/domain/usecases/get_recommended_classes_usecase.dart';
 import 'package:lengoal/features/classes/domain/usecases/get_saved_classes_usecase.dart';
 import 'package:lengoal/features/classes/domain/usecases/get_subscribed_classes_usecase.dart';
 
@@ -18,10 +18,10 @@ class ClassListBloc extends Bloc<ClassListEvent, ClassListState> {
   new({
     required this.source,
     required GetSubscribedClassesUseCase getSubscribedClassesUseCase,
-    required GetAllClassesUseCase getAllClassesUseCase,
+    required GetRecommendedClassesUseCase getRecommendedClassesUseCase,
     required GetSavedClassesUseCase getSavedClassesUseCase,
   }) : _getSubscribedClassesUseCase = getSubscribedClassesUseCase,
-       _getAllClassesUseCase = getAllClassesUseCase,
+       _getRecommendedClassesUseCase = getRecommendedClassesUseCase,
        _getSavedClassesUseCase = getSavedClassesUseCase,
        super(const ClassListState()) {
     on<ClassListRequested>(_onRequested);
@@ -29,7 +29,7 @@ class ClassListBloc extends Bloc<ClassListEvent, ClassListState> {
 
   final ClassListSource source;
   final GetSubscribedClassesUseCase _getSubscribedClassesUseCase;
-  final GetAllClassesUseCase _getAllClassesUseCase;
+  final GetRecommendedClassesUseCase _getRecommendedClassesUseCase;
   final GetSavedClassesUseCase _getSavedClassesUseCase;
 
   Future<void> _onRequested(
@@ -60,7 +60,7 @@ class ClassListBloc extends Bloc<ClassListEvent, ClassListState> {
   Future<Either<Failure, List<LengoalClass>>> _fetch() {
     return switch (source) {
       ClassListSource.subscribed => _getSubscribedClassesUseCase(),
-      ClassListSource.recommended => _getAllClassesUseCase(),
+      ClassListSource.recommended => _getRecommendedClassesUseCase(),
       ClassListSource.saved => _getSavedClassesUseCase(),
     };
   }

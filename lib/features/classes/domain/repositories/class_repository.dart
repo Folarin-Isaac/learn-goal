@@ -10,9 +10,7 @@ abstract class ClassRepository {
     String? searchTerm,
   });
 
-  Future<Either<Failure, List<LengoalClass>>> getAllClasses({
-    String? searchTerm,
-  });
+  Future<Either<Failure, List<LengoalClass>>> getRecommendedClasses();
 
   Future<Either<Failure, List<LengoalClass>>> getSavedClasses({
     String? searchTerm,

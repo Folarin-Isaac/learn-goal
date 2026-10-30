@@ -6,7 +6,7 @@ import 'package:lengoal/features/classes/domain/entities/class_replay.dart';
 abstract class ClassRemoteDataSource {
   Future<List<LengoalClassModel>> getSubscribedClasses({String? searchTerm});
 
-  Future<List<LengoalClassModel>> getAllClasses({String? searchTerm});
+  Future<List<LengoalClassModel>> getRecommendedClasses();
 
   Future<List<LengoalClassModel>> getSavedClasses({String? searchTerm});
 

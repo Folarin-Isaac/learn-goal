@@ -30,6 +30,48 @@ class LengoalClassModel extends LengoalClass {
     super.materials,
   });
 
+  // LandingClassDto from /Landing/learner/* — a slimmer card shape with
+  // different field names and no materials; GetClass fills those in on
+  // the details page.
+  factory fromLandingJson(Map<String, dynamic> json) {
+    final refund = json['refundPolicy'] as Map<String, dynamic>?;
+    final outline = json['classOutline'] as List<dynamic>? ?? const [];
+    final price = (json['price'] as num?)?.toDouble() ?? 0;
+    final isDiscounted = json['isDiscounted'] as bool? ?? false;
+
+    return LengoalClassModel(
+      id: json['classId'] as String,
+      cohortName: json['cohortName'] as String? ?? '',
+      educatorName: json['educatorName'] as String? ?? '',
+      price: price,
+      isFree: price <= 0,
+      isSubscribed: json['enrollmentStatus'] as bool? ?? false,
+      description: json['description'] as String?,
+      educatorId: json['educatorId'] as String?,
+      educatorImageUrl: json['educatorProfilePicture'] as String?,
+      educatorTierName: json['educatorTierName'] as String?,
+      avatar: json['cohortThumbnail'] as String?,
+      useEducatorAsCoverImage:
+          json['useEducatorAsCoverImage'] as bool? ?? false,
+      bgColorKey: json['bgColorKey'] as String?,
+      startDate: DateTime.tryParse(json['startDate'] as String? ?? ''),
+      endDate: DateTime.tryParse(json['endDate'] as String? ?? ''),
+      discountPrice: isDiscounted
+          ? (json['discountPrice'] as num?)?.toDouble()
+          : null,
+      numberOfSubscribers: json['subscribedLearnersCount'] as int? ?? 0,
+      goalName: json['goal'] as String?,
+      categoryName: json['category'] as String?,
+      guaranteeBadge: refund?['guaranteeBadge'] as String?,
+      refundPolicyDescription: refund?['policyDescription'] as String?,
+      sessions: outline
+          .cast<Map<String, dynamic>>()
+          .where((session) => session['isDeleted'] != true)
+          .map(ClassSessionModel.fromJson)
+          .toList(),
+    );
+  }
+
   factory fromJson(Map<String, dynamic> json) {
     final goal = json['goal'] as Map<String, dynamic>?;
     final category = json['classCategory'] as Map<String, dynamic>?;

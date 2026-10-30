@@ -21,10 +21,10 @@ import 'package:lengoal/features/classes/data/repositories/class_repository_impl
 import 'package:lengoal/features/classes/domain/entities/lengoal_class.dart';
 import 'package:lengoal/features/classes/domain/repositories/class_repository.dart';
 import 'package:lengoal/features/classes/domain/usecases/generate_class_referral_usecase.dart';
-import 'package:lengoal/features/classes/domain/usecases/get_all_classes_usecase.dart';
 import 'package:lengoal/features/classes/domain/usecases/get_class_educators_usecase.dart';
 import 'package:lengoal/features/classes/domain/usecases/get_class_replay_usecase.dart';
 import 'package:lengoal/features/classes/domain/usecases/get_class_usecase.dart';
+import 'package:lengoal/features/classes/domain/usecases/get_recommended_classes_usecase.dart';
 import 'package:lengoal/features/classes/domain/usecases/get_saved_classes_usecase.dart';
 import 'package:lengoal/features/classes/domain/usecases/get_subscribed_classes_usecase.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_detail/class_detail_bloc.dart';
@@ -98,7 +98,7 @@ void _initClasses() {
           ClassRepositoryImpl(remoteDataSource: getIt(), networkInfo: getIt()),
     )
     ..registerLazySingleton(() => GetSubscribedClassesUseCase(getIt()))
-    ..registerLazySingleton(() => GetAllClassesUseCase(getIt()))
+    ..registerLazySingleton(() => GetRecommendedClassesUseCase(getIt()))
     ..registerLazySingleton(() => GetSavedClassesUseCase(getIt()))
     ..registerLazySingleton(() => GetClassUseCase(getIt()))
     ..registerLazySingleton(() => GetClassEducatorsUseCase(getIt()))
@@ -108,7 +108,7 @@ void _initClasses() {
       (source, _) => ClassListBloc(
         source: source,
         getSubscribedClassesUseCase: getIt(),
-        getAllClassesUseCase: getIt(),
+        getRecommendedClassesUseCase: getIt(),
         getSavedClassesUseCase: getIt(),
       ),
     )

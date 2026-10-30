@@ -23,9 +23,25 @@ class ClassRemoteDataSourceImpl implements ClassRemoteDataSource {
     return _getList(ClassApiEndpoints.subscribedClasses, searchTerm);
   }
 
+  // GetAllClasses is admin-only, so recommendations come from the learner
+  // landing feed, best-rated first.
   @override
-  Future<List<LengoalClassModel>> getAllClasses({String? searchTerm}) {
-    return _getList(ClassApiEndpoints.allClasses, searchTerm);
+  Future<List<LengoalClassModel>> getRecommendedClasses() async {
+    try {
+      final response = await _apiClient.dio.get<Map<String, dynamic>>(
+        ClassApiEndpoints.recommendedClasses,
+        queryParameters: {
+          'PageSize': _pageSize,
+          'PageNumber': 1,
+          'SortByStarRating': true,
+        },
+      );
+      return _unwrapList(response.data!)
+          .map(LengoalClassModel.fromLandingJson)
+          .toList();
+    } on DioException catch (e) {
+      throw _mapException(e);
+    }
   }
 
   @override
