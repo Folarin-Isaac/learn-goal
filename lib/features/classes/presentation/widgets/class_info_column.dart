@@ -2,10 +2,16 @@ import 'package:lengoal/core/core.dart';
 import 'package:lengoal/features/classes/presentation/models/class_summary.dart';
 
 class ClassInfoColumn extends StatelessWidget {
-  const new({required this.item, this.stackDate = false, super.key});
+  const new({
+    required this.item,
+    this.stackDate = false,
+    this.showProgress = true,
+    super.key,
+  });
 
   final ClassSummary item;
   final bool stackDate;
+  final bool showProgress;
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +65,7 @@ class ClassInfoColumn extends StatelessWidget {
       children: [
         if (stackDate) ...[
           tag,
-          const Gap(AppSpacing.s4),
+          const Gap(AppSpacing.s8),
           date,
         ] else
           Row(
@@ -69,25 +75,26 @@ class ClassInfoColumn extends StatelessWidget {
               Expanded(child: date),
             ],
           ),
-        const Gap(AppSpacing.s4),
+        Gap(stackDate ? 6 : AppSpacing.s4),
         Text(
           item.title,
-          maxLines: 2,
+          maxLines: stackDate ? 3 : 2,
           overflow: TextOverflow.ellipsis,
           style: context.textTheme.bodyLarge?.copyWith(
             fontWeight: FontWeight.w600,
-            fontSize: 14,
+            fontSize: stackDate ? 15 : 14,
+            height: 1.35,
           ),
         ),
-        const Gap(AppSpacing.s4),
+        Gap(stackDate ? 6 : AppSpacing.s4),
         Text(
           item.instructor,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: context.textTheme.bodyMedium,
         ),
-        if (item.isSubscribed) ...[
-          const Gap(AppSpacing.s8),
+        if (showProgress && item.isSubscribed) ...[
+          Gap(stackDate ? 10 : AppSpacing.s8),
           ClipRRect(
             borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
             child: LinearProgressIndicator(
@@ -99,7 +106,7 @@ class ClassInfoColumn extends StatelessWidget {
               valueColor: AlwaysStoppedAnimation(colorScheme.primary),
             ),
           ),
-          const Gap(AppSpacing.s4),
+          Gap(stackDate ? 6 : AppSpacing.s4),
           FittedBox(
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,

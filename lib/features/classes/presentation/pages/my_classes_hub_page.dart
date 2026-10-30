@@ -258,6 +258,7 @@ class _ClassTabState extends State<_ClassTab>
         child: ClassListTile(
           item: entries[index].summary,
           showFavorite: true,
+          showProgress: !isSaved,
           onTap: () => context.pushNamed(
             RouteNames.classDetails,
             extra: entries[index].lengoalClass,

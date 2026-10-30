@@ -7,17 +7,20 @@ class ClassListTile extends StatelessWidget {
   const new({
     required this.item,
     required this.showFavorite,
+    this.showProgress = true,
     this.onTap,
     super.key,
   });
 
   final ClassSummary item;
   final bool showFavorite;
+  final bool showProgress;
   final VoidCallback? onTap;
 
-  static const double _thumbnailFraction = 0.42;
-  static const double _minThumbnailSize = 110;
-  static const double _maxThumbnailSize = 160;
+  static const double _thumbnailFraction = 0.45;
+  static const double _minThumbnailWidth = 120;
+  static const double _maxThumbnailWidth = 170;
+  static const double _thumbnailAspect = 1.08;
 
   @override
   Widget build(BuildContext context) {
@@ -39,30 +42,45 @@ class ClassListTile extends StatelessWidget {
             }
           },
           child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.s8),
+            padding: const EdgeInsets.all(12),
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final thumbnailSize =
+                final thumbnailWidth =
                     (constraints.maxWidth * _thumbnailFraction).clamp(
-                      _minThumbnailSize,
-                      _maxThumbnailSize,
+                      _minThumbnailWidth,
+                      _maxThumbnailWidth,
                     );
-                return Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      width: thumbnailSize,
-                      height: thumbnailSize,
-                      child: ClassThumbnail(
-                        item: item,
-                        showFavorite: showFavorite,
+                return IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: thumbnailWidth * _thumbnailAspect,
+                        ),
+                        child: SizedBox(
+                          width: thumbnailWidth,
+                          child: ClassThumbnail(
+                            item: item,
+                            showFavorite: showFavorite,
+                          ),
+                        ),
                       ),
-                    ),
-                    const Gap(AppSpacing.s16),
-                    Expanded(
-                      child: ClassInfoColumn(item: item, stackDate: true),
-                    ),
-                  ],
+                      const Gap(12),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: AppSpacing.s4,
+                          ),
+                          child: ClassInfoColumn(
+                            item: item,
+                            stackDate: true,
+                            showProgress: showProgress,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 );
               },
             ),
