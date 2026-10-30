@@ -38,9 +38,10 @@ final _items = [
 ];
 
 class DashboardBottomNav extends StatelessWidget {
-  const new({this.currentIndex = 0, super.key});
+  const new({this.currentIndex = 0, this.onSelect, super.key});
 
   final int currentIndex;
+  final ValueChanged<int>? onSelect;
 
   @override
   Widget build(BuildContext context) {
@@ -68,12 +69,14 @@ class DashboardBottomNav extends StatelessWidget {
                 isActive: i == currentIndex,
                 onTap: i == currentIndex
                     ? null
+                    : onSelect != null
+                    ? () => onSelect!(i)
                     : switch (i) {
                         0 => () => context.goNamed(RouteNames.dashboard),
-                        1 => () => context.pushNamed(RouteNames.classesHub),
-                        // 2 => () => context.pushNamed(RouteNames.practice),
-                        // 3 => () => context.pushNamed(RouteNames.community),
-                        2 => () => context.pushNamed(RouteNames.chats),
+                        1 => () => context.goNamed(RouteNames.classesHub),
+                        // 2 => () => context.goNamed(RouteNames.practice),
+                        // 3 => () => context.goNamed(RouteNames.community),
+                        2 => () => context.goNamed(RouteNames.chats),
                         _ => null,
                       },
               ),

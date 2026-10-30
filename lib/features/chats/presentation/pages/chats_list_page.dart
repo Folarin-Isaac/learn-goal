@@ -64,6 +64,7 @@ class _ChatsListPageState extends State<ChatsListPage>
             Expanded(
               child: TabBarView(
                 controller: _tabController,
+                physics: const NeverScrollableScrollPhysics(),
                 children: [
                   _ChatList(conversations: mockGroupChats, onTap: _openThread),
                   _ChatList(conversations: mockDirectChats, onTap: _openThread),
@@ -77,7 +78,6 @@ class _ChatsListPageState extends State<ChatsListPage>
           ],
         ),
       ),
-      bottomNavigationBar: const DashboardBottomNav(currentIndex: 4),
     );
   }
 }

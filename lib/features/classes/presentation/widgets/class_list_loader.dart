@@ -2,7 +2,21 @@ import 'package:lengoal/core/core.dart';
 import 'package:lengoal/features/classes/domain/entities/lengoal_class.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_list/class_list_bloc.dart';
 
-class ClassListLoader extends StatelessWidget {
+Future<void> refreshClassLists(List<ClassListSource> sources) {
+  return Future.wait([
+    for (final source in sources) _refresh(classListBlocFor(source)),
+  ]);
+}
+
+Future<void> _refresh(ClassListBloc bloc) async {
+  final done = bloc.stream.firstWhere(
+    (state) => !state.isRefreshing && state.status != ClassListStatus.loading,
+  );
+  bloc.add(const ClassListRequested(force: true));
+  await done.timeout(const Duration(seconds: 30), onTimeout: () => bloc.state);
+}
+
+class ClassListLoader extends StatefulWidget {
   const new({
     required this.source,
     required this.loading,
@@ -18,26 +32,31 @@ class ClassListLoader extends StatelessWidget {
   final bool compactError;
 
   @override
+  State<ClassListLoader> createState() => _ClassListLoaderState();
+}
+
+class _ClassListLoaderState extends State<ClassListLoader> {
+  late final ClassListBloc _bloc = classListBlocFor(widget.source)
+    ..add(const ClassListRequested());
+
+  @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) =>
-          getIt<ClassListBloc>(param1: source)..add(const ClassListRequested()),
-      child: BlocBuilder<ClassListBloc, ClassListState>(
-        builder: (context, state) {
-          if (state.isLoading) return loading;
-          if (state.status == ClassListStatus.failure) {
-            return _ClassListError(
-              message: state.errorMessage ?? context.l10n.errorGeneric,
-              compact: compactError,
-              onRetry: () {
-                AppHaptics.selection();
-                context.read<ClassListBloc>().add(const ClassListRequested());
-              },
-            );
-          }
-          return builder(context, state.classes);
-        },
-      ),
+    return BlocBuilder<ClassListBloc, ClassListState>(
+      bloc: _bloc,
+      builder: (context, state) {
+        if (state.isLoading) return widget.loading;
+        if (state.status == ClassListStatus.failure) {
+          return _ClassListError(
+            message: state.errorMessage ?? context.l10n.errorGeneric,
+            compact: widget.compactError,
+            onRetry: () {
+              AppHaptics.selection();
+              _bloc.add(const ClassListRequested(force: true));
+            },
+          );
+        }
+        return widget.builder(context, state.classes);
+      },
     );
   }
 }

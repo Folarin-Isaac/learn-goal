@@ -30,6 +30,7 @@ import 'package:lengoal/features/classes/domain/usecases/get_subscribed_classes_
 import 'package:lengoal/features/classes/domain/usecases/search_classes_usecase.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_detail/class_detail_bloc.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_list/class_list_bloc.dart';
+import 'package:lengoal/features/classes/presentation/bloc/class_list/class_list_session_sync.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_search/class_search_bloc.dart';
 import 'package:lengoal/features/goal_setup/data/datasources/goal_remote_data_source.dart';
 import 'package:lengoal/features/goal_setup/data/datasources/goal_remote_data_source_impl.dart';
@@ -59,6 +60,7 @@ Future<void> setupInjector({bool enableNetworkLogging = false}) async {
   _initClasses();
 
   getIt<ProfileSessionSync>().start();
+  getIt<ClassListSessionSync>().start();
 }
 
 void _initProfile() {
@@ -90,7 +92,23 @@ void _initProfile() {
     );
 }
 
+// One long-lived bloc per class list so every screen showing the same
+// list shares one cache instead of refetching on each visit.
+ClassListBloc classListBlocFor(ClassListSource source) =>
+    getIt<ClassListBloc>(instanceName: source.name);
+
 void _initClasses() {
+  for (final source in ClassListSource.values) {
+    getIt.registerLazySingleton<ClassListBloc>(
+      () => ClassListBloc(
+        source: source,
+        getSubscribedClassesUseCase: getIt(),
+        getRecommendedClassesUseCase: getIt(),
+        getSavedClassesUseCase: getIt(),
+      ),
+      instanceName: source.name,
+    );
+  }
   getIt
     ..registerLazySingleton<ClassRemoteDataSource>(
       () => ClassRemoteDataSourceImpl(getIt()),
@@ -108,12 +126,10 @@ void _initClasses() {
     ..registerLazySingleton(() => GetClassEducatorsUseCase(getIt()))
     ..registerLazySingleton(() => GetClassReplayUseCase(getIt()))
     ..registerLazySingleton(() => GenerateClassReferralUseCase(getIt()))
-    ..registerFactoryParam<ClassListBloc, ClassListSource, void>(
-      (source, _) => ClassListBloc(
-        source: source,
-        getSubscribedClassesUseCase: getIt(),
-        getRecommendedClassesUseCase: getIt(),
-        getSavedClassesUseCase: getIt(),
+    ..registerLazySingleton(
+      () => ClassListSessionSync(
+        authRepository: getIt(),
+        blocFor: classListBlocFor,
       ),
     )
     ..registerFactoryParam<ClassDetailBloc, LengoalClass, void>(

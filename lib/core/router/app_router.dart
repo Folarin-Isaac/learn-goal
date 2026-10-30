@@ -1,6 +1,7 @@
 import 'package:lengoal/core/core.dart';
 import 'package:lengoal/core/router/app_page_transitions.dart';
 import 'package:lengoal/core/router/go_router_refresh_stream.dart';
+import 'package:lengoal/core/router/home_shell.dart';
 import 'package:lengoal/features/auth/auth.dart';
 import 'package:lengoal/features/chats/chats.dart';
 import 'package:lengoal/features/chats/presentation/models/chat_conversation.dart';
@@ -119,13 +120,47 @@ class AppRouter {
           child: const ResetPasswordSuccessPage(),
         ),
       ),
-      GoRoute(
-        path: RoutePaths.dashboard,
-        name: RouteNames.dashboard,
-        pageBuilder: (context, state) => AppPageTransitions.build(
-          state: state,
-          child: const DashboardPage(),
-        ),
+      // The main tabs live in one swipeable shell so they stay alive
+      // between visits; every other screen is a top-level route pushed on
+      // the root navigator, above the shell and its nav bar.
+      StatefulShellRoute(
+        builder: (context, state, navigationShell) => navigationShell,
+        navigatorContainerBuilder: (context, navigationShell, children) =>
+            HomeShell(navigationShell: navigationShell, children: children),
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RoutePaths.dashboard,
+                name: RouteNames.dashboard,
+                pageBuilder: (context, state) =>
+                    const NoTransitionPage(child: DashboardPage()),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            preload: true,
+            routes: [
+              GoRoute(
+                path: RoutePaths.classesHub,
+                name: RouteNames.classesHub,
+                pageBuilder: (context, state) =>
+                    const NoTransitionPage(child: MyClassesHubPage()),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            preload: true,
+            routes: [
+              GoRoute(
+                path: RoutePaths.chats,
+                name: RouteNames.chats,
+                pageBuilder: (context, state) =>
+                    const NoTransitionPage(child: ChatsListPage()),
+              ),
+            ],
+          ),
+        ],
       ),
       GoRoute(
         path: RoutePaths.myClasses,
@@ -156,14 +191,6 @@ class AppRouter {
         name: RouteNames.calendar,
         pageBuilder: (context, state) =>
             AppPageTransitions.build(state: state, child: const CalendarPage()),
-      ),
-      GoRoute(
-        path: RoutePaths.classesHub,
-        name: RouteNames.classesHub,
-        pageBuilder: (context, state) => AppPageTransitions.build(
-          state: state,
-          child: const MyClassesHubPage(),
-        ),
       ),
       GoRoute(
         path: RoutePaths.classDetails,
@@ -339,14 +366,6 @@ class AppRouter {
         pageBuilder: (context, state) => AppPageTransitions.build(
           state: state,
           child: CommunityPostDetailPage(post: state.extra! as CommunityPost),
-        ),
-      ),
-      GoRoute(
-        path: RoutePaths.chats,
-        name: RouteNames.chats,
-        pageBuilder: (context, state) => AppPageTransitions.build(
-          state: state,
-          child: const ChatsListPage(),
         ),
       ),
       GoRoute(

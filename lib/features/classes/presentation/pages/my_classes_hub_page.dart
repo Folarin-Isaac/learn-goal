@@ -1,4 +1,5 @@
 import 'package:lengoal/core/core.dart';
+import 'package:lengoal/features/classes/domain/entities/lengoal_class.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_list/class_list_bloc.dart';
 import 'package:lengoal/features/classes/presentation/models/class_summary.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_filter.dart';
@@ -134,6 +135,7 @@ class _MyClassesHubPageState extends State<MyClassesHubPage>
             Expanded(
               child: TabBarView(
                 controller: _tabController,
+                physics: const NeverScrollableScrollPhysics(),
                 children: [
                   _ClassTab(
                     source: ClassListSource.subscribed,
@@ -151,7 +153,6 @@ class _MyClassesHubPageState extends State<MyClassesHubPage>
           ],
         ),
       ),
-      bottomNavigationBar: const DashboardBottomNav(currentIndex: 1),
     );
   }
 }
@@ -181,50 +182,88 @@ class _ClassTabState extends State<_ClassTab>
       AppSpacing.s24,
       AppSpacing.s24,
     );
-    return ClassListLoader(
-      source: widget.source,
-      loading: const ClassTileListSkeleton(padding: padding),
-      builder: (context, classes) {
-        final isSaved = widget.source == ClassListSource.saved;
-        final query = widget.query.trim().toLowerCase();
-        final entries = [
-          for (final c in classes)
-            if (query.isEmpty ||
-                c.cohortName.toLowerCase().contains(query) ||
-                c.educatorName.toLowerCase().contains(query))
-              (
-                lengoalClass: c,
-                summary: ClassSummary.fromClass(c, isFavorite: isSaved),
-              ),
-        ].where((e) => matchesClassFilter(e.summary, widget.filter)).toList();
-
-        if (entries.isEmpty) {
-          final message = classes.isEmpty
-              ? context.l10n.classesEmpty
-              : query.isNotEmpty
-              ? context.l10n.dashboardNoResults
-              : context.l10n.dashboardNoFilterResults;
-          return Center(
-            child: Text(message, style: context.textTheme.bodyMedium),
+    final isSaved = widget.source == ClassListSource.saved;
+    return RefreshIndicator(
+      onRefresh: () => refreshClassLists([
+        widget.source,
+        if (isSaved) ClassListSource.subscribed,
+      ]),
+      child: ClassListLoader(
+        source: widget.source,
+        loading: const ClassTileListSkeleton(padding: padding),
+        builder: (context, classes) {
+          if (!isSaved) return _buildList(context, classes, padding);
+          return BlocBuilder<ClassListBloc, ClassListState>(
+            bloc: classListBlocFor(ClassListSource.subscribed),
+            builder: (context, subscribedState) {
+              final subscribedIds = {
+                for (final c in subscribedState.classes) c.id,
+              };
+              final marked = classes
+                  .map(
+                    (c) => subscribedIds.contains(c.id) ? c.asSubscribed() : c,
+                  )
+                  .toList();
+              return _buildList(context, marked, padding);
+            },
           );
-        }
-        return ListView.separated(
-          padding: padding,
-          itemCount: entries.length,
-          separatorBuilder: (context, index) => const Gap(AppSpacing.s16),
-          itemBuilder: (context, index) => Entrance(
-            index: index + 3,
-            child: ClassListTile(
-              item: entries[index].summary,
-              showFavorite: true,
-              onTap: () => context.pushNamed(
-                RouteNames.classDetails,
-                extra: entries[index].lengoalClass,
-              ),
+        },
+      ),
+    );
+  }
+
+  Widget _buildList(
+    BuildContext context,
+    List<LengoalClass> classes,
+    EdgeInsets padding,
+  ) {
+    final isSaved = widget.source == ClassListSource.saved;
+    final query = widget.query.trim().toLowerCase();
+    final entries = [
+      for (final c in classes)
+        if (query.isEmpty ||
+            c.cohortName.toLowerCase().contains(query) ||
+            c.educatorName.toLowerCase().contains(query))
+          (
+            lengoalClass: c,
+            summary: ClassSummary.fromClass(c, isFavorite: isSaved),
+          ),
+    ].where((e) => matchesClassFilter(e.summary, widget.filter)).toList();
+
+    if (entries.isEmpty) {
+      final message = classes.isEmpty
+          ? context.l10n.classesEmpty
+          : query.isNotEmpty
+          ? context.l10n.dashboardNoResults
+          : context.l10n.dashboardNoFilterResults;
+      return LayoutBuilder(
+        builder: (context, constraints) => SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: SizedBox(
+            height: constraints.maxHeight,
+            child: Center(
+              child: Text(message, style: context.textTheme.bodyMedium),
             ),
           ),
-        );
-      },
+        ),
+      );
+    }
+    return ListView.separated(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: padding,
+      itemCount: entries.length,
+      separatorBuilder: (context, index) => const Gap(AppSpacing.s16),
+      itemBuilder: (context, index) => Entrance(
+        index: index + 3,
+        child: ClassListTile(
+          item: entries[index].summary,
+          showFavorite: true,
+          onTap: () => context.pushNamed(
+            RouteNames.classDetails,
+            extra: entries[index].lengoalClass,
+          ),
+        ),
+      ),
     );
   }
 }

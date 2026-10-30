@@ -25,7 +25,12 @@ class ClassListBloc extends Bloc<ClassListEvent, ClassListState> {
        _getSavedClassesUseCase = getSavedClassesUseCase,
        super(const ClassListState()) {
     on<ClassListRequested>(_onRequested);
+    on<ClassListCleared>((event, emit) => emit(const ClassListState()));
   }
+
+  // Data younger than this is served as-is when a screen asks again;
+  // pull-to-refresh bypasses it.
+  static const Duration freshFor = Duration(minutes: 3);
 
   final ClassListSource source;
   final GetSubscribedClassesUseCase _getSubscribedClassesUseCase;
@@ -36,23 +41,38 @@ class ClassListBloc extends Bloc<ClassListEvent, ClassListState> {
     ClassListRequested event,
     Emitter<ClassListState> emit,
   ) async {
+    if (state.status == ClassListStatus.loading || state.isRefreshing) return;
+    final loadedAt = state.loadedAt;
+    final isFresh =
+        state.status == ClassListStatus.loaded &&
+        loadedAt != null &&
+        DateTime.now().difference(loadedAt) < freshFor;
+    if (isFresh && !event.force) return;
+
     // A refresh keeps the current rows on screen instead of flashing
     // back to the skeleton.
-    if (state.status != ClassListStatus.loaded) {
-      emit(state.copyWith(status: ClassListStatus.loading));
-    }
+    final hadData = state.status == ClassListStatus.loaded;
+    emit(
+      hadData
+          ? state.copyWith(isRefreshing: true)
+          : state.copyWith(status: ClassListStatus.loading),
+    );
     final result = await _fetch();
     result.match(
       (failure) => emit(
         state.copyWith(
-          status: state.status == ClassListStatus.loaded
-              ? ClassListStatus.loaded
-              : ClassListStatus.failure,
+          status: hadData ? ClassListStatus.loaded : ClassListStatus.failure,
+          isRefreshing: false,
           errorMessage: failure.message,
         ),
       ),
       (classes) => emit(
-        state.copyWith(status: ClassListStatus.loaded, classes: classes),
+        state.copyWith(
+          status: ClassListStatus.loaded,
+          classes: classes,
+          loadedAt: DateTime.now(),
+          isRefreshing: false,
+        ),
       ),
     );
   }

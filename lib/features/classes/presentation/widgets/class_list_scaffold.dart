@@ -89,21 +89,26 @@ class _ClassListScaffoldState extends State<ClassListScaffold> {
                         ),
                       );
                     }
-                    return ListView.separated(
-                      itemCount: items.length,
-                      separatorBuilder: (context, index) =>
-                          const Gap(AppSpacing.s16),
-                      itemBuilder: (context, index) => Entrance(
-                        index: index + 1,
-                        child: ClassListTile(
-                          item: ClassSummary.fromClass(
-                            items[index],
-                            isFavorite: widget.source == ClassListSource.saved,
-                          ),
-                          showFavorite: widget.showFavorite,
-                          onTap: () => context.pushNamed(
-                            RouteNames.classDetails,
-                            extra: items[index],
+                    return RefreshIndicator(
+                      onRefresh: () => refreshClassLists([widget.source]),
+                      child: ListView.separated(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        itemCount: items.length,
+                        separatorBuilder: (context, index) =>
+                            const Gap(AppSpacing.s16),
+                        itemBuilder: (context, index) => Entrance(
+                          index: index + 1,
+                          child: ClassListTile(
+                            item: ClassSummary.fromClass(
+                              items[index],
+                              isFavorite:
+                                  widget.source == ClassListSource.saved,
+                            ),
+                            showFavorite: widget.showFavorite,
+                            onTap: () => context.pushNamed(
+                              RouteNames.classDetails,
+                              extra: items[index],
+                            ),
                           ),
                         ),
                       ),
