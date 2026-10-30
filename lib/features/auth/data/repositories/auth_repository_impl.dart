@@ -45,6 +45,13 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> checkAuthStatus() async {
+    // Runs once per app launch, so a session the learner chose not to
+    // keep is dropped here rather than restored.
+    if (await _secureStorage.read(StorageKeys.keepSignedIn) == 'false') {
+      await _clearSession();
+      _setStatus(AuthStatus.unauthenticated);
+      return;
+    }
     final token = await _secureStorage.read(StorageKeys.accessToken);
     _needsGoalSetup =
         await _secureStorage.read(StorageKeys.needsGoalSetup) == 'true';
@@ -78,6 +85,7 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Either<Failure, UserEntity>> login({
     required String email,
     required String password,
+    bool keepSignedIn = true,
   }) async {
     if (!await _networkInfo.isConnected) {
       return const Left(NetworkFailure());
@@ -87,6 +95,10 @@ class AuthRepositoryImpl implements AuthRepository {
           await _remoteDataSource.login(email: email, password: password);
       await _secureStorage.write(StorageKeys.accessToken, accessToken);
       await _secureStorage.write(StorageKeys.refreshToken, refreshToken);
+      await _secureStorage.write(
+        StorageKeys.keepSignedIn,
+        keepSignedIn.toString(),
+      );
       _needsGoalSetup = isFirstLogin;
       await _secureStorage.write(
         StorageKeys.needsGoalSetup,
@@ -164,12 +176,17 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       await _remoteDataSource.logout();
     } catch (_) {}
+    await _clearSession();
+    _setStatus(AuthStatus.unauthenticated);
+    return right(unit);
+  }
+
+  Future<void> _clearSession() async {
     await _secureStorage.delete(StorageKeys.accessToken);
     await _secureStorage.delete(StorageKeys.refreshToken);
     await _secureStorage.delete(StorageKeys.needsGoalSetup);
+    await _secureStorage.delete(StorageKeys.keepSignedIn);
     _needsGoalSetup = false;
-    _setStatus(AuthStatus.unauthenticated);
-    return right(unit);
   }
 
   Future<Either<Failure, Unit>> _guard(Future<void> Function() action) async {

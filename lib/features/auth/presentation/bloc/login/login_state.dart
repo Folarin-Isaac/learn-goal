@@ -6,7 +6,7 @@ class LoginState extends Equatable {
   const new({
     this.email = '',
     this.password = '',
-    this.keepSignedIn = false,
+    this.keepSignedIn = true,
     this.status = LoginStatus.initial,
     this.errorMessage,
   });

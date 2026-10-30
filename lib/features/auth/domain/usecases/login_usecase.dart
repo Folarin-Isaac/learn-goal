@@ -11,7 +11,12 @@ class LoginUseCase {
   Future<Either<Failure, UserEntity>> call({
     required String email,
     required String password,
+    bool keepSignedIn = true,
   }) {
-    return _repository.login(email: email, password: password);
+    return _repository.login(
+      email: email,
+      password: password,
+      keepSignedIn: keepSignedIn,
+    );
   }
 }

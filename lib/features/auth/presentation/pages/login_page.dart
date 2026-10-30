@@ -110,7 +110,16 @@ class _LoginViewState extends State<_LoginView> {
                       children: [
                         InkWell(
                           borderRadius: BorderRadius.circular(AppSpacing.r8),
-                          onTap: () => {AppHaptics.selection()},
+                          onTap: isSubmitting
+                              ? null
+                              : () {
+                                  AppHaptics.selection();
+                                  context.read<LoginBloc>().add(
+                                    LoginKeepSignedInToggled(
+                                      !state.keepSignedIn,
+                                    ),
+                                  );
+                                },
                           child: Padding(
                             padding: const EdgeInsets.symmetric(vertical: 4),
                             child: Row(
@@ -126,14 +135,16 @@ class _LoginViewState extends State<_LoginView> {
                                       materialTapTargetSize:
                                           MaterialTapTargetSize.shrinkWrap,
                                       visualDensity: VisualDensity.compact,
-                                      onChanged: (value) {
-                                        AppHaptics.selection();
-                                        context.read<LoginBloc>().add(
-                                          LoginKeepSignedInToggled(
-                                            value ?? false,
-                                          ),
-                                        );
-                                      },
+                                      onChanged: isSubmitting
+                                          ? null
+                                          : (value) {
+                                              AppHaptics.selection();
+                                              context.read<LoginBloc>().add(
+                                                LoginKeepSignedInToggled(
+                                                  value ?? false,
+                                                ),
+                                              );
+                                            },
                                     ),
                                   ),
                                 ),

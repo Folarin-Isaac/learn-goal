@@ -5,9 +5,11 @@ import 'package:lengoal/features/auth/domain/entities/user_entity.dart';
 enum AuthStatus { unknown, authenticated, unauthenticated }
 
 abstract class AuthRepository {
+  // keepSignedIn false makes the session end on the next app launch.
   Future<Either<Failure, UserEntity>> login({
     required String email,
     required String password,
+    bool keepSignedIn = true,
   });
 
   Future<Either<Failure, Unit>> register({

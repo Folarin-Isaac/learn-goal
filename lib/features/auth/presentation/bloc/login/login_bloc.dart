@@ -47,6 +47,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     final result = await _loginUseCase(
       email: state.email,
       password: state.password,
+      keepSignedIn: state.keepSignedIn,
     );
 
     await result.match((failure) async {
