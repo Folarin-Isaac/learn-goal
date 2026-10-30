@@ -3,7 +3,7 @@ class ClassApiEndpoints {
 
   static const String subscribedClasses = '/api/v1/Class/subscribed-classes';
   static const String recommendedClasses =
-      '/api/v1/Landing/learner/upcoming-classes';
+      '/api/v1/Landing/learner/categories/classes';
   static const String savedClasses = '/api/v1/Learner/GetLearnerSavedClasses';
   static const String classReplay = '/api/v1/Class/class-replay';
 

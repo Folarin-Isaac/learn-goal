@@ -126,7 +126,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       onSeeAll: () => context.pushNamed(RouteNames.myClasses),
                       entranceIndex: myClassesIndex,
                     ),
-                    const Gap(AppSpacing.s24),
+                    const Gap(AppSpacing.s8),
                     ClassSection(
                       title: context.l10n.dashboardRecommendedClasses,
                       source: ClassListSource.recommended,
