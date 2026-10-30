@@ -1,16 +1,41 @@
 import 'dart:async';
 
 import 'package:lengoal/core/core.dart';
+import 'package:lengoal/features/classes/domain/entities/lengoal_class.dart';
+import 'package:lengoal/features/classes/presentation/bloc/class_detail/class_detail_bloc.dart';
 import 'package:lengoal/features/classes/presentation/models/class_detail.dart';
 import 'package:lengoal/features/classes/presentation/models/class_material.dart';
 import 'package:lengoal/features/classes/presentation/models/class_quiz.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_material_row.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_quiz_card.dart';
+import 'package:lengoal/features/classes/presentation/widgets/class_thumbnail.dart';
 import 'package:lengoal/features/dashboard/presentation/models/calendar_session.dart';
 import 'package:lengoal/features/dashboard/presentation/widgets/calendar_session_card.dart';
 
 class ClassDetailsPage extends StatelessWidget {
-  const new({required this.detail, super.key});
+  const new({required this.lengoalClass, super.key});
+
+  final LengoalClass lengoalClass;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) =>
+          getIt<ClassDetailBloc>(param1: lengoalClass)
+            ..add(const ClassDetailRefreshRequested()),
+      child: BlocBuilder<ClassDetailBloc, ClassDetailState>(
+        buildWhen: (previous, current) =>
+            previous.lengoalClass != current.lengoalClass,
+        builder: (context, state) => _ClassDetailsView(
+          detail: ClassDetail.fromClass(state.lengoalClass),
+        ),
+      ),
+    );
+  }
+}
+
+class _ClassDetailsView extends StatelessWidget {
+  const new({required this.detail});
 
   final ClassDetail detail;
 
@@ -111,7 +136,7 @@ class _DetailHeader extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppSpacing.r16),
           child: AspectRatio(
             aspectRatio: 16 / 9,
-            child: Container(color: item.thumbnailColor),
+            child: ClassCover(item: item),
           ),
         ),
         const Gap(AppSpacing.s16),
@@ -132,29 +157,31 @@ class _DetailHeader extends StatelessWidget {
         Text(item.dateRange, style: context.textTheme.bodyMedium),
         const Gap(AppSpacing.s4),
         Text(item.instructor, style: context.textTheme.bodyLarge),
-        const Gap(AppSpacing.s8),
-        Row(
-          children: [
-            Text(
-              detail.rating.toStringAsFixed(1),
-              style: context.textTheme.bodyLarge?.copyWith(
-                color: const Color(0xFFF2A93B),
-                fontWeight: FontWeight.w700,
+        if (detail.reviewCount > 0) ...[
+          const Gap(AppSpacing.s8),
+          Row(
+            children: [
+              Text(
+                detail.rating.toStringAsFixed(1),
+                style: context.textTheme.bodyLarge?.copyWith(
+                  color: const Color(0xFFF2A93B),
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-            ),
-            const Gap(4),
-            for (var i = 0; i < 5; i++)
-              Padding(
-                padding: const EdgeInsets.only(right: 1),
-                child: Assets.icons.starIcon.svg(width: 14, height: 14),
+              const Gap(4),
+              for (var i = 0; i < 5; i++)
+                Padding(
+                  padding: const EdgeInsets.only(right: 1),
+                  child: Assets.icons.starIcon.svg(width: 14, height: 14),
+                ),
+              const Gap(4),
+              Text(
+                context.l10n.classDetailsRatingCount(detail.reviewCount),
+                style: context.textTheme.bodyMedium,
               ),
-            const Gap(4),
-            Text(
-              context.l10n.classDetailsRatingCount(detail.reviewCount),
-              style: context.textTheme.bodyMedium,
-            ),
-          ],
-        ),
+            ],
+          ),
+        ],
         const Gap(AppSpacing.s8),
         Row(
           children: [
@@ -240,30 +267,23 @@ class _AboutTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            context.l10n.classDetailsOutlineHeading,
-            style: context.textTheme.titleLarge,
-          ),
-          const Gap(AppSpacing.s8),
-          Text(detail.outline, style: context.textTheme.bodyMedium),
-          const Gap(AppSpacing.s24),
+          if (detail.outline.isNotEmpty) ...[
+            Text(
+              context.l10n.classDetailsOutlineHeading,
+              style: context.textTheme.titleLarge,
+            ),
+            const Gap(AppSpacing.s8),
+            Text(detail.outline, style: context.textTheme.bodyMedium),
+            const Gap(AppSpacing.s24),
+          ],
           Text(
             context.l10n.classDetailsAboutInstructor(detail.item.instructor),
             style: context.textTheme.titleLarge,
           ),
-          if (detail.instructorPronouns.isNotEmpty) ...[
-            const Gap(AppSpacing.s4),
-            Text(
-              detail.instructorPronouns,
-              style: context.textTheme.bodyMedium,
-            ),
-          ],
           if (detail.instructorTitle.isNotEmpty) ...[
             const Gap(AppSpacing.s4),
             Text(detail.instructorTitle, style: context.textTheme.bodyMedium),
           ],
-          const Gap(AppSpacing.s8),
-          Text(detail.instructorBio, style: context.textTheme.bodyMedium),
         ],
       ),
     );

@@ -162,7 +162,7 @@ class AppRouter {
         name: RouteNames.classDetails,
         pageBuilder: (context, state) => AppPageTransitions.build(
           state: state,
-          child: ClassDetailsPage(detail: state.extra! as ClassDetail),
+          child: ClassDetailsPage(lengoalClass: state.extra! as LengoalClass),
         ),
       ),
       GoRoute(

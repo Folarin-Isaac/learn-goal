@@ -15,6 +15,17 @@ import 'package:lengoal/features/auth/domain/usecases/resend_otp_usecase.dart';
 import 'package:lengoal/features/auth/domain/usecases/reset_password_usecase.dart';
 import 'package:lengoal/features/auth/domain/usecases/verify_otp_usecase.dart';
 import 'package:lengoal/features/auth/presentation/bloc/auth/auth_bloc.dart';
+import 'package:lengoal/features/classes/data/datasources/class_remote_data_source.dart';
+import 'package:lengoal/features/classes/data/datasources/class_remote_data_source_impl.dart';
+import 'package:lengoal/features/classes/data/repositories/class_repository_impl.dart';
+import 'package:lengoal/features/classes/domain/entities/lengoal_class.dart';
+import 'package:lengoal/features/classes/domain/repositories/class_repository.dart';
+import 'package:lengoal/features/classes/domain/usecases/get_all_classes_usecase.dart';
+import 'package:lengoal/features/classes/domain/usecases/get_class_usecase.dart';
+import 'package:lengoal/features/classes/domain/usecases/get_saved_classes_usecase.dart';
+import 'package:lengoal/features/classes/domain/usecases/get_subscribed_classes_usecase.dart';
+import 'package:lengoal/features/classes/presentation/bloc/class_detail/class_detail_bloc.dart';
+import 'package:lengoal/features/classes/presentation/bloc/class_list/class_list_bloc.dart';
 import 'package:lengoal/features/goal_setup/data/datasources/goal_remote_data_source.dart';
 import 'package:lengoal/features/goal_setup/data/datasources/goal_remote_data_source_impl.dart';
 import 'package:lengoal/features/goal_setup/data/repositories/goal_repository_impl.dart';
@@ -40,6 +51,7 @@ Future<void> setupInjector({bool enableNetworkLogging = false}) async {
   _initAuth();
   _initGoalSetup();
   _initProfile();
+  _initClasses();
 
   getIt<ProfileSessionSync>().start();
 }
@@ -70,6 +82,33 @@ void _initProfile() {
         updateLearnerProfileUseCase: getIt(),
         uploadFileUseCase: getIt(),
       ),
+    );
+}
+
+void _initClasses() {
+  getIt
+    ..registerLazySingleton<ClassRemoteDataSource>(
+      () => ClassRemoteDataSourceImpl(getIt()),
+    )
+    ..registerLazySingleton<ClassRepository>(
+      () =>
+          ClassRepositoryImpl(remoteDataSource: getIt(), networkInfo: getIt()),
+    )
+    ..registerLazySingleton(() => GetSubscribedClassesUseCase(getIt()))
+    ..registerLazySingleton(() => GetAllClassesUseCase(getIt()))
+    ..registerLazySingleton(() => GetSavedClassesUseCase(getIt()))
+    ..registerLazySingleton(() => GetClassUseCase(getIt()))
+    ..registerFactoryParam<ClassListBloc, ClassListSource, void>(
+      (source, _) => ClassListBloc(
+        source: source,
+        getSubscribedClassesUseCase: getIt(),
+        getAllClassesUseCase: getIt(),
+        getSavedClassesUseCase: getIt(),
+      ),
+    )
+    ..registerFactoryParam<ClassDetailBloc, LengoalClass, void>(
+      (initial, _) =>
+          ClassDetailBloc(initial: initial, getClassUseCase: getIt()),
     );
 }
 

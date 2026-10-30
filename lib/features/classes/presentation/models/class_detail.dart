@@ -1,4 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:lengoal/features/classes/domain/entities/class_material_file.dart';
+import 'package:lengoal/features/classes/domain/entities/class_session.dart';
+import 'package:lengoal/features/classes/domain/entities/lengoal_class.dart';
 import 'package:lengoal/features/classes/presentation/models/class_material.dart';
 import 'package:lengoal/features/classes/presentation/models/class_quiz.dart';
 import 'package:lengoal/features/classes/presentation/models/class_summary.dart';
@@ -6,137 +9,114 @@ import 'package:lengoal/features/dashboard/presentation/models/calendar_session.
 
 class ClassDetail {
   const new({
+    required this.source,
     required this.item,
     required this.rating,
     required this.reviewCount,
     required this.outline,
-    required this.instructorPronouns,
     required this.instructorTitle,
-    required this.instructorBio,
     required this.sessions,
     required this.quizzes,
     required this.materials,
     required this.hasCertificate,
   });
 
-  factory fallback(ClassSummary item) {
+  factory fromClass(
+    LengoalClass lengoalClass, {
+    bool isFavorite = false,
+    DateTime? now,
+  }) {
+    final reviews = lengoalClass.reviews;
+    final rating = reviews.isEmpty
+        ? 0.0
+        : reviews.map((r) => r.rating).reduce((a, b) => a + b) / reviews.length;
+    final host = lengoalClass.educatorName.isEmpty
+        ? null
+        : lengoalClass.educatorName;
+    final current = now ?? DateTime.now();
+
     return ClassDetail(
-      item: item,
-      rating: 4.5,
-      reviewCount: 128,
-      outline: 'Class outline coming soon.',
-      instructorPronouns: '',
-      instructorTitle: '',
-      instructorBio: 'More about ${item.instructor} coming soon.',
-      sessions: const [],
+      source: lengoalClass,
+      item: ClassSummary.fromClass(lengoalClass, isFavorite: isFavorite),
+      rating: rating,
+      reviewCount: reviews.length,
+      outline: htmlToPlainText(lengoalClass.description ?? ''),
+      instructorTitle: lengoalClass.educatorTierName ?? '',
+      sessions: [
+        for (final session in lengoalClass.sessions)
+          _toCalendarSession(session, host, current),
+      ],
       quizzes: const [],
-      materials: const [],
+      materials: lengoalClass.materials.map(_toMaterial).toList(),
       hasCertificate: false,
     );
   }
 
+  final LengoalClass source;
   final ClassSummary item;
   final double rating;
   final int reviewCount;
   final String outline;
-  final String instructorPronouns;
   final String instructorTitle;
-  final String instructorBio;
   final List<CalendarSession> sessions;
   final List<ClassQuiz> quizzes;
   final List<ClassMaterial> materials;
   final bool hasCertificate;
 }
 
-const mockSkeletalSystemDetail = ClassDetail(
-  item: ClassSummary(
-    title: 'Anatomy of the Skeletal system',
-    instructor: 'John Smith',
-    dateRange: 'Jan 23 - Mar 25, 2023',
-    progress: 0.39,
-    thumbnailColor: Color(0xFFD9D9D9),
-    priceLabel: '₦35,000',
-    isSubscribed: true,
-  ),
-  rating: 4.7,
-  reviewCount: 1221,
-  outline:
-      'The skeletal system can be divided into two main parts: the axial '
-      'skeleton and the appendicular skeleton. The axial skeleton includes '
-      'the skull, vertebral column, ribs, and sternum, providing support '
-      'and protection for vital organs such as the brain and spinal cord. '
-      'The appendicular skeleton includes the bones of the limbs, along '
-      'with the shoulder and pelvic girdles, facilitating movement and '
-      'locomotion. The skeletal system also houses bone marrow, which '
-      'produces blood cells. Understanding the anatomy of the skeletal '
-      'system is essential for medical professionals, as it helps '
-      'diagnose and treat bone-related conditions and ensures the '
-      'overall well-being and functionality of the human body.',
-  instructorPronouns: 'She/Her',
-  instructorTitle: 'Senior Product Designer / Design Coach',
-  instructorBio:
-      'Genevieve is a Product Designer with 6+ years of Product & SaaS '
-      'Experience. She is a user-centric, data-driven and result-oriented '
-      'product person with proficiency in designing, evolving, and '
-      'shipping products on multiple platforms. She is currently a '
-      'Senior Product Designer at Design on Tap - a digital agency in '
-      'the USA and a Design Coach at Plato where she mentors product '
-      'designers in the USA, Canada and Finland. '
-      "She's passionate about mentoring and educating designers.",
-  sessions: mockCalendarSessions,
-  quizzes: [
-    ClassQuiz(
-      title: 'Mid- Course Assessment',
-      dueDate: 'Mar 23, 2025',
-      status: QuizStatus.completed,
-      instructorName: 'Ayodeji Oloruntoba',
-    ),
-    ClassQuiz(
-      title: 'Penultimate Assessment',
-      dueDate: 'Mar 23, 2025',
-      status: QuizStatus.completed,
-      instructorName: 'Ayodeji Oloruntoba',
-    ),
-    ClassQuiz(
-      title: 'Final Assessment',
-      dueDate: 'Mar 23, 2025',
-      status: QuizStatus.pending,
-      instructorName: 'Ayodeji Oloruntoba',
-    ),
-  ],
-  materials: [
-    ClassMaterial(
-      name: 'Introduction to anatomy',
-      fileType: MaterialFileType.pdf,
-      url: '',
-    ),
-    ClassMaterial(
-      name: 'Organization of the body',
-      fileType: MaterialFileType.pdf,
-      url: '',
-    ),
-    ClassMaterial(
-      name: 'Cells and Tissues',
-      fileType: MaterialFileType.word,
-      url: '',
-    ),
-    ClassMaterial(
-      name: 'Anatomy of the skeletal system',
-      fileType: MaterialFileType.excel,
-      url: '',
-    ),
-    ClassMaterial(
-      name: 'https://www.youtube.com/watch?v=QIoUmnSkOXE',
-      fileType: MaterialFileType.link,
-      url: 'https://www.youtube.com/watch?v=QIoUmnSkOXE',
-    ),
-  ],
-  hasCertificate: true,
-);
+CalendarSession _toCalendarSession(
+  ClassSession session,
+  String? host,
+  DateTime now,
+) {
+  final time = DateFormat('h:mm a');
+  final status = now.isAfter(session.endDate)
+      ? CalendarSessionStatus.concluded
+      : now.isBefore(session.startDate)
+      ? CalendarSessionStatus.upcoming
+      : CalendarSessionStatus.ongoing;
+  return CalendarSession(
+    title: session.topic,
+    day: session.startDate.day,
+    dateLabel: DateFormat('MMM d').format(session.startDate),
+    timeRange:
+        '${time.format(session.startDate)} - ${time.format(session.endDate)}',
+    status: status,
+    meetingUrl: '',
+    host: host,
+  );
+}
 
-ClassDetail detailFor(ClassSummary item) {
-  if (item.title == mockSkeletalSystemDetail.item.title) {
-    return mockSkeletalSystemDetail;
+ClassMaterial _toMaterial(ClassMaterialFile file) {
+  final name = file.name.isEmpty ? file.url : file.name;
+  return ClassMaterial(
+    name: name,
+    fileType: materialFileTypeFor('$name ${file.url}'),
+    url: file.url,
+  );
+}
+
+MaterialFileType materialFileTypeFor(String text) {
+  final lower = text.toLowerCase();
+  if (RegExp(r'\.pdf\b').hasMatch(lower)) return MaterialFileType.pdf;
+  if (RegExp(r'\.docx?\b').hasMatch(lower)) return MaterialFileType.word;
+  if (RegExp(r'\.(xlsx?|csv)\b').hasMatch(lower)) {
+    return MaterialFileType.excel;
   }
-  return ClassDetail.fallback(item);
+  return MaterialFileType.link;
+}
+
+String htmlToPlainText(String html) {
+  return html
+      .replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n')
+      .replaceAll(RegExp('</(p|div|li|h[1-6])>', caseSensitive: false), '\n')
+      .replaceAll(RegExp('<[^>]+>'), '')
+      .replaceAll('&nbsp;', ' ')
+      .replaceAll('&lt;', '<')
+      .replaceAll('&gt;', '>')
+      .replaceAll('&quot;', '"')
+      .replaceAll('&#39;', "'")
+      .replaceAll('&amp;', '&')
+      .replaceAll(RegExp(r'\n{3,}'), '\n\n')
+      .trim();
 }

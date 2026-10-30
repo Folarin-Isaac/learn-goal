@@ -21,15 +21,21 @@ class _ClassThumbnailState extends State<ClassThumbnail> {
   late bool _isFavorite = widget.item.isFavorite;
 
   @override
+  void didUpdateWidget(ClassThumbnail oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.item.id != widget.item.id) {
+      _isFavorite = widget.item.isFavorite;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(AppSpacing.r12),
-          child: Container(
-            color: widget.item.thumbnailColor,
-            width: double.infinity,
-            height: double.infinity,
+        Positioned.fill(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(AppSpacing.r12),
+            child: ClassCover(item: widget.item),
           ),
         ),
         Positioned.fill(
@@ -56,6 +62,30 @@ class _ClassThumbnailState extends State<ClassThumbnail> {
             ),
           ),
       ],
+    );
+  }
+}
+
+class ClassCover extends StatelessWidget {
+  const new({required this.item, super.key});
+
+  final ClassSummary item;
+
+  @override
+  Widget build(BuildContext context) {
+    final imageUrl = item.imageUrl;
+    return ColoredBox(
+      color: item.thumbnailColor,
+      child: imageUrl == null
+          ? const SizedBox.expand()
+          : Image.network(
+              imageUrl,
+              fit: BoxFit.cover,
+              width: double.infinity,
+              height: double.infinity,
+              errorBuilder: (context, error, stackTrace) =>
+                  const SizedBox.expand(),
+            ),
     );
   }
 }

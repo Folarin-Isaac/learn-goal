@@ -38,7 +38,7 @@ class PaymentSuccessPage extends StatelessWidget {
                   AppHaptics.selection();
                   context.pushReplacementNamed(
                     RouteNames.classDetails,
-                    extra: detail,
+                    extra: detail.source,
                   );
                 },
               ),

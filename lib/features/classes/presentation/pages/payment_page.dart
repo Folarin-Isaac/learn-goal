@@ -33,11 +33,7 @@ class _PaymentPageState extends State<PaymentPage> {
     super.dispose();
   }
 
-  double get _subtotal =>
-      double.tryParse(
-        widget.detail.item.priceLabel?.replaceAll(RegExp('[^0-9.]'), '') ?? '',
-      ) ??
-      35000;
+  double get _subtotal => widget.detail.source.effectivePrice;
 
   String _formatNaira(double amount) {
     final parts = amount.toStringAsFixed(2).split('.');

@@ -1,6 +1,6 @@
 import 'package:lengoal/core/core.dart';
 import 'package:lengoal/features/auth/auth.dart';
-import 'package:lengoal/features/classes/presentation/models/class_summary.dart';
+import 'package:lengoal/features/classes/presentation/bloc/class_list/class_list_bloc.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_section.dart';
 import 'package:lengoal/features/dashboard/presentation/widgets/dashboard_top_bar.dart';
 import 'package:lengoal/features/profile/profile.dart';
@@ -67,8 +67,7 @@ class _DashboardPageState extends State<DashboardPage> {
             builder: (context) {
               final firstName = _profile?.firstName;
               const myClassesIndex = 3;
-              final recommendedIndex =
-                  myClassesIndex + 1 + mockMyClasses.length;
+              const recommendedIndex = myClassesIndex + 4;
 
               return SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(
@@ -123,14 +122,14 @@ class _DashboardPageState extends State<DashboardPage> {
                     const Gap(AppSpacing.s24),
                     ClassSection(
                       title: context.l10n.dashboardMyClasses,
-                      items: mockMyClasses,
+                      source: ClassListSource.subscribed,
                       onSeeAll: () => context.pushNamed(RouteNames.myClasses),
                       entranceIndex: myClassesIndex,
                     ),
                     const Gap(AppSpacing.s24),
                     ClassSection(
                       title: context.l10n.dashboardRecommendedClasses,
-                      items: mockRecommendedClasses,
+                      source: ClassListSource.recommended,
                       onSeeAll: () =>
                           context.pushNamed(RouteNames.recommendedClasses),
                       entranceIndex: recommendedIndex,

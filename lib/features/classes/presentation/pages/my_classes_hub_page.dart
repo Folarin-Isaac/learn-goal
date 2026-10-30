@@ -1,7 +1,8 @@
 import 'package:lengoal/core/core.dart';
-import 'package:lengoal/features/classes/presentation/models/class_detail.dart';
+import 'package:lengoal/features/classes/presentation/bloc/class_list/class_list_bloc.dart';
 import 'package:lengoal/features/classes/presentation/models/class_summary.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_filter.dart';
+import 'package:lengoal/features/classes/presentation/widgets/class_list_loader.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_list_tile.dart';
 
 class MyClassesHubPage extends StatefulWidget {
@@ -19,26 +20,11 @@ class _MyClassesHubPageState extends State<MyClassesHubPage>
   );
   ClassFilterOption? _filter;
 
-  static const List<ClassSummary> _allItems = [
-    ...mockMyClasses,
-    ...mockRecommendedClasses,
-  ];
-
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
   }
-
-  List<ClassSummary> get _subscribed => _allItems
-      .where((item) => item.isSubscribed)
-      .where((item) => matchesClassFilter(item, _filter))
-      .toList();
-
-  List<ClassSummary> get _saved => _allItems
-      .where((item) => item.isFavorite)
-      .where((item) => matchesClassFilter(item, _filter))
-      .toList();
 
   @override
   Widget build(BuildContext context) {
@@ -102,7 +88,13 @@ class _MyClassesHubPageState extends State<MyClassesHubPage>
             Expanded(
               child: TabBarView(
                 controller: _tabController,
-                children: [_buildList(_subscribed), _buildList(_saved)],
+                children: [
+                  _ClassTab(
+                    source: ClassListSource.subscribed,
+                    filter: _filter,
+                  ),
+                  _ClassTab(source: ClassListSource.saved, filter: _filter),
+                ],
               ),
             ),
           ],
@@ -111,36 +103,72 @@ class _MyClassesHubPageState extends State<MyClassesHubPage>
       bottomNavigationBar: const DashboardBottomNav(currentIndex: 1),
     );
   }
+}
 
-  Widget _buildList(List<ClassSummary> items) {
-    if (items.isEmpty) {
-      return Center(
-        child: Text(
-          context.l10n.dashboardNoFilterResults,
-          style: context.textTheme.bodyMedium,
-        ),
-      );
-    }
-    return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.s24,
-        0,
-        AppSpacing.s24,
-        AppSpacing.s24,
-      ),
-      itemCount: items.length,
-      separatorBuilder: (context, index) => const Gap(AppSpacing.s16),
-      itemBuilder: (context, index) => Entrance(
-        index: index + 3,
-        child: ClassListTile(
-          item: items[index],
-          showFavorite: true,
-          onTap: () => context.pushNamed(
-            RouteNames.classDetails,
-            extra: detailFor(items[index]),
+class _ClassTab extends StatefulWidget {
+  const new({required this.source, required this.filter});
+
+  final ClassListSource source;
+  final ClassFilterOption? filter;
+
+  @override
+  State<_ClassTab> createState() => _ClassTabState();
+}
+
+class _ClassTabState extends State<_ClassTab>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    const padding = EdgeInsets.fromLTRB(
+      AppSpacing.s24,
+      0,
+      AppSpacing.s24,
+      AppSpacing.s24,
+    );
+    return ClassListLoader(
+      source: widget.source,
+      loading: const ClassTileListSkeleton(padding: padding),
+      builder: (context, classes) {
+        final isSaved = widget.source == ClassListSource.saved;
+        final entries = [
+          for (final c in classes)
+            (
+              lengoalClass: c,
+              summary: ClassSummary.fromClass(c, isFavorite: isSaved),
+            ),
+        ].where((e) => matchesClassFilter(e.summary, widget.filter)).toList();
+
+        if (entries.isEmpty) {
+          return Center(
+            child: Text(
+              classes.isEmpty
+                  ? context.l10n.classesEmpty
+                  : context.l10n.dashboardNoFilterResults,
+              style: context.textTheme.bodyMedium,
+            ),
+          );
+        }
+        return ListView.separated(
+          padding: padding,
+          itemCount: entries.length,
+          separatorBuilder: (context, index) => const Gap(AppSpacing.s16),
+          itemBuilder: (context, index) => Entrance(
+            index: index + 3,
+            child: ClassListTile(
+              item: entries[index].summary,
+              showFavorite: true,
+              onTap: () => context.pushNamed(
+                RouteNames.classDetails,
+                extra: entries[index].lengoalClass,
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

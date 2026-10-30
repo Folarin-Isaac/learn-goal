@@ -1,18 +1,20 @@
 import 'package:lengoal/core/core.dart';
-import 'package:lengoal/features/classes/presentation/models/class_detail.dart';
+import 'package:lengoal/features/classes/domain/entities/lengoal_class.dart';
+import 'package:lengoal/features/classes/presentation/bloc/class_list/class_list_bloc.dart';
 import 'package:lengoal/features/classes/presentation/models/class_summary.dart';
+import 'package:lengoal/features/classes/presentation/widgets/class_list_loader.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_list_tile.dart';
 
 class ClassListScaffold extends StatefulWidget {
   const new({
     required this.title,
-    required this.items,
+    required this.source,
     required this.showFavorite,
     super.key,
   });
 
   final String title;
-  final List<ClassSummary> items;
+  final ClassListSource source;
   final bool showFavorite;
 
   @override
@@ -30,11 +32,14 @@ class _ClassListScaffoldState extends State<ClassListScaffold> {
     super.dispose();
   }
 
-  List<ClassSummary> get _filteredItems {
+  List<LengoalClass> _filter(List<LengoalClass> classes) {
     final query = _query.toLowerCase();
-    return widget.items
+    if (query.isEmpty) return classes;
+    return classes
         .where(
-          (item) => query.isEmpty || item.title.toLowerCase().contains(query),
+          (c) =>
+              c.cohortName.toLowerCase().contains(query) ||
+              c.educatorName.toLowerCase().contains(query),
         )
         .toList();
   }
@@ -55,8 +60,6 @@ class _ClassListScaffoldState extends State<ClassListScaffold> {
 
   @override
   Widget build(BuildContext context) {
-    final items = _filteredItems;
-
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -71,29 +74,42 @@ class _ClassListScaffoldState extends State<ClassListScaffold> {
               ),
               const Gap(AppSpacing.s16),
               Expanded(
-                child: items.isEmpty
-                    ? Center(
+                child: ClassListLoader(
+                  source: widget.source,
+                  loading: const ClassTileListSkeleton(),
+                  builder: (context, classes) {
+                    final items = _filter(classes);
+                    if (items.isEmpty) {
+                      return Center(
                         child: Text(
-                          context.l10n.dashboardNoResults,
+                          classes.isEmpty
+                              ? context.l10n.classesEmpty
+                              : context.l10n.dashboardNoResults,
                           style: context.textTheme.bodyMedium,
                         ),
-                      )
-                    : ListView.separated(
-                        itemCount: items.length,
-                        separatorBuilder: (context, index) =>
-                            const Gap(AppSpacing.s16),
-                        itemBuilder: (context, index) => Entrance(
-                          index: index + 1,
-                          child: ClassListTile(
-                            item: items[index],
-                            showFavorite: widget.showFavorite,
-                            onTap: () => context.pushNamed(
-                              RouteNames.classDetails,
-                              extra: detailFor(items[index]),
-                            ),
+                      );
+                    }
+                    return ListView.separated(
+                      itemCount: items.length,
+                      separatorBuilder: (context, index) =>
+                          const Gap(AppSpacing.s16),
+                      itemBuilder: (context, index) => Entrance(
+                        index: index + 1,
+                        child: ClassListTile(
+                          item: ClassSummary.fromClass(
+                            items[index],
+                            isFavorite: widget.source == ClassListSource.saved,
+                          ),
+                          showFavorite: widget.showFavorite,
+                          onTap: () => context.pushNamed(
+                            RouteNames.classDetails,
+                            extra: items[index],
                           ),
                         ),
                       ),
+                    );
+                  },
+                ),
               ),
             ],
           ),

@@ -47,30 +47,32 @@ class CalendarSessionCard extends StatelessWidget {
                   '${session.dateLabel}, ${session.timeRange}',
                   style: context.textTheme.bodySmall,
                 ),
-                const Gap(AppSpacing.s4),
-                Row(
-                  children: [
-                    Assets.icons.linkIcon.svg(
-                      width: 14,
-                      height: 14,
-                      colorFilter: ColorFilter.mode(
-                        context.colors.primary,
-                        BlendMode.srcIn,
-                      ),
-                    ),
-                    const Gap(4),
-                    Expanded(
-                      child: Text(
-                        session.meetingUrl,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: context.textTheme.bodySmall?.copyWith(
-                          color: context.colors.primary,
+                if (session.meetingUrl.isNotEmpty) ...[
+                  const Gap(AppSpacing.s4),
+                  Row(
+                    children: [
+                      Assets.icons.linkIcon.svg(
+                        width: 14,
+                        height: 14,
+                        colorFilter: ColorFilter.mode(
+                          context.colors.primary,
+                          BlendMode.srcIn,
                         ),
                       ),
-                    ),
-                  ],
-                ),
+                      const Gap(4),
+                      Expanded(
+                        child: Text(
+                          session.meetingUrl,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: context.textTheme.bodySmall?.copyWith(
+                            color: context.colors.primary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
                 if (session.host case final host?) ...[
                   const Gap(AppSpacing.s4),
                   Row(

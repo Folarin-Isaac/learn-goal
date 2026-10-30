@@ -1,36 +1,30 @@
 import 'package:lengoal/core/core.dart';
-import 'package:lengoal/features/classes/presentation/models/class_detail.dart';
+import 'package:lengoal/features/classes/presentation/bloc/class_list/class_list_bloc.dart';
 import 'package:lengoal/features/classes/presentation/models/class_summary.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_card.dart';
+import 'package:lengoal/features/classes/presentation/widgets/class_list_loader.dart';
 
-class ClassSection extends StatefulWidget {
+class ClassSection extends StatelessWidget {
   const new({
     required this.title,
-    required this.items,
+    required this.source,
     required this.onSeeAll,
     this.entranceIndex = 0,
     super.key,
   });
 
   final String title;
-  final List<ClassSummary> items;
+  final ClassListSource source;
   final VoidCallback onSeeAll;
 
   final int entranceIndex;
 
-  @override
-  State<ClassSection> createState() => _ClassSectionState();
-}
-
-class _ClassSectionState extends State<ClassSection> {
   static const double _cardsPerScreen = 2.2;
   static const double _minCardWidth = 140;
   static const double _maxCardWidth = 200;
 
   @override
   Widget build(BuildContext context) {
-    final items = widget.items;
-
     return LayoutBuilder(
       builder: (context, constraints) {
         final cardWidth = (constraints.maxWidth / _cardsPerScreen).clamp(
@@ -43,55 +37,70 @@ class _ClassSectionState extends State<ClassSection> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Entrance(
-              index: widget.entranceIndex,
+              index: entranceIndex,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
                     child: Text(
-                      widget.title,
+                      title,
                       style: context.textTheme.titleLarge,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  _SeeAllButton(onTap: widget.onSeeAll),
+                  _SeeAllButton(onTap: onSeeAll),
                 ],
               ),
             ),
             const Gap(AppSpacing.s16),
-            if (items.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.s24),
-                child: Center(
-                  child: Text(
-                    context.l10n.dashboardNoFilterResults,
-                    style: context.textTheme.bodyMedium,
-                  ),
-                ),
-              )
-            else
-              SizedBox(
-                height: cardHeight,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: items.length,
-                  separatorBuilder: (context, index) =>
-                      const Gap(AppSpacing.s16),
-                  itemBuilder: (context, index) => Entrance(
-                    index: widget.entranceIndex + 1 + index,
-                    offset: const Offset(20, 0),
-                    child: ClassCard(
-                      item: items[index],
-                      width: cardWidth,
-                      onTap: () => context.pushNamed(
-                        RouteNames.classDetails,
-                        extra: detailFor(items[index]),
+            ClassListLoader(
+              source: source,
+              compactError: true,
+              loading: ClassCardRowSkeleton(
+                cardWidth: cardWidth,
+                cardHeight: cardHeight,
+              ),
+              builder: (context, classes) {
+                if (classes.isEmpty) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppSpacing.s24,
+                    ),
+                    child: Center(
+                      child: Text(
+                        context.l10n.classesEmpty,
+                        style: context.textTheme.bodyMedium,
+                      ),
+                    ),
+                  );
+                }
+                return SizedBox(
+                  height: cardHeight,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: classes.length,
+                    separatorBuilder: (context, index) =>
+                        const Gap(AppSpacing.s16),
+                    itemBuilder: (context, index) => Entrance(
+                      index: entranceIndex + 1 + index,
+                      offset: const Offset(20, 0),
+                      child: ClassCard(
+                        item: ClassSummary.fromClass(
+                          classes[index],
+                          isFavorite: source == ClassListSource.saved,
+                        ),
+                        width: cardWidth,
+                        onTap: () => context.pushNamed(
+                          RouteNames.classDetails,
+                          extra: classes[index],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
+                );
+              },
+            ),
           ],
         );
       },
