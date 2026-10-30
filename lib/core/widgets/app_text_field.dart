@@ -48,7 +48,7 @@ class AppTextField extends StatefulWidget {
 class _AppTextFieldState extends State<AppTextField> {
   late bool _obscured = widget.isPassword;
 
-  static final RegExp _emailAllowedChars = RegExp('[a-zA-Z0-9@._-]');
+  static final RegExp _emailAllowedChars = RegExp('[a-zA-Z0-9@._+-]');
 
   @override
   Widget build(BuildContext context) {
