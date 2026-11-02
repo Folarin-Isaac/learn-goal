@@ -53,7 +53,11 @@ Future<void> setupInjector({bool enableNetworkLogging = false}) async {
     ..registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(getIt()))
     ..registerFactory(() => ConnectivityCubit(getIt()))
     ..registerLazySingleton(
-      () => ApiClient(getIt(), enableLogging: enableNetworkLogging),
+      () => ApiClient(
+        getIt(),
+        networkInfo: getIt(),
+        enableLogging: enableNetworkLogging,
+      ),
     );
 
   _initAuth();

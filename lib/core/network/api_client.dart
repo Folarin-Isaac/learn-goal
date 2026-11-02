@@ -3,10 +3,16 @@ import 'package:lengoal/core/constants/app_constants.dart';
 import 'package:lengoal/core/env/env.dart';
 import 'package:lengoal/core/network/interceptors/auth_interceptor.dart';
 import 'package:lengoal/core/network/interceptors/logging_interceptor.dart';
+import 'package:lengoal/core/network/interceptors/reachability_interceptor.dart';
+import 'package:lengoal/core/network/network_info.dart';
 import 'package:lengoal/core/storage/secure_storage_service.dart';
 
 class ApiClient {
-  new(SecureStorageService secureStorage, {bool enableLogging = false}) {
+  new(
+    SecureStorageService secureStorage, {
+    required NetworkInfo networkInfo,
+    bool enableLogging = false,
+  }) {
     dio = Dio(
       BaseOptions(
         baseUrl: Env.baseUrl,
@@ -16,7 +22,9 @@ class ApiClient {
       ),
     );
 
-    dio.interceptors.add(AuthInterceptor(secureStorage, dio));
+    dio.interceptors
+      ..add(ReachabilityInterceptor(networkInfo))
+      ..add(AuthInterceptor(secureStorage, dio));
     if (enableLogging) {
       dio.interceptors.add(LoggingInterceptor());
     }
