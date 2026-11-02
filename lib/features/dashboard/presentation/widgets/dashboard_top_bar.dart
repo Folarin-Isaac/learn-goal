@@ -14,7 +14,12 @@ class DashboardTopBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Flexible(child: _GoalSwitcherButton()),
+        const Expanded(
+          child: Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: _GoalSwitcherButton(),
+          ),
+        ),
         const Gap(AppSpacing.s8),
         IconButton(
           onPressed: () async {
