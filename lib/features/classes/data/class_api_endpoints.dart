@@ -5,6 +5,8 @@ class ClassApiEndpoints {
   static const String recommendedClasses =
       '/api/v1/Landing/learner/categories/classes';
   static const String savedClasses = '/api/v1/Learner/GetLearnerSavedClasses';
+  static const String saveClass = '/api/v1/Learner/LearnerSaveClass';
+  static const String unsaveClass = '/api/v1/Learner/LearnerRemoveSavesClass';
   static const String classReplay = '/api/v1/Class/class-replay';
   static const String searchClasses = '/api/v1/Landing/learner/search';
 

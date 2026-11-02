@@ -8,7 +8,13 @@ class GetRecommendedClassesUseCase {
 
   final ClassRepository _repository;
 
-  Future<Either<Failure, List<LengoalClass>>> call() {
-    return _repository.getRecommendedClasses();
+  Future<Either<Failure, List<LengoalClass>>> call({
+    String? categoryId,
+    String? goalName,
+  }) {
+    return _repository.getRecommendedClasses(
+      categoryId: categoryId,
+      goalName: goalName,
+    );
   }
 }

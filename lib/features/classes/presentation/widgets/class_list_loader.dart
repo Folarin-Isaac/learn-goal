@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:lengoal/core/core.dart';
+import 'package:lengoal/core/error/failures.dart';
 import 'package:lengoal/features/classes/domain/entities/lengoal_class.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_list/class_list_bloc.dart';
 
@@ -8,7 +11,52 @@ Future<void> refreshClassLists(List<ClassListSource> sources) {
   ]);
 }
 
+Future<void> toggleSavedClass(
+  BuildContext context,
+  LengoalClass lengoalClass, {
+  required bool save,
+  bool confirm = false,
+}) async {
+  final l10n = context.l10n;
+  final completer = Completer<Failure?>();
+  classListBlocFor(ClassListSource.saved)
+      .add(ClassSaveToggled(lengoalClass, save: save, completer: completer));
+  final failure = await completer.future;
+  if (failure != null) {
+    AppHaptics.error();
+    AppSnackbar.error(failure.message);
+  } else if (confirm) {
+    AppSnackbar.success(
+      save ? l10n.classSavedMessage : l10n.classUnsavedMessage,
+    );
+  }
+}
+
+class SavedClassesBuilder extends StatefulWidget {
+  const new({required this.builder, super.key});
+
+  final Widget Function(BuildContext context, Set<String> savedIds) builder;
+
+  @override
+  State<SavedClassesBuilder> createState() => _SavedClassesBuilderState();
+}
+
+class _SavedClassesBuilderState extends State<SavedClassesBuilder> {
+  late final ClassListBloc _bloc = classListBlocFor(ClassListSource.saved)
+    ..add(const ClassListRequested());
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ClassListBloc, ClassListState>(
+      bloc: _bloc,
+      buildWhen: (previous, current) => previous.classes != current.classes,
+      builder: (context, state) => widget.builder(context, state.classIds),
+    );
+  }
+}
+
 Future<void> _refresh(ClassListBloc bloc) async {
+  if (bloc.source.isGoalScoped && !bloc.state.scopeResolved) return;
   final done = bloc.stream.firstWhere(
     (state) => !state.isRefreshing && state.status != ClassListStatus.loading,
   );

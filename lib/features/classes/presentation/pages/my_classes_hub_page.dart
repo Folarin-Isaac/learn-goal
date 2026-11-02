@@ -191,23 +191,26 @@ class _ClassTabState extends State<_ClassTab>
       child: ClassListLoader(
         source: widget.source,
         loading: const ClassTileListSkeleton(padding: padding),
-        builder: (context, classes) {
-          if (!isSaved) return _buildList(context, classes, padding);
-          return BlocBuilder<ClassListBloc, ClassListState>(
-            bloc: classListBlocFor(ClassListSource.subscribed),
-            builder: (context, subscribedState) {
-              final subscribedIds = {
-                for (final c in subscribedState.classes) c.id,
-              };
-              final marked = classes
-                  .map(
-                    (c) => subscribedIds.contains(c.id) ? c.asSubscribed() : c,
-                  )
-                  .toList();
-              return _buildList(context, marked, padding);
-            },
-          );
-        },
+        builder: (context, classes) => SavedClassesBuilder(
+          builder: (context, savedIds) {
+            if (!isSaved) {
+              return _buildList(context, classes, padding, savedIds);
+            }
+            return BlocBuilder<ClassListBloc, ClassListState>(
+              bloc: classListBlocFor(ClassListSource.subscribed),
+              builder: (context, subscribedState) {
+                final subscribedIds = subscribedState.classIds;
+                final marked = classes
+                    .map(
+                      (c) =>
+                          subscribedIds.contains(c.id) ? c.asSubscribed() : c,
+                    )
+                    .toList();
+                return _buildList(context, marked, padding, savedIds);
+              },
+            );
+          },
+        ),
       ),
     );
   }
@@ -216,6 +219,7 @@ class _ClassTabState extends State<_ClassTab>
     BuildContext context,
     List<LengoalClass> classes,
     EdgeInsets padding,
+    Set<String> savedIds,
   ) {
     final isSaved = widget.source == ClassListSource.saved;
     final query = widget.query.trim().toLowerCase();
@@ -226,7 +230,10 @@ class _ClassTabState extends State<_ClassTab>
             c.educatorName.toLowerCase().contains(query))
           (
             lengoalClass: c,
-            summary: ClassSummary.fromClass(c, isFavorite: isSaved),
+            summary: ClassSummary.fromClass(
+              c,
+              isFavorite: savedIds.contains(c.id),
+            ),
           ),
     ].where((e) => matchesClassFilter(e.summary, widget.filter)).toList();
 
@@ -263,6 +270,11 @@ class _ClassTabState extends State<_ClassTab>
           onTap: () => context.pushNamed(
             RouteNames.classDetails,
             extra: entries[index].lengoalClass,
+          ),
+          onFavoriteTap: () => toggleSavedClass(
+            context,
+            entries[index].lengoalClass,
+            save: !entries[index].summary.isFavorite,
           ),
         ),
       ),

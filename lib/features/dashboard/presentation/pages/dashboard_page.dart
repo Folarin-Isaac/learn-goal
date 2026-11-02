@@ -72,7 +72,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
               return RefreshIndicator(
                 onRefresh: () => refreshClassLists(const [
-                  ClassListSource.subscribed,
+                  ClassListSource.goalSubscribed,
                   ClassListSource.recommended,
                 ]),
                 child: SingleChildScrollView(
@@ -131,7 +131,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       const Gap(AppSpacing.s24),
                       ClassSection(
                         title: context.l10n.dashboardMyClasses,
-                        source: ClassListSource.subscribed,
+                        source: ClassListSource.goalSubscribed,
                         onSeeAll: () => context.pushNamed(RouteNames.myClasses),
                         entranceIndex: myClassesIndex,
                       ),

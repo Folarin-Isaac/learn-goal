@@ -4,15 +4,25 @@ import 'package:lengoal/features/classes/domain/entities/class_referral.dart';
 import 'package:lengoal/features/classes/domain/entities/class_replay.dart';
 
 abstract class ClassRemoteDataSource {
-  Future<List<LengoalClassModel>> getSubscribedClasses({String? searchTerm});
+  Future<List<LengoalClassModel>> getSubscribedClasses({
+    String? searchTerm,
+    String? goalId,
+  });
 
-  Future<List<LengoalClassModel>> getRecommendedClasses();
+  Future<List<LengoalClassModel>> getRecommendedClasses({
+    String? categoryId,
+    String? goalName,
+  });
 
   Future<List<LengoalClassModel>> searchClasses(String searchTerm);
 
   Future<List<LengoalClassModel>> getSavedClasses({String? searchTerm});
 
   Future<LengoalClassModel> getClass(String id);
+
+  Future<void> saveClass(String classId);
+
+  Future<void> unsaveClass(String classId);
 
   Future<List<ClassEducatorModel>> getClassEducators(String classId);
 

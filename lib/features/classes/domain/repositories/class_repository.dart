@@ -8,9 +8,13 @@ import 'package:lengoal/features/classes/domain/entities/lengoal_class.dart';
 abstract class ClassRepository {
   Future<Either<Failure, List<LengoalClass>>> getSubscribedClasses({
     String? searchTerm,
+    String? goalId,
   });
 
-  Future<Either<Failure, List<LengoalClass>>> getRecommendedClasses();
+  Future<Either<Failure, List<LengoalClass>>> getRecommendedClasses({
+    String? categoryId,
+    String? goalName,
+  });
 
   Future<Either<Failure, List<LengoalClass>>> searchClasses(String searchTerm);
 
@@ -19,6 +23,10 @@ abstract class ClassRepository {
   });
 
   Future<Either<Failure, LengoalClass>> getClass(String id);
+
+  Future<Either<Failure, Unit>> saveClass(String classId);
+
+  Future<Either<Failure, Unit>> unsaveClass(String classId);
 
   Future<Either<Failure, List<ClassEducator>>> getClassEducators(
     String classId,

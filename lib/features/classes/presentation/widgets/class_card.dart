@@ -4,11 +4,18 @@ import 'package:lengoal/features/classes/presentation/widgets/class_info_column.
 import 'package:lengoal/features/classes/presentation/widgets/class_thumbnail.dart';
 
 class ClassCard extends StatelessWidget {
-  const new({required this.item, required this.width, this.onTap, super.key});
+  const new({
+    required this.item,
+    required this.width,
+    this.onTap,
+    this.onFavoriteTap,
+    super.key,
+  });
 
   final ClassSummary item;
   final double width;
   final VoidCallback? onTap;
+  final VoidCallback? onFavoriteTap;
 
   static const double thumbnailAspectRatio = 1.35;
 
@@ -34,6 +41,7 @@ class ClassCard extends StatelessWidget {
                 child: ClassThumbnail(
                   item: item,
                   showFavorite: item.isFavorite,
+                  onFavoriteTap: onFavoriteTap,
                   playBadgeAlignment: Alignment.topRight,
                 ),
               ),

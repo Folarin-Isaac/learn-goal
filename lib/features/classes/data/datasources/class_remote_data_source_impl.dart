@@ -19,10 +19,14 @@ class ClassRemoteDataSourceImpl implements ClassRemoteDataSource {
   static const int _pageSize = 50;
 
   @override
-  Future<List<LengoalClassModel>> getSubscribedClasses({String? searchTerm}) {
+  Future<List<LengoalClassModel>> getSubscribedClasses({
+    String? searchTerm,
+    String? goalId,
+  }) {
     return _getList(
       ClassApiEndpoints.subscribedClasses,
       searchTerm,
+      goalId: goalId,
       forceSubscribed: true,
     );
   }
@@ -30,9 +34,30 @@ class ClassRemoteDataSourceImpl implements ClassRemoteDataSource {
   // GetAllClasses is admin-only. The learner landing feed's category list
   // returns every listed class when no CategoryId is given; the
   // upcoming-classes feed drops anything that has already started.
+  // With a goal, its category narrows the feed (falling back to the full
+  // feed when that category has nothing), and classes for the goal itself
+  // are ranked first rather than filtered, so the section never goes
+  // empty just because no class targets that exact goal yet.
   @override
-  Future<List<LengoalClassModel>> getRecommendedClasses() {
-    return _getLandingList(ClassApiEndpoints.recommendedClasses);
+  Future<List<LengoalClassModel>> getRecommendedClasses({
+    String? categoryId,
+    String? goalName,
+  }) async {
+    var classes = await _getLandingList(
+      ClassApiEndpoints.recommendedClasses,
+      extraParameters: {
+        if (categoryId != null && categoryId.isNotEmpty)
+          'CategoryId': categoryId,
+      },
+    );
+    if (classes.isEmpty && categoryId != null && categoryId.isNotEmpty) {
+      classes = await _getLandingList(ClassApiEndpoints.recommendedClasses);
+    }
+    final target = goalName?.trim().toLowerCase();
+    if (target == null || target.isEmpty) return classes;
+    bool matches(LengoalClassModel c) =>
+        c.goalName?.trim().toLowerCase() == target;
+    return [...classes.where(matches), ...classes.where((c) => !matches(c))];
   }
 
   @override
@@ -76,6 +101,36 @@ class ClassRemoteDataSourceImpl implements ClassRemoteDataSource {
         ClassApiEndpoints.classById(id),
       );
       return LengoalClassModel.fromJson(_unwrapObject(response.data!));
+    } on DioException catch (e) {
+      throw _mapException(e);
+    }
+  }
+
+  @override
+  Future<void> saveClass(String classId) async {
+    try {
+      final response = await _apiClient.dio.post<Map<String, dynamic>>(
+        ClassApiEndpoints.saveClass,
+        data: {
+          'classId': [classId],
+        },
+      );
+      _checkSucceeded(response.data!);
+    } on DioException catch (e) {
+      throw _mapException(e);
+    }
+  }
+
+  @override
+  Future<void> unsaveClass(String classId) async {
+    try {
+      final response = await _apiClient.dio.delete<Map<String, dynamic>>(
+        ClassApiEndpoints.unsaveClass,
+        data: {
+          'classId': [classId],
+        },
+      );
+      _checkSucceeded(response.data!);
     } on DioException catch (e) {
       throw _mapException(e);
     }
@@ -149,6 +204,7 @@ class ClassRemoteDataSourceImpl implements ClassRemoteDataSource {
   Future<List<LengoalClassModel>> _getList(
     String path,
     String? searchTerm, {
+    String? goalId,
     bool forceSubscribed = false,
   }) async {
     try {
@@ -159,6 +215,7 @@ class ClassRemoteDataSourceImpl implements ClassRemoteDataSource {
           'PageNumber': 1,
           if (searchTerm != null && searchTerm.isNotEmpty)
             'SearchTerm': searchTerm,
+          if (goalId != null && goalId.isNotEmpty) 'GoalId': goalId,
         },
       );
       return _unwrapList(response.data!)

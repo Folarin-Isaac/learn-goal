@@ -1,32 +1,19 @@
 import 'package:lengoal/core/core.dart';
 import 'package:lengoal/features/classes/presentation/models/class_summary.dart';
 
-class ClassThumbnail extends StatefulWidget {
+class ClassThumbnail extends StatelessWidget {
   const new({
     required this.item,
     this.showFavorite = false,
+    this.onFavoriteTap,
     this.playBadgeAlignment = Alignment.center,
     super.key,
   });
 
   final ClassSummary item;
   final bool showFavorite;
+  final VoidCallback? onFavoriteTap;
   final Alignment playBadgeAlignment;
-
-  @override
-  State<ClassThumbnail> createState() => _ClassThumbnailState();
-}
-
-class _ClassThumbnailState extends State<ClassThumbnail> {
-  late bool _isFavorite = widget.item.isFavorite;
-
-  @override
-  void didUpdateWidget(ClassThumbnail oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.item.id != widget.item.id) {
-      _isFavorite = widget.item.isFavorite;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,30 +22,32 @@ class _ClassThumbnailState extends State<ClassThumbnail> {
         Positioned.fill(
           child: ClipRRect(
             borderRadius: BorderRadius.circular(AppSpacing.r12),
-            child: ClassCover(item: widget.item),
+            child: ClassCover(item: item),
           ),
         ),
         Positioned.fill(
           child: Align(
-            alignment: widget.playBadgeAlignment,
+            alignment: playBadgeAlignment,
             child: Padding(
-              padding: widget.playBadgeAlignment == Alignment.center
+              padding: playBadgeAlignment == Alignment.center
                   ? EdgeInsets.zero
                   : const EdgeInsets.all(AppSpacing.s8),
               child: const _PlayBadge(),
             ),
           ),
         ),
-        if (widget.showFavorite)
+        if (showFavorite)
           Positioned(
             right: AppSpacing.s8,
             bottom: AppSpacing.s8,
             child: GestureDetector(
-              onTap: () {
-                AppHaptics.selection();
-                setState(() => _isFavorite = !_isFavorite);
-              },
-              child: _FavoriteBadge(isFavorite: _isFavorite),
+              onTap: onFavoriteTap == null
+                  ? null
+                  : () {
+                      AppHaptics.selection();
+                      onFavoriteTap!();
+                    },
+              child: _FavoriteBadge(isFavorite: item.isFavorite),
             ),
           ),
       ],

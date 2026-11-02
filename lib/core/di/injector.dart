@@ -19,6 +19,7 @@ import 'package:lengoal/features/auth/presentation/bloc/auth/auth_bloc.dart';
 import 'package:lengoal/features/classes/data/datasources/class_remote_data_source.dart';
 import 'package:lengoal/features/classes/data/datasources/class_remote_data_source_impl.dart';
 import 'package:lengoal/features/classes/data/repositories/class_repository_impl.dart';
+import 'package:lengoal/features/classes/domain/entities/class_goal_scope.dart';
 import 'package:lengoal/features/classes/domain/entities/lengoal_class.dart';
 import 'package:lengoal/features/classes/domain/repositories/class_repository.dart';
 import 'package:lengoal/features/classes/domain/usecases/generate_class_referral_usecase.dart';
@@ -29,6 +30,7 @@ import 'package:lengoal/features/classes/domain/usecases/get_recommended_classes
 import 'package:lengoal/features/classes/domain/usecases/get_saved_classes_usecase.dart';
 import 'package:lengoal/features/classes/domain/usecases/get_subscribed_classes_usecase.dart';
 import 'package:lengoal/features/classes/domain/usecases/search_classes_usecase.dart';
+import 'package:lengoal/features/classes/domain/usecases/set_class_saved_usecase.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_detail/class_detail_bloc.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_list/class_list_bloc.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_list/class_list_session_sync.dart';
@@ -41,6 +43,9 @@ import 'package:lengoal/features/goal_setup/domain/usecases/get_exam_stages_usec
 import 'package:lengoal/features/goal_setup/domain/usecases/get_goals_usecase.dart';
 import 'package:lengoal/features/goal_setup/domain/usecases/get_categories_usecase.dart';
 import 'package:lengoal/features/goal_setup/domain/usecases/save_goal_usecase.dart';
+import 'package:lengoal/features/goal_setup/domain/entities/exam_goal.dart';
+import 'package:lengoal/features/goal_setup/domain/usecases/get_learner_goals_usecase.dart';
+import 'package:lengoal/features/goal_setup/presentation/bloc/active_goal/active_goal_cubit.dart';
 import 'package:lengoal/features/goal_setup/presentation/bloc/goal_setup/goal_setup_bloc.dart';
 import 'package:lengoal/features/profile/profile.dart';
 
@@ -72,6 +77,24 @@ Future<void> setupInjector({bool enableNetworkLogging = false}) async {
 
   getIt<ProfileSessionSync>().start();
   getIt<ClassListSessionSync>().start();
+  getIt<ActiveGoalCubit>().start();
+}
+
+// The class lists only need "which goal, if any, once it's settled"; this
+// keeps the classes feature independent of goal setup's cubit.
+Stream<ClassGoalScope?> _goalScopes(ActiveGoalCubit cubit) {
+  ClassGoalScope? toScope(ExamGoal? goal) => goal == null
+      ? null
+      : ClassGoalScope(
+          goalId: goal.id,
+          categoryId: goal.categoryId,
+          goalName: goal.goalName,
+        );
+  return Stream<ActiveGoalState>.multi((controller) {
+    controller.add(cubit.state);
+    final subscription = cubit.stream.listen(controller.add);
+    controller.onCancel = subscription.cancel;
+  }).where((state) => state.isResolved).map((s) => toScope(s.activeGoal));
 }
 
 void _initProfile() {
@@ -116,6 +139,7 @@ void _initClasses() {
         getSubscribedClassesUseCase: getIt(),
         getRecommendedClassesUseCase: getIt(),
         getSavedClassesUseCase: getIt(),
+        setClassSavedUseCase: getIt(),
       ),
       instanceName: source.name,
     );
@@ -131,6 +155,7 @@ void _initClasses() {
     ..registerLazySingleton(() => GetSubscribedClassesUseCase(getIt()))
     ..registerLazySingleton(() => GetRecommendedClassesUseCase(getIt()))
     ..registerLazySingleton(() => GetSavedClassesUseCase(getIt()))
+    ..registerLazySingleton(() => SetClassSavedUseCase(getIt()))
     ..registerLazySingleton(() => GetClassUseCase(getIt()))
     ..registerLazySingleton(() => SearchClassesUseCase(getIt()))
     ..registerFactory(() => ClassSearchBloc(searchClassesUseCase: getIt()))
@@ -141,6 +166,7 @@ void _initClasses() {
       () => ClassListSessionSync(
         authRepository: getIt(),
         networkInfo: getIt(),
+        goalScopes: _goalScopes(getIt()),
         blocFor: classListBlocFor,
       ),
     )
@@ -189,6 +215,16 @@ void _initGoalSetup() {
     ..registerLazySingleton(() => GetGoalsUseCase(getIt()))
     ..registerLazySingleton(() => GetExamStagesUseCase(getIt()))
     ..registerLazySingleton(() => SaveGoalUseCase(getIt()))
+    ..registerLazySingleton(() => GetLearnerGoalsUseCase(getIt()))
+    ..registerLazySingleton(
+      () => ActiveGoalCubit(
+        authRepository: getIt(),
+        getLearnerProfileUseCase: getIt(),
+        getLearnerGoalsUseCase: getIt(),
+        secureStorage: getIt(),
+        networkInfo: getIt(),
+      ),
+    )
     ..registerFactory(
       () => GoalSetupBloc(
         getCategoriesUseCase: getIt(),

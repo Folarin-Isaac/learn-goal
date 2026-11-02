@@ -13,4 +13,7 @@ class StorageKeys {
   // 'false' when the learner unticked "Keep me signed in": the session
   // then lasts only until the app is next launched.
   static const String keepSignedIn = 'keep_signed_in';
+
+  // The goal picked in the dashboard switcher, restored on next launch.
+  static const String activeGoalId = 'active_goal_id';
 }

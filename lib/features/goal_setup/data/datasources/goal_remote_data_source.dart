@@ -11,6 +11,8 @@ abstract class GoalRemoteDataSource {
     String? searchTerm,
   });
 
+  Future<List<ExamGoalModel>> getLearnerGoals({required String learnerId});
+
   // Each returned stage includes its topics — see ExamStageModel.
   Future<List<ExamStageModel>> getExamStages({required String examId});
 

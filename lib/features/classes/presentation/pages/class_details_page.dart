@@ -7,6 +7,7 @@ import 'package:lengoal/features/classes/presentation/bloc/class_detail/class_de
 import 'package:lengoal/features/classes/presentation/models/class_detail.dart';
 import 'package:lengoal/features/classes/presentation/models/class_material.dart';
 import 'package:lengoal/features/classes/presentation/models/class_quiz.dart';
+import 'package:lengoal/features/classes/presentation/widgets/class_list_loader.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_material_row.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_quiz_card.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_thumbnail.dart';
@@ -304,12 +305,26 @@ class _DetailHeader extends StatelessWidget {
             },
           ),
           const Gap(AppSpacing.s8),
-          AppButton(
-            label: context.l10n.classDetailsSaveClass,
-            isOutlined: true,
-            onPressed: () {
-              AppHaptics.selection();
-              AppSnackbar.info(context.l10n.dashboardComingSoon);
+          SavedClassesBuilder(
+            builder: (context, savedIds) {
+              final isSaved = savedIds.contains(detail.source.id);
+              return AppButton(
+                label: isSaved
+                    ? context.l10n.classDetailsUnsaveClass
+                    : context.l10n.classDetailsSaveClass,
+                isOutlined: true,
+                onPressed: () {
+                  AppHaptics.selection();
+                  unawaited(
+                    toggleSavedClass(
+                      context,
+                      detail.source,
+                      save: !isSaved,
+                      confirm: true,
+                    ),
+                  );
+                },
+              );
             },
           ),
         ],

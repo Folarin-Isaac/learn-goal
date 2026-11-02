@@ -15,6 +15,10 @@ abstract class GoalRepository {
     String? searchTerm,
   });
 
+  Future<Either<Failure, List<ExamGoal>>> getLearnerGoals({
+    required String learnerId,
+  });
+
   Future<Either<Failure, List<ExamStage>>> getExamStages({
     required String examId,
   });

@@ -8,7 +8,13 @@ class GetSubscribedClassesUseCase {
 
   final ClassRepository _repository;
 
-  Future<Either<Failure, List<LengoalClass>>> call({String? searchTerm}) {
-    return _repository.getSubscribedClasses(searchTerm: searchTerm);
+  Future<Either<Failure, List<LengoalClass>>> call({
+    String? searchTerm,
+    String? goalId,
+  }) {
+    return _repository.getSubscribedClasses(
+      searchTerm: searchTerm,
+      goalId: goalId,
+    );
   }
 }

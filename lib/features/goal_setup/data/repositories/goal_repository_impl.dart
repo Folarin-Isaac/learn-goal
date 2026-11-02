@@ -39,6 +39,15 @@ class GoalRepositoryImpl implements GoalRepository {
   }
 
   @override
+  Future<Either<Failure, List<ExamGoal>>> getLearnerGoals({
+    required String learnerId,
+  }) {
+    return _guard(
+      () => _remoteDataSource.getLearnerGoals(learnerId: learnerId),
+    );
+  }
+
+  @override
   Future<Either<Failure, List<ExamStage>>> getExamStages({
     required String examId,
   }) {

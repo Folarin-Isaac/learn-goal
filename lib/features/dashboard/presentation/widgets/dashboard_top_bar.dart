@@ -1,8 +1,7 @@
 import 'dart:async';
 
 import 'package:lengoal/core/core.dart';
-
-const _mockGoals = ['GATE, ESE and IIT-JAM', 'CUET', 'Foreign Studies'];
+import 'package:lengoal/features/goal_setup/presentation/bloc/active_goal/active_goal_cubit.dart';
 
 class DashboardTopBar extends StatelessWidget {
   const new({required this.firstName, super.key, this.avatarUrl});
@@ -14,7 +13,7 @@ class DashboardTopBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Flexible(child: _GoalSwitcherButton(activeGoal: _mockGoals.first)),
+        const Flexible(child: _GoalSwitcherButton()),
         const Gap(AppSpacing.s8),
         IconButton(
           onPressed: () async {
@@ -48,41 +47,74 @@ class DashboardTopBar extends StatelessWidget {
 }
 
 class _GoalSwitcherButton extends StatelessWidget {
-  const new({required this.activeGoal});
-
-  final String activeGoal;
+  const new();
 
   @override
   Widget build(BuildContext context) {
-    return Builder(
-      builder: (buttonContext) {
-        return GestureDetector(
-          onTap: () => _openMenu(buttonContext),
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.s16,
-              vertical: AppSpacing.s8,
-            ),
-            decoration: BoxDecoration(
-              color: buttonContext.colors.surface,
-              borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Flexible(
-                  child: Text(
-                    activeGoal,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: buttonContext.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
+    final cubit = getIt<ActiveGoalCubit>();
+    return BlocBuilder<ActiveGoalCubit, ActiveGoalState>(
+      bloc: cubit,
+      builder: (context, state) {
+        final active = state.activeGoal;
+        final isLoading =
+            active == null &&
+            (state.status == ActiveGoalStatus.initial ||
+                state.status == ActiveGoalStatus.loading);
+        final label =
+            active?.goalName ??
+            (state.status == ActiveGoalStatus.failure
+                ? context.l10n.dashboardGoalsRetry
+                : context.l10n.dashboardSetGoal);
+
+        return Builder(
+          builder: (buttonContext) => GestureDetector(
+            onTap: isLoading
+                ? null
+                : () {
+                    if (active != null) {
+                      unawaited(_openMenu(buttonContext, cubit, state));
+                    } else if (state.status == ActiveGoalStatus.failure) {
+                      AppHaptics.selection();
+                      unawaited(cubit.load());
+                    } else {
+                      unawaited(_createGoal(buttonContext, cubit));
+                    }
+                  },
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.s16,
+                vertical: AppSpacing.s8,
+              ),
+              decoration: BoxDecoration(
+                color: buttonContext.colors.surface,
+                borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
+              ),
+              child: isLoading
+                  ? const Shimmer(child: SkeletonBox(width: 96))
+                  : Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: buttonContext.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        const Gap(AppSpacing.s4),
+                        Icon(
+                          active != null
+                              ? Icons.keyboard_arrow_down
+                              : state.status == ActiveGoalStatus.failure
+                              ? Icons.refresh
+                              : Icons.add,
+                          size: 18,
+                        ),
+                      ],
                     ),
-                  ),
-                ),
-                const Gap(AppSpacing.s4),
-                const Icon(Icons.keyboard_arrow_down, size: 18),
-              ],
             ),
           ),
         );
@@ -90,7 +122,17 @@ class _GoalSwitcherButton extends StatelessWidget {
     );
   }
 
-  Future<void> _openMenu(BuildContext context) async {
+  Future<void> _createGoal(BuildContext context, ActiveGoalCubit cubit) async {
+    AppHaptics.selection();
+    await context.pushNamed(RouteNames.goalCategory);
+    await cubit.load();
+  }
+
+  Future<void> _openMenu(
+    BuildContext context,
+    ActiveGoalCubit cubit,
+    ActiveGoalState state,
+  ) async {
     AppHaptics.selection();
     final renderBox = context.findRenderObject()! as RenderBox;
     final overlay =
@@ -109,6 +151,7 @@ class _GoalSwitcherButton extends StatelessWidget {
     );
 
     const createNewGoal = '__create_new_goal__';
+    final activeId = state.activeGoal?.id;
     final selected = await showMenu<String>(
       context: context,
       position: position,
@@ -118,10 +161,21 @@ class _GoalSwitcherButton extends StatelessWidget {
       ),
       constraints: const BoxConstraints(minWidth: 220),
       items: [
-        for (final goal in _mockGoals)
+        for (final goal in state.goals)
           PopupMenuItem(
-            value: goal,
-            child: Text(goal, style: context.textTheme.bodyLarge),
+            value: goal.id,
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    goal.goalName,
+                    style: context.textTheme.bodyLarge,
+                  ),
+                ),
+                if (goal.id == activeId)
+                  Icon(Icons.check, size: 18, color: context.colors.primary),
+              ],
+            ),
           ),
         const PopupMenuDivider(height: 1),
         PopupMenuItem(
@@ -143,9 +197,15 @@ class _GoalSwitcherButton extends StatelessWidget {
       ],
     );
 
-    if (selected == createNewGoal && context.mounted) {
+    if (selected == null || !context.mounted) return;
+    if (selected == createNewGoal) {
+      await _createGoal(context, cubit);
+      return;
+    }
+    final goal = state.goals.where((g) => g.id == selected).firstOrNull;
+    if (goal != null) {
       AppHaptics.selection();
-      await context.pushNamed(RouteNames.goalCategory);
+      await cubit.select(goal);
     }
   }
 }

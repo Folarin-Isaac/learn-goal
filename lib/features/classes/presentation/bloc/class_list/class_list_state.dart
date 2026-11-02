@@ -9,6 +9,8 @@ class ClassListState extends Equatable {
     this.loadedAt,
     this.isRefreshing = false,
     this.errorMessage,
+    this.scope,
+    this.scopeResolved = false,
   });
 
   final ClassListStatus status;
@@ -16,9 +18,13 @@ class ClassListState extends Equatable {
   final DateTime? loadedAt;
   final bool isRefreshing;
   final String? errorMessage;
+  final ClassGoalScope? scope;
+  final bool scopeResolved;
 
   bool get isLoading =>
       status == ClassListStatus.initial || status == ClassListStatus.loading;
+
+  Set<String> get classIds => {for (final c in classes) c.id};
 
   ClassListState copyWith({
     ClassListStatus? status,
@@ -33,6 +39,8 @@ class ClassListState extends Equatable {
       loadedAt: loadedAt ?? this.loadedAt,
       isRefreshing: isRefreshing ?? this.isRefreshing,
       errorMessage: errorMessage,
+      scope: scope,
+      scopeResolved: scopeResolved,
     );
   }
 
@@ -43,5 +51,7 @@ class ClassListState extends Equatable {
     loadedAt,
     isRefreshing,
     errorMessage,
+    scope,
+    scopeResolved,
   ];
 }

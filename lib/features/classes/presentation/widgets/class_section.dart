@@ -71,31 +71,44 @@ class ClassSection extends StatelessWidget {
                     ),
                   );
                 }
-                return SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  clipBehavior: Clip.none,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      for (var index = 0; index < classes.length; index++) ...[
-                        if (index > 0) const Gap(AppSpacing.s16),
-                        Entrance(
-                          index: entranceIndex + 1 + index,
-                          offset: const Offset(20, 0),
-                          child: ClassCard(
-                            item: ClassSummary.fromClass(
-                              classes[index],
-                              isFavorite: source == ClassListSource.saved,
-                            ),
-                            width: cardWidth,
-                            onTap: () => context.pushNamed(
-                              RouteNames.classDetails,
-                              extra: classes[index],
+                return SavedClassesBuilder(
+                  builder: (context, savedIds) => SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    clipBehavior: Clip.none,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        for (
+                          var index = 0;
+                          index < classes.length;
+                          index++
+                        ) ...[
+                          if (index > 0) const Gap(AppSpacing.s16),
+                          Entrance(
+                            index: entranceIndex + 1 + index,
+                            offset: const Offset(20, 0),
+                            child: ClassCard(
+                              item: ClassSummary.fromClass(
+                                classes[index],
+                                isFavorite: savedIds.contains(
+                                  classes[index].id,
+                                ),
+                              ),
+                              width: cardWidth,
+                              onTap: () => context.pushNamed(
+                                RouteNames.classDetails,
+                                extra: classes[index],
+                              ),
+                              onFavoriteTap: () => toggleSavedClass(
+                                context,
+                                classes[index],
+                                save: false,
+                              ),
                             ),
                           ),
-                        ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 );
               },

@@ -9,7 +9,7 @@ class MyClassesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return ClassListScaffold(
       title: context.l10n.dashboardMyClasses,
-      source: ClassListSource.subscribed,
+      source: ClassListSource.goalSubscribed,
       showFavorite: true,
     );
   }

@@ -18,15 +18,27 @@ class ClassRepositoryImpl implements ClassRepository {
   @override
   Future<Either<Failure, List<LengoalClass>>> getSubscribedClasses({
     String? searchTerm,
+    String? goalId,
   }) {
     return _guard(
-      () => _remoteDataSource.getSubscribedClasses(searchTerm: searchTerm),
+      () => _remoteDataSource.getSubscribedClasses(
+        searchTerm: searchTerm,
+        goalId: goalId,
+      ),
     );
   }
 
   @override
-  Future<Either<Failure, List<LengoalClass>>> getRecommendedClasses() {
-    return _guard(_remoteDataSource.getRecommendedClasses);
+  Future<Either<Failure, List<LengoalClass>>> getRecommendedClasses({
+    String? categoryId,
+    String? goalName,
+  }) {
+    return _guard(
+      () => _remoteDataSource.getRecommendedClasses(
+        categoryId: categoryId,
+        goalName: goalName,
+      ),
+    );
   }
 
   @override
@@ -46,6 +58,22 @@ class ClassRepositoryImpl implements ClassRepository {
   @override
   Future<Either<Failure, LengoalClass>> getClass(String id) {
     return _guard(() => _remoteDataSource.getClass(id));
+  }
+
+  @override
+  Future<Either<Failure, Unit>> saveClass(String classId) {
+    return _guard(() async {
+      await _remoteDataSource.saveClass(classId);
+      return unit;
+    });
+  }
+
+  @override
+  Future<Either<Failure, Unit>> unsaveClass(String classId) {
+    return _guard(() async {
+      await _remoteDataSource.unsaveClass(classId);
+      return unit;
+    });
   }
 
   @override

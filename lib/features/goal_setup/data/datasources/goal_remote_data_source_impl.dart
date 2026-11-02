@@ -60,6 +60,27 @@ class GoalRemoteDataSourceImpl implements GoalRemoteDataSource {
     }
   }
 
+  // Same endpoint as the catalogue, but filtered to one learner it returns
+  // their own goals, each carrying that learner's examTargetDate.
+  @override
+  Future<List<ExamGoalModel>> getLearnerGoals({
+    required String learnerId,
+  }) async {
+    try {
+      final response = await _apiClient.dio.get<Map<String, dynamic>>(
+        GoalApiEndpoints.goals,
+        queryParameters: {
+          'PageSize': _pageSize,
+          'PageNumber': 1,
+          'LearnerId': learnerId,
+        },
+      );
+      return _unwrapList(response.data!).map(ExamGoalModel.fromJson).toList();
+    } on DioException catch (e) {
+      throw _mapException(e);
+    }
+  }
+
   @override
   Future<List<ExamStageModel>> getExamStages({required String examId}) async {
     try {

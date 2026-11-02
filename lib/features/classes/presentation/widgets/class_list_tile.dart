@@ -10,6 +10,7 @@ class ClassListTile extends StatelessWidget {
     this.showProgress = true,
     this.centerInfo = false,
     this.onTap,
+    this.onFavoriteTap,
     super.key,
   });
 
@@ -18,6 +19,7 @@ class ClassListTile extends StatelessWidget {
   final bool showProgress;
   final bool centerInfo;
   final VoidCallback? onTap;
+  final VoidCallback? onFavoriteTap;
 
   static const double _thumbnailFraction = 0.45;
   static const double _minThumbnailWidth = 120;
@@ -70,6 +72,7 @@ class ClassListTile extends StatelessWidget {
                           child: ClassThumbnail(
                             item: item,
                             showFavorite: showFavorite,
+                            onFavoriteTap: onFavoriteTap,
                           ),
                         ),
                       ),
