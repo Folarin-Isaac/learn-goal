@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:lengoal/core/core.dart';
 import 'package:lengoal/features/goal_setup/presentation/bloc/active_goal/active_goal_cubit.dart';
 
@@ -267,7 +268,9 @@ class _AvatarState extends State<_Avatar> {
         radius: 18,
         backgroundColor: context.colors.primary,
         foregroundColor: Colors.white,
-        backgroundImage: hasAvatar ? NetworkImage(widget.avatarUrl!) : null,
+        backgroundImage: hasAvatar
+            ? CachedNetworkImageProvider(widget.avatarUrl!)
+            : null,
         onBackgroundImageError: hasAvatar
             ? (error, stackTrace) {
                 if (mounted) setState(() => _imageFailed = true);

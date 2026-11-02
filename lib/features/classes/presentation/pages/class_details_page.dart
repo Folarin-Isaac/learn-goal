@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:lengoal/core/core.dart';
 import 'package:lengoal/features/classes/domain/entities/class_educator.dart';
 import 'package:lengoal/features/classes/domain/entities/lengoal_class.dart';
@@ -408,7 +409,9 @@ class _EducatorSection extends StatelessWidget {
             CircleAvatar(
               radius: 20,
               backgroundColor: context.colors.primary.withValues(alpha: 0.1),
-              backgroundImage: hasAvatar ? NetworkImage(avatar) : null,
+              backgroundImage: hasAvatar
+                  ? CachedNetworkImageProvider(avatar)
+                  : null,
               child: hasAvatar
                   ? null
                   : Text(

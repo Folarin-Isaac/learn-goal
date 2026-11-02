@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:lengoal/core/core.dart';
 
 class ProfileAvatar extends StatelessWidget {
@@ -23,7 +24,7 @@ class ProfileAvatar extends StatelessWidget {
       return FileImage(File(localPath!));
     }
     if (imageUrl != null && imageUrl!.isNotEmpty) {
-      return NetworkImage(imageUrl!);
+      return CachedNetworkImageProvider(imageUrl!);
     }
     return null;
   }

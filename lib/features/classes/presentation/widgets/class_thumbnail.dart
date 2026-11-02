@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:lengoal/core/core.dart';
 import 'package:lengoal/features/classes/presentation/models/class_summary.dart';
 
@@ -67,13 +68,13 @@ class ClassCover extends StatelessWidget {
       color: item.thumbnailColor,
       child: imageUrl == null
           ? const SizedBox.expand()
-          : Image.network(
-              imageUrl,
+          : CachedNetworkImage(
+              imageUrl: imageUrl,
               fit: BoxFit.cover,
               width: double.infinity,
               height: double.infinity,
-              errorBuilder: (context, error, stackTrace) =>
-                  const SizedBox.expand(),
+              fadeInDuration: AppMotion.base,
+              errorWidget: (context, url, error) => const SizedBox.expand(),
             ),
     );
   }
