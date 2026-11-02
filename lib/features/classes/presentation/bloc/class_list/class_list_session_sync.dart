@@ -1,27 +1,41 @@
 import 'dart:async';
 
+import 'package:lengoal/core/network/network_info.dart';
 import 'package:lengoal/features/auth/domain/repositories/auth_repository.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_list/class_list_bloc.dart';
 
 // The class-list blocs are app-wide caches, so they must follow the
-// session: warm the dashboard lists once signed in, and wipe every list
-// on sign-out so the next account never sees the previous one's classes.
+// session: warm the dashboard lists once signed in, wipe every list on
+// sign-out so the next account never sees the previous one's classes,
+// and retry lists that failed while the device was offline once the
+// connection returns.
 class ClassListSessionSync {
-  new({required this._authRepository, required this._blocFor});
+  new({
+    required this._authRepository,
+    required this._networkInfo,
+    required this._blocFor,
+  });
 
   final AuthRepository _authRepository;
+  final NetworkInfo _networkInfo;
   final ClassListBloc Function(ClassListSource source) _blocFor;
 
-  StreamSubscription<AuthStatus>? _subscription;
+  StreamSubscription<AuthStatus>? _authSubscription;
+  StreamSubscription<bool>? _networkSubscription;
 
   void start() {
-    _subscription ??= _authRepository.authStatusStream.listen(_onStatus);
+    _authSubscription ??= _authRepository.authStatusStream.listen(_onStatus);
+    _networkSubscription ??= _networkInfo.onConnectionChanged.listen(
+      _onConnectionChanged,
+    );
     _onStatus(_authRepository.currentAuthStatus);
   }
 
   Future<void> dispose() async {
-    await _subscription?.cancel();
-    _subscription = null;
+    await _authSubscription?.cancel();
+    await _networkSubscription?.cancel();
+    _authSubscription = null;
+    _networkSubscription = null;
   }
 
   void _onStatus(AuthStatus status) {
@@ -35,6 +49,18 @@ class ClassListSessionSync {
         }
       case AuthStatus.unknown:
         break;
+    }
+  }
+
+  // A plain request is a no-op for lists that are loaded and fresh, so
+  // only lists that failed (or went stale) actually refetch.
+  void _onConnectionChanged(bool connected) {
+    if (!connected) return;
+    if (_authRepository.currentAuthStatus != AuthStatus.authenticated) return;
+    for (final source in ClassListSource.values) {
+      final bloc = _blocFor(source);
+      if (bloc.state.status == ClassListStatus.initial) continue;
+      bloc.add(const ClassListRequested());
     }
   }
 }

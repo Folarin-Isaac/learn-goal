@@ -1,6 +1,7 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lengoal/core/network/api_client.dart';
+import 'package:lengoal/core/network/connectivity_cubit.dart';
 import 'package:lengoal/core/network/network_info.dart';
 import 'package:lengoal/core/storage/secure_storage_service.dart';
 import 'package:lengoal/features/auth/data/datasources/auth_remote_data_source.dart';
@@ -50,6 +51,7 @@ Future<void> setupInjector({bool enableNetworkLogging = false}) async {
     ..registerLazySingleton(SecureStorageService.new)
     ..registerLazySingleton(Connectivity.new)
     ..registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(getIt()))
+    ..registerFactory(() => ConnectivityCubit(getIt()))
     ..registerLazySingleton(
       () => ApiClient(getIt(), enableLogging: enableNetworkLogging),
     );
@@ -134,6 +136,7 @@ void _initClasses() {
     ..registerLazySingleton(
       () => ClassListSessionSync(
         authRepository: getIt(),
+        networkInfo: getIt(),
         blocFor: classListBlocFor,
       ),
     )

@@ -116,6 +116,8 @@
     "dashboardFilterClearAll": "Borrar todo",
     "dashboardFilterAll": "Todas",
     "dashboardNoFilterResults": "Ninguna clase coincide con este filtro",
+    "connectivityOffline": "Sin conexión a internet",
+    "connectivityBackOnline": "Conexión restablecida",
     "classesEmpty": "Aún no hay clases aquí",
     "classSearchPrompt": "Busca clases por nombre o educador",
     "dashboardSubscribedClasses": "Clases suscritas",
