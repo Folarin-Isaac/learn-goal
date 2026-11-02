@@ -10,6 +10,8 @@ abstract class NetworkInfo {
   Stream<bool> get onConnectionChanged;
 
   void reportRequestOutcome({required bool reachedServer});
+
+  void setForeground({required bool foreground});
 }
 
 class NetworkInfoImpl implements NetworkInfo {
@@ -43,6 +45,7 @@ class NetworkInfoImpl implements NetworkInfo {
   bool? _interfaceUp;
   bool _reachable = true;
   bool? _lastEmitted;
+  bool _foreground = true;
 
   bool get _connected => (_interfaceUp ?? true) && _reachable;
 
@@ -64,6 +67,18 @@ class NetworkInfoImpl implements NetworkInfo {
     if (reachedServer) {
       _setReachable(true);
     } else if (_interfaceUp ?? true) {
+      unawaited(_checkReachability());
+    }
+  }
+
+  @override
+  void setForeground({required bool foreground}) {
+    if (_foreground == foreground) return;
+    _foreground = foreground;
+    _retryTimer?.cancel();
+    if (!foreground) return;
+    _retryDelay = _firstRetry;
+    if ((_interfaceUp ?? true) && !_reachable) {
       unawaited(_checkReachability());
     }
   }
@@ -92,7 +107,7 @@ class NetworkInfoImpl implements NetworkInfo {
     _retryTimer?.cancel();
     if (reachable) {
       _retryDelay = _firstRetry;
-    } else if (_interfaceUp ?? true) {
+    } else if (_foreground && (_interfaceUp ?? true)) {
       _retryTimer = Timer(_retryDelay, () => unawaited(_checkReachability()));
       final doubled = _retryDelay * 2;
       _retryDelay = doubled > _maxRetry ? _maxRetry : doubled;
