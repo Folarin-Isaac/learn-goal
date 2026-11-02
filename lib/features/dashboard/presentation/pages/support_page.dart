@@ -66,18 +66,18 @@ class SupportPage extends StatelessWidget {
                           textAlign: TextAlign.center,
                         ),
                         const Gap(AppSpacing.s16),
-                        Text(
-                          context.l10n.profileSupportOrDivider,
-                          style: context.textTheme.titleMedium,
-                        ),
-                        const Gap(AppSpacing.s24),
-                        AppButton(
-                          label: context.l10n.profileSupportContactButton,
-                          onPressed: () {
-                            AppHaptics.selection();
-                            AppSnackbar.info(context.l10n.dashboardComingSoon);
-                          },
-                        ),
+                        // Text(
+                        //   context.l10n.profileSupportOrDivider,
+                        //   style: context.textTheme.titleMedium,
+                        // ),
+                        // const Gap(AppSpacing.s24),
+                        // AppButton(
+                        //   label: context.l10n.profileSupportContactButton,
+                        //   onPressed: () {
+                        //     AppHaptics.selection();
+                        //     AppSnackbar.info(context.l10n.dashboardComingSoon);
+                        //   },
+                        // ),
                       ],
                     ),
                   ),

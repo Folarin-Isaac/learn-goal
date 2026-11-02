@@ -65,6 +65,40 @@ class ClassRemoteDataSourceImpl implements ClassRemoteDataSource {
     return [...classes.where(matches), ...classes.where((c) => !matches(c))];
   }
 
+  // One page of the learner landing feed, for infinite scroll. The feed's
+  // envelope reports hasNextPage; if it's ever missing, a full page is
+  // taken to mean there may be more.
+  @override
+  Future<({List<LengoalClassModel> items, bool hasMore})>
+  getRecommendedClassesPage({
+    required int page,
+    required int pageSize,
+    String? categoryId,
+  }) async {
+    try {
+      final response = await _apiClient.dio.get<Map<String, dynamic>>(
+        ClassApiEndpoints.recommendedClasses,
+        queryParameters: {
+          'PageSize': pageSize,
+          'PageNumber': page,
+          if (categoryId != null && categoryId.isNotEmpty)
+            'CategoryId': categoryId,
+        },
+      );
+      final body = _checkSucceeded(response.data!);
+      final items = _unwrapList(body)
+          .map(LengoalClassModel.fromLandingJson)
+          .toList();
+      final hasNext = body['hasNextPage'];
+      return (
+        items: items,
+        hasMore: hasNext is bool ? hasNext : items.length >= pageSize,
+      );
+    } on DioException catch (e) {
+      throw _mapException(e);
+    }
+  }
+
   @override
   Future<List<LengoalClassModel>> searchClasses(String searchTerm) {
     return _getLandingList(

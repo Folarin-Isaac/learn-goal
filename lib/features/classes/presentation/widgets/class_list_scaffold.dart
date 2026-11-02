@@ -5,6 +5,37 @@ import 'package:lengoal/features/classes/presentation/models/class_summary.dart'
 import 'package:lengoal/features/classes/presentation/widgets/class_list_loader.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_list_tile.dart';
 
+class _LoadMoreFooter extends StatelessWidget {
+  const new({required this.failed, required this.onRetry});
+
+  final bool failed;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.s16),
+      child: failed
+          ? Column(
+              children: [
+                Text(
+                  context.l10n.classesLoadMoreFailed,
+                  style: context.textTheme.bodyMedium,
+                ),
+                TextButton(
+                  onPressed: () {
+                    AppHaptics.selection();
+                    onRetry();
+                  },
+                  child: Text(context.l10n.commonRetry),
+                ),
+              ],
+            )
+          : const LoadingIndicator(size: 24),
+    );
+  }
+}
+
 class ClassListScaffold extends StatefulWidget {
   const new({
     required this.title,
@@ -89,37 +120,71 @@ class _ClassListScaffoldState extends State<ClassListScaffold> {
                         ),
                       );
                     }
+                    final bloc = classListBlocFor(widget.source);
                     return RefreshIndicator(
                       onRefresh: () => refreshClassLists([widget.source]),
-                      child: SavedClassesBuilder(
-                        builder: (context, savedIds) => ListView.separated(
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          itemCount: items.length,
-                          separatorBuilder: (context, index) =>
-                              const Gap(AppSpacing.s16),
-                          itemBuilder: (context, index) {
-                            final isSaved = savedIds.contains(items[index].id);
-                            return Entrance(
-                              index: index + 1,
-                              child: ClassListTile(
-                                item: ClassSummary.fromClass(
-                                  items[index],
-                                  isFavorite: isSaved,
-                                ),
-                                showFavorite: widget.showFavorite,
-                                onTap: () => context.pushNamed(
-                                  RouteNames.classDetails,
-                                  extra: items[index],
-                                ),
-                                onFavoriteTap: () => toggleSavedClass(
-                                  context,
-                                  items[index],
-                                  save: !isSaved,
-                                ),
-                              ),
-                            );
-                          },
-                        ),
+                      child: BlocBuilder<ClassListBloc, ClassListState>(
+                        bloc: bloc,
+                        buildWhen: (previous, current) =>
+                            previous.hasMore != current.hasMore ||
+                            previous.isLoadingMore != current.isLoadingMore ||
+                            previous.loadMoreFailed != current.loadMoreFailed,
+                        builder: (context, paging) {
+                          final showFooter =
+                              widget.source.isPaged &&
+                              (paging.isLoadingMore || paging.loadMoreFailed);
+                          return NotificationListener<Notification>(
+                            onNotification: (notification) {
+                              _maybeLoadMore(notification, bloc);
+                              return false;
+                            },
+                            child: SavedClassesBuilder(
+                              builder: (context, savedIds) =>
+                                  ListView.separated(
+                                    physics:
+                                        const AlwaysScrollableScrollPhysics(),
+                                    itemCount:
+                                        items.length + (showFooter ? 1 : 0),
+                                    separatorBuilder: (context, index) =>
+                                        const Gap(AppSpacing.s16),
+                                    itemBuilder: (context, index) {
+                                      if (index == items.length) {
+                                        return _LoadMoreFooter(
+                                          failed: paging.loadMoreFailed,
+                                          onRetry: () => bloc.add(
+                                            const ClassListMoreRequested(),
+                                          ),
+                                        );
+                                      }
+                                      final isSaved = savedIds.contains(
+                                        items[index].id,
+                                      );
+                                      return Entrance(
+                                        index:
+                                            (index % ClassListBloc.pageSize) +
+                                            1,
+                                        child: ClassListTile(
+                                          item: ClassSummary.fromClass(
+                                            items[index],
+                                            isFavorite: isSaved,
+                                          ),
+                                          showFavorite: widget.showFavorite,
+                                          onTap: () => context.pushNamed(
+                                            RouteNames.classDetails,
+                                            extra: items[index],
+                                          ),
+                                          onFavoriteTap: () => toggleSavedClass(
+                                            context,
+                                            items[index],
+                                            save: !isSaved,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                            ),
+                          );
+                        },
                       ),
                     );
                   },
@@ -130,6 +195,23 @@ class _ClassListScaffoldState extends State<ClassListScaffold> {
         ),
       ),
     );
+  }
+
+  void _maybeLoadMore(Notification notification, ClassListBloc bloc) {
+    if (!widget.source.isPaged) return;
+    final metrics = switch (notification) {
+      ScrollNotification(:final metrics) => metrics,
+      ScrollMetricsNotification(:final metrics) => metrics,
+      _ => null,
+    };
+    final state = bloc.state;
+    if (metrics == null ||
+        !state.hasMore ||
+        state.isLoadingMore ||
+        state.loadMoreFailed) {
+      return;
+    }
+    if (metrics.extentAfter < 400) bloc.add(const ClassListMoreRequested());
   }
 
   Widget _buildHeaderRow(BuildContext context) {

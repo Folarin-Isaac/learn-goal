@@ -27,6 +27,7 @@ import 'package:lengoal/features/classes/domain/usecases/generate_class_referral
 import 'package:lengoal/features/classes/domain/usecases/get_class_educators_usecase.dart';
 import 'package:lengoal/features/classes/domain/usecases/get_class_replay_usecase.dart';
 import 'package:lengoal/features/classes/domain/usecases/get_class_usecase.dart';
+import 'package:lengoal/features/classes/domain/usecases/get_recommended_classes_page_usecase.dart';
 import 'package:lengoal/features/classes/domain/usecases/get_recommended_classes_usecase.dart';
 import 'package:lengoal/features/classes/domain/usecases/get_saved_classes_usecase.dart';
 import 'package:lengoal/features/classes/domain/usecases/get_subscribed_classes_usecase.dart';
@@ -187,6 +188,7 @@ void _initClasses() {
         source: source,
         getSubscribedClassesUseCase: getIt(),
         getRecommendedClassesUseCase: getIt(),
+        getRecommendedClassesPageUseCase: getIt(),
         getSavedClassesUseCase: getIt(),
         setClassSavedUseCase: getIt(),
       ),
@@ -203,6 +205,7 @@ void _initClasses() {
     )
     ..registerLazySingleton(() => GetSubscribedClassesUseCase(getIt()))
     ..registerLazySingleton(() => GetRecommendedClassesUseCase(getIt()))
+    ..registerLazySingleton(() => GetRecommendedClassesPageUseCase(getIt()))
     ..registerLazySingleton(() => GetSavedClassesUseCase(getIt()))
     ..registerLazySingleton(() => SetClassSavedUseCase(getIt()))
     ..registerLazySingleton(() => GetClassUseCase(getIt()))

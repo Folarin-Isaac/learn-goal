@@ -17,6 +17,13 @@ abstract class ClassRemoteDataSource {
 
   Future<List<LengoalClassModel>> searchClasses(String searchTerm);
 
+  Future<({List<LengoalClassModel> items, bool hasMore})>
+  getRecommendedClassesPage({
+    required int page,
+    required int pageSize,
+    String? categoryId,
+  });
+
   Future<List<LengoalClassModel>> getSavedClasses({String? searchTerm});
 
   Future<LengoalClassModel> getClass(String id);

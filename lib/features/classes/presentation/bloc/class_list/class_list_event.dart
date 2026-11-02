@@ -16,6 +16,11 @@ final class ClassListRequested extends ClassListEvent {
   List<Object?> get props => [force];
 }
 
+// Next page for infinite-scroll lists; ignored by lists that load whole.
+final class ClassListMoreRequested extends ClassListEvent {
+  const new();
+}
+
 // A null scope means "resolved, no goal": goal-scoped lists then load
 // unfiltered.
 final class ClassListScopeChanged extends ClassListEvent {

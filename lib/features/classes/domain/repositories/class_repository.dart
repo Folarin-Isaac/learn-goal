@@ -1,6 +1,7 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:lengoal/core/error/failures.dart';
 import 'package:lengoal/features/classes/domain/entities/class_educator.dart';
+import 'package:lengoal/features/classes/domain/entities/class_page.dart';
 import 'package:lengoal/features/classes/domain/entities/class_referral.dart';
 import 'package:lengoal/features/classes/domain/entities/class_replay.dart';
 import 'package:lengoal/features/classes/domain/entities/lengoal_class.dart';
@@ -18,6 +19,12 @@ abstract class ClassRepository {
   });
 
   Future<Either<Failure, List<LengoalClass>>> searchClasses(String searchTerm);
+
+  Future<Either<Failure, ClassPage>> getRecommendedClassesPage({
+    required int page,
+    required int pageSize,
+    String? categoryId,
+  });
 
   Future<Either<Failure, List<LengoalClass>>> getSavedClasses({
     String? searchTerm,

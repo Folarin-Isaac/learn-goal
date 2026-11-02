@@ -204,6 +204,8 @@
     "@connectivityOffline": {"description": "App-wide banner shown while the device has no network"},
     "connectivityBackOnline": "Back online",
     "@connectivityBackOnline": {"description": "Brief app-wide banner shown when the network returns"},
+    "classesLoadMoreFailed": "Couldn't load more classes",
+    "@classesLoadMoreFailed": {"description": "Footer when the next page of an infinite-scroll class list fails"},
     "subscriptionHistoryEmpty": "No payments yet",
     "@subscriptionHistoryEmpty": {"description": "Empty state on the Subscription history page"},
     "dashboardSetGoal": "Set a goal",

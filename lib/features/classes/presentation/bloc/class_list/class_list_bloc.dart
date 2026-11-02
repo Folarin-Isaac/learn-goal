@@ -6,6 +6,7 @@ import 'package:fpdart/fpdart.dart';
 import 'package:lengoal/core/error/failures.dart';
 import 'package:lengoal/features/classes/domain/entities/class_goal_scope.dart';
 import 'package:lengoal/features/classes/domain/entities/lengoal_class.dart';
+import 'package:lengoal/features/classes/domain/usecases/get_recommended_classes_page_usecase.dart';
 import 'package:lengoal/features/classes/domain/usecases/get_recommended_classes_usecase.dart';
 import 'package:lengoal/features/classes/domain/usecases/get_saved_classes_usecase.dart';
 import 'package:lengoal/features/classes/domain/usecases/get_subscribed_classes_usecase.dart';
@@ -22,7 +23,7 @@ enum ClassListSource {
   // Dashboard's Recommended row: a short preview, cheap enough to preload
   // for every goal.
   recommended,
-  // The Recommended "See all" page: the full first page, loaded on demand.
+  // The Recommended "See all" page: infinite scroll, loaded on demand.
   recommendedAll,
   saved;
 
@@ -35,7 +36,19 @@ enum ClassListSource {
   bool get preloadsOtherGoals =>
       this == ClassListSource.goalSubscribed ||
       this == ClassListSource.recommended;
+
+  bool get isPaged => this == ClassListSource.recommendedAll;
 }
+
+// What a list holds for one goal: the rows loaded so far plus, for paged
+// lists, where to continue from.
+typedef _Snapshot = ({
+  List<LengoalClass> classes,
+  DateTime at,
+  bool hasMore,
+  int nextPage,
+  String? pagedCategoryId,
+});
 
 // One long-lived bloc per list, shared by every screen showing that list.
 // Goal-scoped lists hold off until the active goal is known, then reload
@@ -46,15 +59,18 @@ class ClassListBloc extends Bloc<ClassListEvent, ClassListState> {
     required this.source,
     required GetSubscribedClassesUseCase getSubscribedClassesUseCase,
     required GetRecommendedClassesUseCase getRecommendedClassesUseCase,
+    required GetRecommendedClassesPageUseCase getRecommendedClassesPageUseCase,
     required GetSavedClassesUseCase getSavedClassesUseCase,
     required SetClassSavedUseCase setClassSavedUseCase,
   }) : _getSubscribedClassesUseCase = getSubscribedClassesUseCase,
        _getRecommendedClassesUseCase = getRecommendedClassesUseCase,
+       _getRecommendedClassesPageUseCase = getRecommendedClassesPageUseCase,
        _getSavedClassesUseCase = getSavedClassesUseCase,
        _setClassSavedUseCase = setClassSavedUseCase,
        super(const ClassListState()) {
     on<ClassListRequested>(_onRequested);
     on<ClassListScopeChanged>(_onScopeChanged);
+    on<ClassListMoreRequested>(_onMoreRequested);
     on<ClassSaveToggled>(_onSaveToggled);
     on<ClassListPrefetchRequested>(_onPrefetchRequested);
     on<ClassListCleared>((event, emit) {
@@ -67,17 +83,19 @@ class ClassListBloc extends Bloc<ClassListEvent, ClassListState> {
   // pull-to-refresh bypasses it.
   static const Duration freshFor = Duration(minutes: 3);
 
+  static const int pageSize = 15;
+
   // Last rows loaded per goal, so switching back to a goal is instant and
   // other goals can be preloaded. Only goal-scoped lists use more than the
   // single null-scope entry.
-  final Map<ClassGoalScope?, ({List<LengoalClass> classes, DateTime at})>
-  _byScope = {};
+  final Map<ClassGoalScope?, _Snapshot> _byScope = {};
 
   static bool _isFresh(DateTime at) => DateTime.now().difference(at) < freshFor;
 
   final ClassListSource source;
   final GetSubscribedClassesUseCase _getSubscribedClassesUseCase;
   final GetRecommendedClassesUseCase _getRecommendedClassesUseCase;
+  final GetRecommendedClassesPageUseCase _getRecommendedClassesPageUseCase;
   final GetSavedClassesUseCase _getSavedClassesUseCase;
   final SetClassSavedUseCase _setClassSavedUseCase;
 
@@ -125,6 +143,9 @@ class ClassListBloc extends Bloc<ClassListEvent, ClassListState> {
         status: ClassListStatus.loaded,
         classes: cached.classes,
         loadedAt: cached.at,
+        hasMore: cached.hasMore,
+        nextPage: cached.nextPage,
+        pagedCategoryId: cached.pagedCategoryId,
       ),
     );
     if (!_isFresh(cached.at)) await _load(emit);
@@ -140,14 +161,13 @@ class ClassListBloc extends Bloc<ClassListEvent, ClassListState> {
       if (isClosed || scope == state.scope) continue;
       final cached = _byScope[scope];
       if (cached != null && _isFresh(cached.at)) continue;
-      final result = await _fetch(scope);
-      result.match(
-        (_) {},
-        (classes) => _byScope[scope] = (classes: classes, at: DateTime.now()),
-      );
+      final result = await _fetchFirst(scope);
+      result.match((_) {}, (snapshot) => _byScope[scope] = snapshot);
     }
   }
 
+  // Loads (or reloads) from the first page; a refresh of a paged list
+  // starts over rather than re-fetching every page scrolled through.
   Future<void> _load(Emitter<ClassListState> emit) async {
     final scope = state.scope;
     // A refresh keeps the current rows on screen instead of flashing
@@ -158,12 +178,8 @@ class ClassListBloc extends Bloc<ClassListEvent, ClassListState> {
           ? state.copyWith(isRefreshing: true)
           : state.copyWith(status: ClassListStatus.loading),
     );
-    final result = await _fetch(scope);
-    final loadedAt = DateTime.now();
-    result.match(
-      (_) {},
-      (classes) => _byScope[scope] = (classes: classes, at: loadedAt),
-    );
+    final result = await _fetchFirst(scope);
+    result.match((_) {}, (snapshot) => _byScope[scope] = snapshot);
     // The goal changed while this request was in flight; its rows are
     // cached for that goal but must not replace the current goal's.
     if (state.scope != scope) return;
@@ -175,14 +191,64 @@ class ClassListBloc extends Bloc<ClassListEvent, ClassListState> {
           errorMessage: failure.message,
         ),
       ),
-      (classes) => emit(
+      (snapshot) => emit(
         state.copyWith(
           status: ClassListStatus.loaded,
-          classes: classes,
-          loadedAt: loadedAt,
+          classes: snapshot.classes,
+          loadedAt: snapshot.at,
           isRefreshing: false,
+          hasMore: snapshot.hasMore,
+          nextPage: snapshot.nextPage,
+          pagedCategoryId: snapshot.pagedCategoryId,
+          loadMoreFailed: false,
         ),
       ),
+    );
+  }
+
+  Future<void> _onMoreRequested(
+    ClassListMoreRequested event,
+    Emitter<ClassListState> emit,
+  ) async {
+    if (!source.isPaged ||
+        !state.hasMore ||
+        state.isLoadingMore ||
+        state.isRefreshing ||
+        state.status != ClassListStatus.loaded) {
+      return;
+    }
+    final scope = state.scope;
+    final page = state.nextPage;
+    emit(state.copyWith(isLoadingMore: true, loadMoreFailed: false));
+    final result = await _getRecommendedClassesPageUseCase(
+      page: page,
+      pageSize: pageSize,
+      categoryId: state.pagedCategoryId,
+    );
+    if (state.scope != scope || state.nextPage != page) return;
+    result.match(
+      (_) => emit(state.copyWith(isLoadingMore: false, loadMoreFailed: true)),
+      (more) {
+        final seen = state.classIds;
+        final merged = [
+          ...state.classes,
+          ...more.items.where((c) => !seen.contains(c.id)),
+        ];
+        final next = state.copyWith(
+          classes: merged,
+          hasMore: more.hasMore,
+          nextPage: page + 1,
+          isLoadingMore: false,
+        );
+        _byScope[scope] = (
+          classes: merged,
+          at: state.loadedAt ?? DateTime.now(),
+          hasMore: more.hasMore,
+          nextPage: page + 1,
+          pagedCategoryId: state.pagedCategoryId,
+        );
+        emit(next);
+      },
     );
   }
 
@@ -209,7 +275,54 @@ class ClassListBloc extends Bloc<ClassListEvent, ClassListState> {
     }, (_) => event.completer?.complete());
   }
 
-  Future<Either<Failure, List<LengoalClass>>> _fetch(ClassGoalScope? scope) {
+  Future<Either<Failure, _Snapshot>> _fetchFirst(ClassGoalScope? scope) async {
+    if (source.isPaged) return await _fetchFirstPage(scope);
+    final result = await _fetchAll(scope);
+    return result.map(
+      (classes) => (
+        classes: classes,
+        at: DateTime.now(),
+        hasMore: false,
+        nextPage: 1,
+        pagedCategoryId: null,
+      ),
+    );
+  }
+
+  // The goal's category narrows the feed; if that category has nothing,
+  // fall back to the whole feed and keep using it for later pages.
+  Future<Either<Failure, _Snapshot>> _fetchFirstPage(
+    ClassGoalScope? scope,
+  ) async {
+    final category = scope?.categoryId;
+    final hasCategory = category != null && category.isNotEmpty;
+    var categoryUsed = hasCategory ? category : null;
+    var result = await _getRecommendedClassesPageUseCase(
+      page: 1,
+      pageSize: pageSize,
+      categoryId: categoryUsed,
+    );
+    final emptyCategory =
+        hasCategory && (result.getRight().toNullable()?.items.isEmpty ?? false);
+    if (emptyCategory) {
+      categoryUsed = null;
+      result = await _getRecommendedClassesPageUseCase(
+        page: 1,
+        pageSize: pageSize,
+      );
+    }
+    return result.map(
+      (page) => (
+        classes: page.items,
+        at: DateTime.now(),
+        hasMore: page.hasMore,
+        nextPage: 2,
+        pagedCategoryId: categoryUsed,
+      ),
+    );
+  }
+
+  Future<Either<Failure, List<LengoalClass>>> _fetchAll(ClassGoalScope? scope) {
     return switch (source) {
       ClassListSource.subscribed => _getSubscribedClassesUseCase(),
       ClassListSource.goalSubscribed => _getSubscribedClassesUseCase(
