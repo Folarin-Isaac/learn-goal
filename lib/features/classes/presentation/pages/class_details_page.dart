@@ -274,7 +274,7 @@ class _DetailHeader extends StatelessWidget {
                 ],
               ),
             ),
-            if (!isFree) ...[
+            if (!isFree && item.isSubscribed) ...[
               const Gap(AppSpacing.s8),
               Container(
                 padding: const EdgeInsets.symmetric(

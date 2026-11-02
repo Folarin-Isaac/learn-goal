@@ -204,6 +204,8 @@
     "@connectivityOffline": {"description": "App-wide banner shown while the device has no network"},
     "connectivityBackOnline": "Back online",
     "@connectivityBackOnline": {"description": "Brief app-wide banner shown when the network returns"},
+    "subscriptionHistoryEmpty": "No payments yet",
+    "@subscriptionHistoryEmpty": {"description": "Empty state on the Subscription history page"},
     "dashboardSetGoal": "Set a goal",
     "@dashboardSetGoal": {"description": "Goal switcher label when the learner has no goals yet"},
     "dashboardGoalsRetry": "Reload goals",

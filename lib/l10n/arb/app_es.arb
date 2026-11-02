@@ -118,6 +118,7 @@
     "dashboardNoFilterResults": "Ninguna clase coincide con este filtro",
     "connectivityOffline": "Sin conexión a internet",
     "connectivityBackOnline": "Conexión restablecida",
+    "subscriptionHistoryEmpty": "Aún no hay pagos",
     "dashboardSetGoal": "Define una meta",
     "dashboardGoalsRetry": "Recargar metas",
     "classDetailsUnsaveClass": "Quitar de guardadas",

@@ -47,6 +47,11 @@ import 'package:lengoal/features/goal_setup/domain/entities/exam_goal.dart';
 import 'package:lengoal/features/goal_setup/domain/usecases/get_learner_goals_usecase.dart';
 import 'package:lengoal/features/goal_setup/presentation/bloc/active_goal/active_goal_cubit.dart';
 import 'package:lengoal/features/goal_setup/presentation/bloc/goal_setup/goal_setup_bloc.dart';
+import 'package:lengoal/features/payments/data/datasources/payment_remote_data_source.dart';
+import 'package:lengoal/features/payments/data/repositories/payment_repository_impl.dart';
+import 'package:lengoal/features/payments/domain/repositories/payment_repository.dart';
+import 'package:lengoal/features/payments/domain/usecases/get_payment_history_usecase.dart';
+import 'package:lengoal/features/payments/presentation/bloc/payment_history/payment_history_cubit.dart';
 import 'package:lengoal/features/profile/profile.dart';
 
 final GetIt getIt = GetIt.instance;
@@ -69,6 +74,7 @@ Future<void> setupInjector({bool enableNetworkLogging = false}) async {
   _initGoalSetup();
   _initProfile();
   _initClasses();
+  _initPayments();
 
   // Resolve the stored session before the first frame and before the
   // session syncs start, so the router never sees an "unknown" status
@@ -95,6 +101,26 @@ Stream<ClassGoalScope?> _goalScopes(ActiveGoalCubit cubit) {
     final subscription = cubit.stream.listen(controller.add);
     controller.onCancel = subscription.cancel;
   }).where((state) => state.isResolved).map((s) => toScope(s.activeGoal));
+}
+
+void _initPayments() {
+  getIt
+    ..registerLazySingleton<PaymentRemoteDataSource>(
+      () => PaymentRemoteDataSourceImpl(getIt()),
+    )
+    ..registerLazySingleton<PaymentRepository>(
+      () => PaymentRepositoryImpl(
+        remoteDataSource: getIt(),
+        networkInfo: getIt(),
+      ),
+    )
+    ..registerLazySingleton(() => GetPaymentHistoryUseCase(getIt()))
+    ..registerFactory(
+      () => PaymentHistoryCubit(
+        getLearnerProfileUseCase: getIt(),
+        getPaymentHistoryUseCase: getIt(),
+      ),
+    );
 }
 
 void _initProfile() {
