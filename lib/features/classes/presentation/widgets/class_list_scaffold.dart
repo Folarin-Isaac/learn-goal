@@ -4,37 +4,7 @@ import 'package:lengoal/features/classes/presentation/bloc/class_list/class_list
 import 'package:lengoal/features/classes/presentation/models/class_summary.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_list_loader.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_list_tile.dart';
-
-class _LoadMoreFooter extends StatelessWidget {
-  const new({required this.failed, required this.onRetry});
-
-  final bool failed;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.s16),
-      child: failed
-          ? Column(
-              children: [
-                Text(
-                  context.l10n.classesLoadMoreFailed,
-                  style: context.textTheme.bodyMedium,
-                ),
-                TextButton(
-                  onPressed: () {
-                    AppHaptics.selection();
-                    onRetry();
-                  },
-                  child: Text(context.l10n.commonRetry),
-                ),
-              ],
-            )
-          : const LoadingIndicator(size: 24),
-    );
-  }
-}
+import 'package:lengoal/features/classes/presentation/widgets/load_more_footer.dart';
 
 class ClassListScaffold extends StatefulWidget {
   const new({
@@ -149,7 +119,7 @@ class _ClassListScaffoldState extends State<ClassListScaffold> {
                                         const Gap(AppSpacing.s16),
                                     itemBuilder: (context, index) {
                                       if (index == items.length) {
-                                        return _LoadMoreFooter(
+                                        return LoadMoreFooter(
                                           failed: paging.loadMoreFailed,
                                           onRetry: () => bloc.add(
                                             const ClassListMoreRequested(),
@@ -199,19 +169,11 @@ class _ClassListScaffoldState extends State<ClassListScaffold> {
 
   void _maybeLoadMore(Notification notification, ClassListBloc bloc) {
     if (!widget.source.isPaged) return;
-    final metrics = switch (notification) {
-      ScrollNotification(:final metrics) => metrics,
-      ScrollMetricsNotification(:final metrics) => metrics,
-      _ => null,
-    };
     final state = bloc.state;
-    if (metrics == null ||
-        !state.hasMore ||
-        state.isLoadingMore ||
-        state.loadMoreFailed) {
-      return;
+    if (!state.hasMore || state.isLoadingMore || state.loadMoreFailed) return;
+    if (LoadMoreFooter.shouldLoadMore(notification)) {
+      bloc.add(const ClassListMoreRequested());
     }
-    if (metrics.extentAfter < 400) bloc.add(const ClassListMoreRequested());
   }
 
   Widget _buildHeaderRow(BuildContext context) {

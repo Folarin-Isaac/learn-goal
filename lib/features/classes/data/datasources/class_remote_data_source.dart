@@ -15,7 +15,11 @@ abstract class ClassRemoteDataSource {
     int? pageSize,
   });
 
-  Future<List<LengoalClassModel>> searchClasses(String searchTerm);
+  Future<({List<LengoalClassModel> items, bool hasMore})> searchClasses(
+    String searchTerm, {
+    required int page,
+    required int pageSize,
+  });
 
   Future<({List<LengoalClassModel> items, bool hasMore})>
   getRecommendedClassesPage({

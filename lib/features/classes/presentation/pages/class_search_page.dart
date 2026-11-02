@@ -5,6 +5,7 @@ import 'package:lengoal/features/classes/presentation/bloc/class_search/class_se
 import 'package:lengoal/features/classes/presentation/models/class_summary.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_list_loader.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_list_tile.dart';
+import 'package:lengoal/features/classes/presentation/widgets/load_more_footer.dart';
 
 class ClassSearchPage extends StatelessWidget {
   const new({super.key});
@@ -121,24 +122,47 @@ class _Results extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final results = state.results;
+    final bloc = context.read<ClassSearchBloc>();
+    final showFooter = state.isLoadingMore || state.loadMoreFailed;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (state.status == ClassSearchStatus.loading)
           const LinearProgressIndicator(minHeight: 2),
         Expanded(
-          child: ListView.separated(
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            padding: const EdgeInsets.only(top: AppSpacing.s8),
-            itemCount: results.length,
-            separatorBuilder: (context, index) => const Gap(AppSpacing.s16),
-            itemBuilder: (context, index) => ClassListTile(
-              item: ClassSummary.fromClass(results[index]),
-              showFavorite: false,
-              onTap: () => context.pushNamed(
-                RouteNames.classDetails,
-                extra: results[index],
-              ),
+          child: NotificationListener<Notification>(
+            onNotification: (notification) {
+              final current = bloc.state;
+              if (current.hasMore &&
+                  !current.isLoadingMore &&
+                  !current.loadMoreFailed &&
+                  LoadMoreFooter.shouldLoadMore(notification)) {
+                bloc.add(const ClassSearchMoreRequested());
+              }
+              return false;
+            },
+            child: ListView.separated(
+              key: ValueKey(state.query),
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: const EdgeInsets.only(top: AppSpacing.s8),
+              itemCount: results.length + (showFooter ? 1 : 0),
+              separatorBuilder: (context, index) => const Gap(AppSpacing.s16),
+              itemBuilder: (context, index) {
+                if (index == results.length) {
+                  return LoadMoreFooter(
+                    failed: state.loadMoreFailed,
+                    onRetry: () => bloc.add(const ClassSearchMoreRequested()),
+                  );
+                }
+                return ClassListTile(
+                  item: ClassSummary.fromClass(results[index]),
+                  showFavorite: false,
+                  onTap: () => context.pushNamed(
+                    RouteNames.classDetails,
+                    extra: results[index],
+                  ),
+                );
+              },
             ),
           ),
         ),

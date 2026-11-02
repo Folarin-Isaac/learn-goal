@@ -61,8 +61,19 @@ class ClassRepositoryImpl implements ClassRepository {
   }
 
   @override
-  Future<Either<Failure, List<LengoalClass>>> searchClasses(String searchTerm) {
-    return _guard(() => _remoteDataSource.searchClasses(searchTerm));
+  Future<Either<Failure, ClassPage>> searchClasses(
+    String searchTerm, {
+    required int page,
+    required int pageSize,
+  }) {
+    return _guard(() async {
+      final result = await _remoteDataSource.searchClasses(
+        searchTerm,
+        page: page,
+        pageSize: pageSize,
+      );
+      return ClassPage(items: result.items, hasMore: result.hasMore);
+    });
   }
 
   @override

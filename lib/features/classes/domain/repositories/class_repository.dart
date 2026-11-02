@@ -18,7 +18,11 @@ abstract class ClassRepository {
     int? pageSize,
   });
 
-  Future<Either<Failure, List<LengoalClass>>> searchClasses(String searchTerm);
+  Future<Either<Failure, ClassPage>> searchClasses(
+    String searchTerm, {
+    required int page,
+    required int pageSize,
+  });
 
   Future<Either<Failure, ClassPage>> getRecommendedClassesPage({
     required int page,

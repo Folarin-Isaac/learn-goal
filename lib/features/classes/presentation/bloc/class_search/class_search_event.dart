@@ -7,6 +7,10 @@ sealed class ClassSearchEvent extends Equatable {
   List<Object?> get props => [];
 }
 
+final class ClassSearchMoreRequested extends ClassSearchEvent {
+  const new();
+}
+
 final class ClassSearchQueryChanged extends ClassSearchEvent {
   const new(this.query);
 

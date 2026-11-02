@@ -74,15 +74,45 @@ class ClassRemoteDataSourceImpl implements ClassRemoteDataSource {
     required int page,
     required int pageSize,
     String? categoryId,
+  }) {
+    return _getLandingPage(
+      ClassApiEndpoints.recommendedClasses,
+      page: page,
+      pageSize: pageSize,
+      extraParameters: {
+        if (categoryId != null && categoryId.isNotEmpty)
+          'CategoryId': categoryId,
+      },
+    );
+  }
+
+  @override
+  Future<({List<LengoalClassModel> items, bool hasMore})> searchClasses(
+    String searchTerm, {
+    required int page,
+    required int pageSize,
+  }) {
+    return _getLandingPage(
+      ClassApiEndpoints.searchClasses,
+      page: page,
+      pageSize: pageSize,
+      extraParameters: {'SearchTerm': searchTerm},
+    );
+  }
+
+  Future<({List<LengoalClassModel> items, bool hasMore})> _getLandingPage(
+    String path, {
+    required int page,
+    required int pageSize,
+    Map<String, dynamic> extraParameters = const {},
   }) async {
     try {
       final response = await _apiClient.dio.get<Map<String, dynamic>>(
-        ClassApiEndpoints.recommendedClasses,
+        path,
         queryParameters: {
           'PageSize': pageSize,
           'PageNumber': page,
-          if (categoryId != null && categoryId.isNotEmpty)
-            'CategoryId': categoryId,
+          ...extraParameters,
         },
       );
       final body = _checkSucceeded(response.data!);
@@ -97,14 +127,6 @@ class ClassRemoteDataSourceImpl implements ClassRemoteDataSource {
     } on DioException catch (e) {
       throw _mapException(e);
     }
-  }
-
-  @override
-  Future<List<LengoalClassModel>> searchClasses(String searchTerm) {
-    return _getLandingList(
-      ClassApiEndpoints.searchClasses,
-      extraParameters: {'SearchTerm': searchTerm},
-    );
   }
 
   Future<List<LengoalClassModel>> _getLandingList(
