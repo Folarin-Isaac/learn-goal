@@ -2,9 +2,10 @@ import 'package:lengoal/core/core.dart';
 import 'package:lengoal/features/dashboard/presentation/models/calendar_session.dart';
 
 class CalendarSessionCard extends StatelessWidget {
-  const new({required this.session, super.key});
+  const new({required this.session, this.onTap, super.key});
 
   final CalendarSession session;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +20,11 @@ class CalendarSessionCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppSpacing.r16),
           onTap: () {
             AppHaptics.selection();
-            AppSnackbar.info(context.l10n.dashboardComingSoon);
+            if (onTap != null) {
+              onTap!();
+            } else {
+              AppSnackbar.info(context.l10n.dashboardComingSoon);
+            }
           },
           child: Padding(
             padding: const EdgeInsets.all(AppSpacing.s16),

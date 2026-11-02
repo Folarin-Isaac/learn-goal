@@ -1,19 +1,12 @@
+import 'package:intl/intl.dart';
 import 'package:lengoal/core/core.dart';
 
 class CalendarDay {
-  const new({required this.date, required this.weekday});
+  const new({required this.date, this.hasSessions = false});
 
-  final int date;
-  final String weekday;
+  final DateTime date;
+  final bool hasSessions;
 }
-
-const mockCalendarWeek = [
-  CalendarDay(date: 19, weekday: 'Sun'),
-  CalendarDay(date: 20, weekday: 'Mon'),
-  CalendarDay(date: 21, weekday: 'Tue'),
-  CalendarDay(date: 22, weekday: 'Wed'),
-  CalendarDay(date: 23, weekday: 'Thu'),
-];
 
 class DayStrip extends StatelessWidget {
   const new({
@@ -24,23 +17,23 @@ class DayStrip extends StatelessWidget {
   });
 
   final List<CalendarDay> days;
-  final int selectedDate;
-  final ValueChanged<int> onSelected;
+  final DateTime selectedDate;
+  final ValueChanged<DateTime> onSelected;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        for (final day in days) ...[
+        for (var i = 0; i < days.length; i++) ...[
+          if (i > 0) const Gap(AppSpacing.s4),
           Expanded(
             child: _DayTile(
-              day: day,
-              isSelected: day.date == selectedDate,
+              day: days[i],
+              isSelected: DateUtils.isSameDay(days[i].date, selectedDate),
               onTap: onSelected,
             ),
           ),
-          if (day != days.last) const Gap(AppSpacing.s8),
         ],
       ],
     );
@@ -52,10 +45,11 @@ class _DayTile extends StatelessWidget {
 
   final CalendarDay day;
   final bool isSelected;
-  final ValueChanged<int> onTap;
+  final ValueChanged<DateTime> onTap;
 
   @override
   Widget build(BuildContext context) {
+    final locale = Localizations.localeOf(context).languageCode;
     return Pressable(
       child: GestureDetector(
         onTap: () {
@@ -88,16 +82,36 @@ class _DayTile extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  Text(
-                    '${day.date}',
-                    style: context.textTheme.titleLarge?.copyWith(
-                      fontWeight: isSelected
-                          ? FontWeight.w700
-                          : FontWeight.w600,
-                      fontSize: isSelected ? 20 : 18,
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      '${day.date.day}',
+                      style: context.textTheme.titleLarge?.copyWith(
+                        fontWeight: isSelected
+                            ? FontWeight.w700
+                            : FontWeight.w600,
+                        fontSize: isSelected ? 20 : 18,
+                      ),
                     ),
                   ),
-                  Text(day.weekday, style: context.textTheme.bodySmall),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      DateFormat.E(locale).format(day.date),
+                      style: context.textTheme.bodySmall,
+                    ),
+                  ),
+                  const Gap(AppSpacing.s4),
+                  Container(
+                    width: 5,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: day.hasSessions
+                          ? AppColors.brandPrimary
+                          : Colors.transparent,
+                    ),
+                  ),
                 ],
               ),
             ),

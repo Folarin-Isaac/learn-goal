@@ -44,7 +44,7 @@ class ClassDetail {
       instructorTitle: lengoalClass.educatorTierName ?? '',
       sessions: [
         for (final session in lengoalClass.sessions)
-          _toCalendarSession(session, host, current),
+          calendarSessionFor(session, host, current),
       ],
       quizzes: const [],
       materials: lengoalClass.materials.map(_toMaterial).toList(),
@@ -64,7 +64,7 @@ class ClassDetail {
   final bool hasCertificate;
 }
 
-CalendarSession _toCalendarSession(
+CalendarSession calendarSessionFor(
   ClassSession session,
   String? host,
   DateTime now,
