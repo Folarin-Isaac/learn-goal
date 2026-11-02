@@ -10,7 +10,14 @@ class GetPaymentHistoryUseCase {
 
   Future<Either<Failure, List<PaymentRecord>>> call({
     required String learnerId,
+    bool forceRefresh = false,
   }) {
-    return _repository.getPaymentHistory(learnerId: learnerId);
+    return _repository.getPaymentHistory(
+      learnerId: learnerId,
+      forceRefresh: forceRefresh,
+    );
   }
+
+  List<PaymentRecord>? cached({required String learnerId}) =>
+      _repository.cachedPaymentHistory(learnerId: learnerId);
 }

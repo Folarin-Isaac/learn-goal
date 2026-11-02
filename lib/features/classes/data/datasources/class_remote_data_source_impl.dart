@@ -42,16 +42,21 @@ class ClassRemoteDataSourceImpl implements ClassRemoteDataSource {
   Future<List<LengoalClassModel>> getRecommendedClasses({
     String? categoryId,
     String? goalName,
+    int? pageSize,
   }) async {
     var classes = await _getLandingList(
       ClassApiEndpoints.recommendedClasses,
+      pageSize: pageSize,
       extraParameters: {
         if (categoryId != null && categoryId.isNotEmpty)
           'CategoryId': categoryId,
       },
     );
     if (classes.isEmpty && categoryId != null && categoryId.isNotEmpty) {
-      classes = await _getLandingList(ClassApiEndpoints.recommendedClasses);
+      classes = await _getLandingList(
+        ClassApiEndpoints.recommendedClasses,
+        pageSize: pageSize,
+      );
     }
     final target = goalName?.trim().toLowerCase();
     if (target == null || target.isEmpty) return classes;
@@ -70,13 +75,14 @@ class ClassRemoteDataSourceImpl implements ClassRemoteDataSource {
 
   Future<List<LengoalClassModel>> _getLandingList(
     String path, {
+    int? pageSize,
     Map<String, dynamic> extraParameters = const {},
   }) async {
     try {
       final response = await _apiClient.dio.get<Map<String, dynamic>>(
         path,
         queryParameters: {
-          'PageSize': _pageSize,
+          'PageSize': pageSize ?? _pageSize,
           'PageNumber': 1,
           ...extraParameters,
         },

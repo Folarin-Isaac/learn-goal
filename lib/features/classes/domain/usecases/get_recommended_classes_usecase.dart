@@ -11,10 +11,12 @@ class GetRecommendedClassesUseCase {
   Future<Either<Failure, List<LengoalClass>>> call({
     String? categoryId,
     String? goalName,
+    int? pageSize,
   }) {
     return _repository.getRecommendedClasses(
       categoryId: categoryId,
       goalName: goalName,
+      pageSize: pageSize,
     );
   }
 }

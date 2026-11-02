@@ -32,11 +32,13 @@ class ClassRepositoryImpl implements ClassRepository {
   Future<Either<Failure, List<LengoalClass>>> getRecommendedClasses({
     String? categoryId,
     String? goalName,
+    int? pageSize,
   }) {
     return _guard(
       () => _remoteDataSource.getRecommendedClasses(
         categoryId: categoryId,
         goalName: goalName,
+        pageSize: pageSize,
       ),
     );
   }

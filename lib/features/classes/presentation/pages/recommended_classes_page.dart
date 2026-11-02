@@ -9,7 +9,7 @@ class RecommendedClassesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return ClassListScaffold(
       title: context.l10n.dashboardRecommendedClasses,
-      source: ClassListSource.recommended,
+      source: ClassListSource.recommendedAll,
       showFavorite: false,
     );
   }

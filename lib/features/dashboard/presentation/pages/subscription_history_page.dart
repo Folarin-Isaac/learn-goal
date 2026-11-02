@@ -71,7 +71,7 @@ class _HistoryBody extends StatelessWidget {
             break;
         }
         return RefreshIndicator(
-          onRefresh: cubit.load,
+          onRefresh: () => cubit.load(forceRefresh: true),
           child: state.records.isEmpty
               ? LayoutBuilder(
                   builder: (context, constraints) => SingleChildScrollView(

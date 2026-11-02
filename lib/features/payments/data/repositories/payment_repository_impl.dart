@@ -12,10 +12,27 @@ class PaymentRepositoryImpl implements PaymentRepository {
   final PaymentRemoteDataSource _remoteDataSource;
   final NetworkInfo _networkInfo;
 
+  // History only changes when the learner pays, so a short-lived memory
+  // cache avoids refetching on every visit. Keyed by learner, so another
+  // account on the same device never sees these records.
+  static const Duration _freshFor = Duration(minutes: 3);
+  final Map<String, ({List<PaymentRecord> records, DateTime at})> _cache = {};
+
+  @override
+  List<PaymentRecord>? cachedPaymentHistory({required String learnerId}) =>
+      _cache[learnerId]?.records;
+
   @override
   Future<Either<Failure, List<PaymentRecord>>> getPaymentHistory({
     required String learnerId,
+    bool forceRefresh = false,
   }) async {
+    final cached = _cache[learnerId];
+    if (!forceRefresh &&
+        cached != null &&
+        DateTime.now().difference(cached.at) < _freshFor) {
+      return right(cached.records);
+    }
     if (!await _networkInfo.isConnected) {
       return const Left(NetworkFailure());
     }
@@ -23,6 +40,7 @@ class PaymentRepositoryImpl implements PaymentRepository {
       final records = await _remoteDataSource.getPaymentHistory(
         learnerId: learnerId,
       );
+      _cache[learnerId] = (records: records, at: DateTime.now());
       return right(records);
     } on UnauthorizedException catch (e) {
       return Left(UnauthorizedFailure(e.message));

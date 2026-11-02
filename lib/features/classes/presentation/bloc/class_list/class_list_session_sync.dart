@@ -58,7 +58,7 @@ class ClassListSessionSync {
   void _onAllScopes(List<ClassGoalScope> scopes) {
     if (scopes.length < 2) return;
     for (final source in ClassListSource.values) {
-      if (!source.isGoalScoped) continue;
+      if (!source.preloadsOtherGoals) continue;
       final bloc = _blocFor(source);
       unawaited(
         _whenSettled(bloc).then((_) {

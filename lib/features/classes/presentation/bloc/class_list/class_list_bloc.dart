@@ -19,10 +19,20 @@ enum ClassListSource {
   subscribed,
   // Dashboard's "My Classes": subscriptions for the active goal only.
   goalSubscribed,
+  // Dashboard's Recommended row: a short preview, cheap enough to preload
+  // for every goal.
   recommended,
+  // The Recommended "See all" page: the full first page, loaded on demand.
+  recommendedAll,
   saved;
 
   bool get isGoalScoped =>
+      this == ClassListSource.goalSubscribed ||
+      this == ClassListSource.recommended ||
+      this == ClassListSource.recommendedAll;
+
+  // Lists worth fetching ahead of time for goals not on screen.
+  bool get preloadsOtherGoals =>
       this == ClassListSource.goalSubscribed ||
       this == ClassListSource.recommended;
 }
@@ -94,6 +104,13 @@ class ClassListBloc extends Bloc<ClassListEvent, ClassListState> {
   ) async {
     if (state.scopeResolved && state.scope == event.scope) return;
     final cached = _byScope[event.scope];
+    // On-demand lists (the full Recommended page) just note the goal until
+    // a screen actually asks for them.
+    final untouched = state.status == ClassListStatus.initial;
+    if (cached == null && untouched && !source.preloadsOtherGoals) {
+      emit(ClassListState(scope: event.scope, scopeResolved: true));
+      return;
+    }
     if (cached == null) {
       // A goal never loaded before starts from the skeleton rather than
       // briefly showing the previous goal's classes.
@@ -199,6 +216,11 @@ class ClassListBloc extends Bloc<ClassListEvent, ClassListState> {
         goalId: scope?.goalId,
       ),
       ClassListSource.recommended => _getRecommendedClassesUseCase(
+        categoryId: scope?.categoryId,
+        goalName: scope?.goalName,
+        pageSize: 20,
+      ),
+      ClassListSource.recommendedAll => _getRecommendedClassesUseCase(
         categoryId: scope?.categoryId,
         goalName: scope?.goalName,
       ),
