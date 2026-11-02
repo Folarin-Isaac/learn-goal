@@ -1,4 +1,5 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:get_it/get_it.dart';
 import 'package:lengoal/core/network/api_client.dart';
 import 'package:lengoal/core/network/connectivity_cubit.dart';
@@ -96,11 +97,33 @@ Stream<ClassGoalScope?> _goalScopes(ActiveGoalCubit cubit) {
           categoryId: goal.categoryId,
           goalName: goal.goalName,
         );
+  return _goalStates(cubit)
+      .where((state) => state.isResolved)
+      .map((s) => toScope(s.activeGoal));
+}
+
+Stream<List<ClassGoalScope>> _allGoalScopes(ActiveGoalCubit cubit) {
+  return _goalStates(cubit)
+      .where((state) => state.status == ActiveGoalStatus.ready)
+      .map(
+        (state) => [
+          for (final goal in state.goals)
+            ClassGoalScope(
+              goalId: goal.id,
+              categoryId: goal.categoryId,
+              goalName: goal.goalName,
+            ),
+        ],
+      )
+      .distinct(listEquals);
+}
+
+Stream<ActiveGoalState> _goalStates(ActiveGoalCubit cubit) {
   return Stream<ActiveGoalState>.multi((controller) {
     controller.add(cubit.state);
     final subscription = cubit.stream.listen(controller.add);
     controller.onCancel = subscription.cancel;
-  }).where((state) => state.isResolved).map((s) => toScope(s.activeGoal));
+  });
 }
 
 void _initPayments() {
@@ -193,6 +216,7 @@ void _initClasses() {
         authRepository: getIt(),
         networkInfo: getIt(),
         goalScopes: _goalScopes(getIt()),
+        allGoalScopes: _allGoalScopes(getIt()),
         blocFor: classListBlocFor,
       ),
     )

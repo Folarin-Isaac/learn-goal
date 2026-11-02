@@ -40,6 +40,15 @@ final class ClassSaveToggled extends ClassListEvent {
   List<Object?> get props => [lengoalClass, save];
 }
 
+final class ClassListPrefetchRequested extends ClassListEvent {
+  const new(this.scopes);
+
+  final List<ClassGoalScope> scopes;
+
+  @override
+  List<Object?> get props => [scopes];
+}
+
 final class ClassListCleared extends ClassListEvent {
   const new();
 }

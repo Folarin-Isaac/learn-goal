@@ -15,6 +15,7 @@ class ClassListSessionSync {
     required this._authRepository,
     required this._networkInfo,
     required this._goalScopes,
+    required this._allGoalScopes,
     required this._blocFor,
   });
 
@@ -23,11 +24,15 @@ class ClassListSessionSync {
   // Emits each time the active goal settles (null = no goal); goal-scoped
   // lists wait for the first one before loading.
   final Stream<ClassGoalScope?> _goalScopes;
+  // Every goal the learner has; the ones not on screen get preloaded so
+  // switching to them in the dashboard is instant.
+  final Stream<List<ClassGoalScope>> _allGoalScopes;
   final ClassListBloc Function(ClassListSource source) _blocFor;
 
   StreamSubscription<AuthStatus>? _authSubscription;
   StreamSubscription<bool>? _networkSubscription;
   StreamSubscription<ClassGoalScope?>? _scopeSubscription;
+  StreamSubscription<List<ClassGoalScope>>? _allScopesSubscription;
 
   void start() {
     _authSubscription ??= _authRepository.authStatusStream.listen(_onStatus);
@@ -35,6 +40,7 @@ class ClassListSessionSync {
       _onConnectionChanged,
     );
     _scopeSubscription ??= _goalScopes.listen(_onScope);
+    _allScopesSubscription ??= _allGoalScopes.listen(_onAllScopes);
     _onStatus(_authRepository.currentAuthStatus);
   }
 
@@ -42,9 +48,37 @@ class ClassListSessionSync {
     await _authSubscription?.cancel();
     await _networkSubscription?.cancel();
     await _scopeSubscription?.cancel();
+    await _allScopesSubscription?.cancel();
     _authSubscription = null;
     _networkSubscription = null;
     _scopeSubscription = null;
+    _allScopesSubscription = null;
+  }
+
+  void _onAllScopes(List<ClassGoalScope> scopes) {
+    if (scopes.length < 2) return;
+    for (final source in ClassListSource.values) {
+      if (!source.isGoalScoped) continue;
+      final bloc = _blocFor(source);
+      unawaited(
+        _whenSettled(bloc).then((_) {
+          if (!bloc.isClosed) bloc.add(ClassListPrefetchRequested(scopes));
+        }),
+      );
+    }
+  }
+
+  // Preloading waits for the on-screen goal to finish first, so it never
+  // slows down what the learner is actually looking at.
+  Future<void> _whenSettled(ClassListBloc bloc) async {
+    bool settled(ClassListState s) =>
+        s.scopeResolved &&
+        (s.status == ClassListStatus.loaded ||
+            s.status == ClassListStatus.failure);
+    if (settled(bloc.state)) return;
+    await bloc.stream
+        .firstWhere(settled)
+        .timeout(const Duration(seconds: 30), onTimeout: () => bloc.state);
   }
 
   void _onScope(ClassGoalScope? scope) {

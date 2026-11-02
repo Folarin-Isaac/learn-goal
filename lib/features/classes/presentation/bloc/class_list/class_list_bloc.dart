@@ -46,12 +46,24 @@ class ClassListBloc extends Bloc<ClassListEvent, ClassListState> {
     on<ClassListRequested>(_onRequested);
     on<ClassListScopeChanged>(_onScopeChanged);
     on<ClassSaveToggled>(_onSaveToggled);
-    on<ClassListCleared>((event, emit) => emit(const ClassListState()));
+    on<ClassListPrefetchRequested>(_onPrefetchRequested);
+    on<ClassListCleared>((event, emit) {
+      _byScope.clear();
+      emit(const ClassListState());
+    });
   }
 
   // Data younger than this is served as-is when a screen asks again;
   // pull-to-refresh bypasses it.
   static const Duration freshFor = Duration(minutes: 3);
+
+  // Last rows loaded per goal, so switching back to a goal is instant and
+  // other goals can be preloaded. Only goal-scoped lists use more than the
+  // single null-scope entry.
+  final Map<ClassGoalScope?, ({List<LengoalClass> classes, DateTime at})>
+  _byScope = {};
+
+  static bool _isFresh(DateTime at) => DateTime.now().difference(at) < freshFor;
 
   final ClassListSource source;
   final GetSubscribedClassesUseCase _getSubscribedClassesUseCase;
@@ -81,10 +93,42 @@ class ClassListBloc extends Bloc<ClassListEvent, ClassListState> {
     Emitter<ClassListState> emit,
   ) async {
     if (state.scopeResolved && state.scope == event.scope) return;
-    // A different goal means different rows, so start from the skeleton
-    // rather than briefly showing the previous goal's classes.
-    emit(ClassListState(scope: event.scope, scopeResolved: true));
-    await _load(emit);
+    final cached = _byScope[event.scope];
+    if (cached == null) {
+      // A goal never loaded before starts from the skeleton rather than
+      // briefly showing the previous goal's classes.
+      emit(ClassListState(scope: event.scope, scopeResolved: true));
+      await _load(emit);
+      return;
+    }
+    emit(
+      ClassListState(
+        scope: event.scope,
+        scopeResolved: true,
+        status: ClassListStatus.loaded,
+        classes: cached.classes,
+        loadedAt: cached.at,
+      ),
+    );
+    if (!_isFresh(cached.at)) await _load(emit);
+  }
+
+  // Warms the cache for goals other than the active one, one at a time so
+  // the active goal's own requests aren't competing with a burst.
+  Future<void> _onPrefetchRequested(
+    ClassListPrefetchRequested event,
+    Emitter<ClassListState> emit,
+  ) async {
+    for (final scope in event.scopes) {
+      if (isClosed || scope == state.scope) continue;
+      final cached = _byScope[scope];
+      if (cached != null && _isFresh(cached.at)) continue;
+      final result = await _fetch(scope);
+      result.match(
+        (_) {},
+        (classes) => _byScope[scope] = (classes: classes, at: DateTime.now()),
+      );
+    }
   }
 
   Future<void> _load(Emitter<ClassListState> emit) async {
@@ -98,8 +142,13 @@ class ClassListBloc extends Bloc<ClassListEvent, ClassListState> {
           : state.copyWith(status: ClassListStatus.loading),
     );
     final result = await _fetch(scope);
-    // The goal changed while this request was in flight; its rows belong
-    // to the old goal, and the newer request will deliver the right ones.
+    final loadedAt = DateTime.now();
+    result.match(
+      (_) {},
+      (classes) => _byScope[scope] = (classes: classes, at: loadedAt),
+    );
+    // The goal changed while this request was in flight; its rows are
+    // cached for that goal but must not replace the current goal's.
     if (state.scope != scope) return;
     result.match(
       (failure) => emit(
@@ -113,7 +162,7 @@ class ClassListBloc extends Bloc<ClassListEvent, ClassListState> {
         state.copyWith(
           status: ClassListStatus.loaded,
           classes: classes,
-          loadedAt: DateTime.now(),
+          loadedAt: loadedAt,
           isRefreshing: false,
         ),
       ),
