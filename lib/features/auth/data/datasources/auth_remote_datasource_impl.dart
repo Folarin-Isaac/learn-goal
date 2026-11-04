@@ -129,6 +129,35 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
+  Future<void> changePassword({
+    required String email,
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    try {
+      final response = await _apiClient.dio.post<Map<String, dynamic>>(
+        ApiEndpoints.changePassword,
+        data: {
+          'email': email,
+          'oldPassword': oldPassword,
+          'newPassword': newPassword,
+        },
+      );
+      _unwrap(response.data!);
+    } on DioException catch (e) {
+      // A 401 here means the current password was wrong, not that the
+      // session expired, so surface the server's message instead.
+      final mapped = _mapException(e);
+      final body = e.response?.data;
+      if (mapped is UnauthorizedException && body is Map) {
+        final message = body['message'] as String?;
+        if (message != null) throw ServerException(message, 401);
+      }
+      throw mapped;
+    }
+  }
+
+  @override
   Future<void> logout() async {
     try {
       await _apiClient.dio.post<void>(ApiEndpoints.logout);

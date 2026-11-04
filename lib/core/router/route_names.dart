@@ -27,6 +27,7 @@ class RouteNames {
   static const String updateProfile = 'updateProfile';
   static const String support = 'support';
   static const String subscriptionHistory = 'subscriptionHistory';
+  static const String changePassword = 'changePassword';
   static const String practice = 'practice';
   static const String practiceTopic = 'practiceTopic';
   static const String practiceMockDetail = 'practiceMockDetail';

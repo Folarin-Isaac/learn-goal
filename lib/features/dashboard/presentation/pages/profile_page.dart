@@ -137,6 +137,20 @@ class _ProfilePageState extends State<ProfilePage> {
                           Entrance(
                             index: 4,
                             child: _ProfileRow(
+                              icon: Assets.icons.updatePasswordIcon,
+                              label: context.l10n.profileUpdatePassword,
+                              onTap: () {
+                                AppHaptics.selection();
+                                unawaited(
+                                  context.pushNamed(RouteNames.changePassword),
+                                );
+                              },
+                            ),
+                          ),
+                          const Gap(AppSpacing.s16),
+                          Entrance(
+                            index: 5,
+                            child: _ProfileRow(
                               icon: Assets.icons.supportIcon,
                               label: context.l10n.profileSupport,
                               onTap: () {
@@ -149,7 +163,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                           const Gap(AppSpacing.s24),
                           Entrance(
-                            index: 5,
+                            index: 6,
                             child: Text(
                               context.l10n.profileSignOutSection,
                               style: context.textTheme.titleMedium,
@@ -157,7 +171,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                           const Gap(AppSpacing.s16),
                           Entrance(
-                            index: 6,
+                            index: 7,
                             child: _ProfileRow(
                               icon: Assets.icons.signOutIcon,
                               label: context.l10n.profileSignOut,
@@ -167,7 +181,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                           const Gap(AppSpacing.s24),
                           Entrance(
-                            index: 7,
+                            index: 8,
                             child: Row(
                               children: [
                                 Expanded(
@@ -189,7 +203,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                           const Gap(AppSpacing.s16),
                           Entrance(
-                            index: 8,
+                            index: 9,
                             child: _ProfileRow(
                               icon: Assets.icons.deleteAccountIcon,
                               label: context.l10n.profileDeleteAccount,

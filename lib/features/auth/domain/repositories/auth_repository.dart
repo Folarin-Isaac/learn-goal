@@ -37,6 +37,13 @@ abstract class AuthRepository {
     required String password,
   });
 
+  // For a signed-in learner. The email comes from the stored token, so
+  // callers only pass the two passwords.
+  Future<Either<Failure, Unit>> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  });
+
   Future<Either<Failure, Unit>> logout();
 
   AuthStatus get currentAuthStatus;

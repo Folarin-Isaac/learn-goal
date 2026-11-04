@@ -172,6 +172,22 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<Either<Failure, Unit>> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    final email = (await getCurrentUser())?.email ?? '';
+    if (email.isEmpty) return const Left(UnauthorizedFailure());
+    return await _guard(
+      () => _remoteDataSource.changePassword(
+        email: email,
+        oldPassword: oldPassword,
+        newPassword: newPassword,
+      ),
+    );
+  }
+
+  @override
   Future<Either<Failure, Unit>> logout() async {
     try {
       await _remoteDataSource.logout();

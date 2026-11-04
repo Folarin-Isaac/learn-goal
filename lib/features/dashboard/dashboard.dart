@@ -1,5 +1,6 @@
 export 'presentation/pages/calendar_page.dart';
 export 'presentation/pages/dashboard_page.dart';
+export 'presentation/pages/change_password_page.dart';
 export 'presentation/pages/profile_page.dart';
 export 'presentation/pages/subscription_history_page.dart';
 export 'presentation/pages/support_page.dart';

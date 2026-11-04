@@ -27,8 +27,9 @@ class AuthInterceptor extends Interceptor {
     handler.next(options);
   }
 
-  // Endpoints with no existing session — a 401 here means bad
-  // credentials, not an expired token, so never trigger a refresh.
+  // Anonymous endpoints — a 401 here means bad credentials, not an
+  // expired token, so never trigger a refresh. change-password is
+  // anonymous too (it authenticates with the old password).
   static const Set<String> _publicAuthEndpoints = {
     ApiEndpoints.signUp,
     ApiEndpoints.confirmEmail,
@@ -36,6 +37,7 @@ class AuthInterceptor extends Interceptor {
     ApiEndpoints.resendOtp,
     ApiEndpoints.forgotPassword,
     ApiEndpoints.resetPassword,
+    ApiEndpoints.changePassword,
     ApiEndpoints.refreshToken,
   };
 

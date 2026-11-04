@@ -27,6 +27,7 @@ class RoutePaths {
   static const String updateProfile = '/profile/update';
   static const String support = '/profile/support';
   static const String subscriptionHistory = '/profile/subscription-history';
+  static const String changePassword = '/profile/change-password';
   static const String practice = '/practice';
   static const String practiceTopic = '/practice/topic';
   static const String practiceMockDetail = '/practice/mock';

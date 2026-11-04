@@ -9,6 +9,7 @@ import 'package:lengoal/features/auth/data/datasources/auth_remote_data_source.d
 import 'package:lengoal/features/auth/data/datasources/auth_remote_datasource_impl.dart';
 import 'package:lengoal/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:lengoal/features/auth/domain/repositories/auth_repository.dart';
+import 'package:lengoal/features/auth/domain/usecases/change_password_usecase.dart';
 import 'package:lengoal/features/auth/domain/usecases/forgot_password_usecase.dart';
 import 'package:lengoal/features/auth/domain/usecases/login_usecase.dart';
 import 'package:lengoal/features/auth/domain/usecases/logout_usecase.dart';
@@ -17,6 +18,7 @@ import 'package:lengoal/features/auth/domain/usecases/resend_otp_usecase.dart';
 import 'package:lengoal/features/auth/domain/usecases/reset_password_usecase.dart';
 import 'package:lengoal/features/auth/domain/usecases/verify_otp_usecase.dart';
 import 'package:lengoal/features/auth/presentation/bloc/auth/auth_bloc.dart';
+import 'package:lengoal/features/auth/presentation/bloc/change_password/change_password_bloc.dart';
 import 'package:lengoal/features/classes/data/datasources/class_remote_data_source.dart';
 import 'package:lengoal/features/classes/data/datasources/class_remote_data_source_impl.dart';
 import 'package:lengoal/features/classes/data/repositories/class_repository_impl.dart';
@@ -252,8 +254,10 @@ void _initAuth() {
     ..registerLazySingleton(() => ResendOtpUseCase(getIt()))
     ..registerLazySingleton(() => ForgotPasswordUseCase(getIt()))
     ..registerLazySingleton(() => ResetPasswordUseCase(getIt()))
+    ..registerLazySingleton(() => ChangePasswordUseCase(getIt()))
     ..registerLazySingleton(() => LogoutUseCase(getIt()))
-    ..registerFactory(() => AuthBloc(authRepository: getIt()));
+    ..registerFactory(() => AuthBloc(authRepository: getIt()))
+    ..registerFactory(() => ChangePasswordBloc(changePasswordUseCase: getIt()));
 }
 
 void _initGoalSetup() {

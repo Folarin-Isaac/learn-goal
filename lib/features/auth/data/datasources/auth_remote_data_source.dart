@@ -26,5 +26,11 @@ abstract class AuthRemoteDataSource {
     required String password,
   });
 
+  Future<void> changePassword({
+    required String email,
+    required String oldPassword,
+    required String newPassword,
+  });
+
   Future<void> logout();
 }

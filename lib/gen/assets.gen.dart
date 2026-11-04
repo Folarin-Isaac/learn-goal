@@ -157,6 +157,9 @@ class $AssetsIconsGen {
   /// File path: assets/icons/support_icon.svg
   SvgGenImage get supportIcon => const SvgGenImage('assets/icons/support_icon.svg');
 
+  /// File path: assets/icons/update_password_icon.svg
+  SvgGenImage get updatePasswordIcon => const SvgGenImage('assets/icons/update_password_icon.svg');
+
   /// File path: assets/icons/word_file_icon.svg
   SvgGenImage get wordFileIcon => const SvgGenImage('assets/icons/word_file_icon.svg');
 
@@ -206,6 +209,7 @@ class $AssetsIconsGen {
     successCheckIcon,
     supportBadgeIcon,
     supportIcon,
+    updatePasswordIcon,
     wordFileIcon,
   ];
 }

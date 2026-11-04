@@ -297,6 +297,14 @@ class AppRouter {
         ),
       ),
       GoRoute(
+        path: RoutePaths.changePassword,
+        name: RouteNames.changePassword,
+        pageBuilder: (context, state) => AppPageTransitions.build(
+          state: state,
+          child: const ChangePasswordPage(),
+        ),
+      ),
+      GoRoute(
         path: RoutePaths.practice,
         name: RouteNames.practice,
         pageBuilder: (context, state) =>
