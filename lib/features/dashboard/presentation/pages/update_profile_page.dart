@@ -28,9 +28,6 @@ class _UpdateProfileView extends StatefulWidget {
 
 class _UpdateProfileViewState extends State<_UpdateProfileView> {
   final _formKey = GlobalKey<FormState>();
-  late final _emailController = TextEditingController(
-    text: widget.profile.email,
-  );
   late final _firstNameController = TextEditingController(
     text: widget.profile.firstName,
   );
@@ -61,7 +58,6 @@ class _UpdateProfileViewState extends State<_UpdateProfileView> {
 
   @override
   void dispose() {
-    _emailController.dispose();
     _firstNameController.dispose();
     _lastNameController.dispose();
     _phoneController.dispose();
@@ -88,7 +84,6 @@ class _UpdateProfileViewState extends State<_UpdateProfileView> {
     _baselineFirstName = profile.firstName;
     _baselineLastName = profile.lastName;
     _baselinePhone = profile.phoneNumber ?? '';
-    _emailController.text = profile.email;
     if (_firstNameController.text == widget.profile.firstName) {
       _firstNameController.text = profile.firstName;
     }
@@ -185,14 +180,6 @@ class _UpdateProfileViewState extends State<_UpdateProfileView> {
                       ),
                     ),
                     const Gap(AppSpacing.s24),
-                    AppTextField(
-                      controller: _emailController,
-                      label: context.l10n.loginEmailLabel,
-                      hint: context.l10n.loginEmailHint,
-                      keyboardType: TextInputType.emailAddress,
-                      readOnly: true,
-                    ),
-                    const Gap(AppSpacing.s16),
                     AppTextField(
                       controller: _firstNameController,
                       label: context.l10n.registerFirstNameLabel,
