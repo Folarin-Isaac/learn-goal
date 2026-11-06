@@ -4,6 +4,7 @@ class AppColors {
   const new();
 
   static const Color brandPrimary = Color(0xFF002F8C);
+  static const Color brandGreen = Color(0xFF92C22C);
   static const Color accentBlue = Color(0xFF004CE5);
   static const Color accentBlueSoft = Color(0xFFCCDBFA);
   static const Color lightBackground = Color(0xFFF4F4F4);
