@@ -257,7 +257,7 @@ class _AvatarState extends State<_Avatar> {
   @override
   Widget build(BuildContext context) {
     final initial = (widget.firstName == null || widget.firstName!.isEmpty)
-        ? '?'
+        ? ''
         : widget.firstName![0].toUpperCase();
     final hasAvatar =
         !_imageFailed &&

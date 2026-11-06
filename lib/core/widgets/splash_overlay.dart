@@ -100,12 +100,16 @@ class _SplashOverlayState extends State<SplashOverlay>
     super.didChangeDependencies();
     if (_started) return;
     _started = true;
-    if (AppMotion.reduced(context)) {
-      _controller.value = 0.66;
-      _controller.animateTo(1, duration: AppMotion.slow);
-    } else {
-      _controller.forward();
-    }
+    final reduced = AppMotion.reduced(context);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (reduced) {
+        _controller.value = 0.66;
+        _controller.animateTo(1, duration: AppMotion.slow);
+      } else {
+        _controller.forward();
+      }
+    });
   }
 
   @override
