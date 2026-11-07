@@ -40,7 +40,7 @@ class ClassCard extends StatelessWidget {
                 aspectRatio: thumbnailAspectRatio,
                 child: ClassThumbnail(
                   item: item,
-                  showFavorite: item.isFavorite,
+                  showFavorite: onFavoriteTap != null,
                   onFavoriteTap: onFavoriteTap,
                   playBadgeAlignment: Alignment.topRight,
                 ),

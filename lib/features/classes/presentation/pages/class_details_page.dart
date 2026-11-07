@@ -233,13 +233,13 @@ class _DetailHeader extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              const Gap(4),
+              const Gap(AppSpacing.s4),
               for (var i = 0; i < 5; i++)
                 Padding(
                   padding: const EdgeInsets.only(right: 1),
                   child: Assets.icons.starIcon.svg(width: 14, height: 14),
                 ),
-              const Gap(4),
+              const Gap(AppSpacing.s4),
               Text(
                 context.l10n.classDetailsRatingCount(detail.reviewCount),
                 style: context.textTheme.bodyMedium,

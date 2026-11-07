@@ -102,7 +102,7 @@ class ClassSection extends StatelessWidget {
                               onFavoriteTap: () => toggleSavedClass(
                                 context,
                                 classes[index],
-                                save: false,
+                                save: !savedIds.contains(classes[index].id),
                               ),
                             ),
                           ),
