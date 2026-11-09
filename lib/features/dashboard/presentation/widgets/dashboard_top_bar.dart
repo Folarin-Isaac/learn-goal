@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:lengoal/core/core.dart';
+import 'package:lengoal/features/classes/presentation/models/classes_hub_tab.dart';
 import 'package:lengoal/features/goal_setup/presentation/bloc/active_goal/active_goal_cubit.dart';
 
 class DashboardTopBar extends StatelessWidget {
@@ -35,7 +36,12 @@ class DashboardTopBar extends StatelessWidget {
             ),
           ),
         ),
-        _ComingSoonIconButton(
+        IconButton(
+          onPressed: () {
+            AppHaptics.selection();
+            ClassesHubTabRequest.pending.value = ClassesHubTab.saved;
+            context.goNamed(RouteNames.classesHub);
+          },
           icon: Assets.icons.heartIcon.svg(
             width: 24,
             height: 24,
@@ -213,23 +219,6 @@ class _GoalSwitcherButton extends StatelessWidget {
       AppHaptics.selection();
       await cubit.select(goal);
     }
-  }
-}
-
-class _ComingSoonIconButton extends StatelessWidget {
-  const new({required this.icon});
-
-  final Widget icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      onPressed: () {
-        AppHaptics.selection();
-        AppSnackbar.info(context.l10n.dashboardComingSoon);
-      },
-      icon: icon,
-    );
   }
 }
 

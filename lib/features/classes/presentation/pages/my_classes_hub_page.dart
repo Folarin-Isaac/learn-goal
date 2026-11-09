@@ -2,6 +2,7 @@ import 'package:lengoal/core/core.dart';
 import 'package:lengoal/features/classes/domain/entities/lengoal_class.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_list/class_list_bloc.dart';
 import 'package:lengoal/features/classes/presentation/models/class_summary.dart';
+import 'package:lengoal/features/classes/presentation/models/classes_hub_tab.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_filter.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_list_loader.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_list_tile.dart';
@@ -25,7 +26,22 @@ class _MyClassesHubPageState extends State<MyClassesHubPage>
   String _query = '';
 
   @override
+  void initState() {
+    super.initState();
+    ClassesHubTabRequest.pending.addListener(_applyTabRequest);
+    _applyTabRequest();
+  }
+
+  void _applyTabRequest() {
+    final tab = ClassesHubTabRequest.pending.value;
+    if (tab == null) return;
+    ClassesHubTabRequest.pending.value = null;
+    _tabController.animateTo(tab.index);
+  }
+
+  @override
   void dispose() {
+    ClassesHubTabRequest.pending.removeListener(_applyTabRequest);
     _tabController.dispose();
     _searchController.dispose();
     super.dispose();

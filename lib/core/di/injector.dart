@@ -234,7 +234,6 @@ void _initClasses() {
         getClassEducatorsUseCase: getIt(),
         getClassReplayUseCase: getIt(),
         generateClassReferralUseCase: getIt(),
-        getClassAttendanceUseCase: getIt(),
       ),
     );
 }

@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:lengoal/core/core.dart';
-import 'package:lengoal/features/classes/domain/entities/class_attendance.dart';
 import 'package:lengoal/features/classes/domain/entities/class_educator.dart';
 import 'package:lengoal/features/classes/domain/entities/lengoal_class.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_detail/class_detail_bloc.dart';
@@ -32,13 +31,11 @@ class ClassDetailsPage extends StatelessWidget {
         buildWhen: (previous, current) =>
             previous.lengoalClass != current.lengoalClass ||
             previous.educators != current.educators ||
-            previous.attendance != current.attendance ||
             previous.isSharing != current.isSharing ||
             previous.loadingReplayId != current.loadingReplayId,
         builder: (context, state) => _ClassDetailsView(
           detail: ClassDetail.fromClass(state.lengoalClass),
           educators: state.educators,
-          attendance: state.attendance,
           isSharing: state.isSharing,
           loadingReplayId: state.loadingReplayId,
         ),
@@ -75,14 +72,12 @@ class _ClassDetailsView extends StatelessWidget {
   const new({
     required this.detail,
     required this.educators,
-    required this.attendance,
     required this.isSharing,
     required this.loadingReplayId,
   });
 
   final ClassDetail detail;
   final List<ClassEducator> educators;
-  final ClassAttendance? attendance;
   final bool isSharing;
   final String? loadingReplayId;
 
@@ -151,7 +146,7 @@ class _ClassDetailsView extends StatelessWidget {
                     ClassScheduleTab(
                       sessions: detail.sessions,
                       loadingReplayId: loadingReplayId,
-                      attendance: attendance,
+                      isSubscribed: isSubscribed,
                     ),
                     if (isSubscribed) ClassQuizTab(quizzes: detail.quizzes),
                     ClassMaterialsTab(materials: detail.materials),

@@ -40,29 +40,41 @@ class ClassDetailHeader extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: Text(item.title, style: context.textTheme.headlineSmall),
+              child: Text(
+                item.title,
+                style: context.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
             ),
-            IconButton(
-              onPressed: isSharing
-                  ? null
-                  : () {
-                      AppHaptics.selection();
-                      context.read<ClassDetailBloc>().add(
-                        const ClassDetailShareRequested(),
-                      );
-                    },
-              icon: isSharing
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Assets.icons.shareIcon.svg(width: 20, height: 20),
-            ),
+            if (item.isSubscribed)
+              IconButton(
+                onPressed: isSharing
+                    ? null
+                    : () {
+                        AppHaptics.selection();
+                        context.read<ClassDetailBloc>().add(
+                          const ClassDetailShareRequested(),
+                        );
+                      },
+                icon: isSharing
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Assets.icons.shareIcon.svg(width: 20, height: 20),
+              ),
           ],
         ),
-        Text(item.dateRange, style: context.textTheme.bodyMedium),
         const Gap(AppSpacing.s4),
+        Text(
+          item.dateRange,
+          style: context.textTheme.bodyLarge?.copyWith(
+            color: context.colors.onSurfaceVariant,
+          ),
+        ),
+        const Gap(AppSpacing.s8),
         Text(item.instructor, style: context.textTheme.bodyLarge),
         if (detail.reviewCount > 0) ...[
           const Gap(AppSpacing.s8),
@@ -76,11 +88,7 @@ class ClassDetailHeader extends StatelessWidget {
                 ),
               ),
               const Gap(AppSpacing.s4),
-              for (var i = 0; i < 5; i++)
-                Padding(
-                  padding: const EdgeInsets.only(right: 1),
-                  child: Assets.icons.starIcon.svg(width: 14, height: 14),
-                ),
+              _RatingStars(rating: detail.rating),
               const Gap(AppSpacing.s4),
               Text(
                 context.l10n.classDetailsRatingCount(detail.reviewCount),
@@ -89,28 +97,28 @@ class ClassDetailHeader extends StatelessWidget {
             ],
           ),
         ],
-        const Gap(AppSpacing.s8),
+        const Gap(AppSpacing.s16),
         Row(
           children: [
             Container(
               padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.s8,
-                vertical: 4,
+                horizontal: 12,
+                vertical: AppSpacing.s8,
               ),
               decoration: BoxDecoration(
                 color: tagBackground,
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(6),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  tagIcon.svg(width: 14, height: 14),
-                  const Gap(4),
+                  tagIcon.svg(width: 24, height: 24),
+                  const Gap(AppSpacing.s8),
                   Text(
                     isFree ? context.l10n.dashboardFreeTag : item.priceLabel!,
-                    style: context.textTheme.bodyMedium?.copyWith(
+                    style: context.textTheme.headlineSmall?.copyWith(
                       color: tagForeground,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
@@ -171,6 +179,50 @@ class ClassDetailHeader extends StatelessWidget {
             },
           ),
         ],
+      ],
+    );
+  }
+}
+
+class _RatingStars extends StatelessWidget {
+  const new({required this.rating});
+
+  final double rating;
+
+  static const double _size = 14;
+
+  @override
+  Widget build(BuildContext context) {
+    final empty = ColorFilter.mode(
+      context.colors.outlineVariant,
+      BlendMode.srcIn,
+    );
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (var i = 0; i < 5; i++)
+          Padding(
+            padding: const EdgeInsets.only(right: 1),
+            child: Stack(
+              children: [
+                Assets.icons.starIcon.svg(
+                  width: _size,
+                  height: _size,
+                  colorFilter: empty,
+                ),
+                ClipRect(
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    widthFactor: (rating - i).clamp(0.0, 1.0),
+                    child: Assets.icons.starIcon.svg(
+                      width: _size,
+                      height: _size,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
       ],
     );
   }
