@@ -3,9 +3,16 @@ import 'dart:async';
 import 'package:lengoal/core/core.dart';
 import 'package:lengoal/core/error/failures.dart';
 import 'package:lengoal/features/classes/domain/entities/lengoal_class.dart';
+import 'package:lengoal/features/classes/presentation/bloc/class_attendance/class_attendance_store.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_list/class_list_bloc.dart';
 
 Future<void> refreshClassLists(List<ClassListSource> sources) {
+  if (sources.any(
+    (s) =>
+        s == ClassListSource.subscribed || s == ClassListSource.goalSubscribed,
+  )) {
+    getIt<ClassAttendanceStore>().refreshAll();
+  }
   return Future.wait([
     for (final source in sources) _refresh(classListBlocFor(source)),
   ]);

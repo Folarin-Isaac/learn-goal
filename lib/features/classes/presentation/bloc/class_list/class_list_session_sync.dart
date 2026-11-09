@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:lengoal/core/network/network_info.dart';
 import 'package:lengoal/features/auth/domain/repositories/auth_repository.dart';
 import 'package:lengoal/features/classes/domain/entities/class_goal_scope.dart';
+import 'package:lengoal/features/classes/presentation/bloc/class_attendance/class_attendance_store.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_list/class_list_bloc.dart';
 
 // The class-list blocs are app-wide caches, so they must follow the
@@ -17,6 +18,7 @@ class ClassListSessionSync {
     required this._goalScopes,
     required this._allGoalScopes,
     required this._blocFor,
+    required this._attendanceStore,
   });
 
   final AuthRepository _authRepository;
@@ -28,6 +30,7 @@ class ClassListSessionSync {
   // switching to them in the dashboard is instant.
   final Stream<List<ClassGoalScope>> _allGoalScopes;
   final ClassListBloc Function(ClassListSource source) _blocFor;
+  final ClassAttendanceStore _attendanceStore;
 
   StreamSubscription<AuthStatus>? _authSubscription;
   StreamSubscription<bool>? _networkSubscription;
@@ -98,6 +101,7 @@ class ClassListSessionSync {
         for (final source in ClassListSource.values) {
           _blocFor(source).add(const ClassListCleared());
         }
+        _attendanceStore.clear();
       case AuthStatus.unknown:
         break;
     }

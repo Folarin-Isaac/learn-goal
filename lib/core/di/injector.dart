@@ -36,6 +36,7 @@ import 'package:lengoal/features/classes/domain/usecases/get_saved_classes_useca
 import 'package:lengoal/features/classes/domain/usecases/get_subscribed_classes_usecase.dart';
 import 'package:lengoal/features/classes/domain/usecases/search_classes_usecase.dart';
 import 'package:lengoal/features/classes/domain/usecases/set_class_saved_usecase.dart';
+import 'package:lengoal/features/classes/presentation/bloc/class_attendance/class_attendance_store.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_detail/class_detail_bloc.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_list/class_list_bloc.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_list/class_list_session_sync.dart';
@@ -218,6 +219,7 @@ void _initClasses() {
     ..registerLazySingleton(() => GetClassReplayUseCase(getIt()))
     ..registerLazySingleton(() => GenerateClassReferralUseCase(getIt()))
     ..registerLazySingleton(() => GetClassAttendanceUseCase(getIt()))
+    ..registerLazySingleton(() => ClassAttendanceStore(getIt()))
     ..registerLazySingleton(
       () => ClassListSessionSync(
         authRepository: getIt(),
@@ -225,6 +227,7 @@ void _initClasses() {
         goalScopes: _goalScopes(getIt()),
         allGoalScopes: _allGoalScopes(getIt()),
         blocFor: classListBlocFor,
+        attendanceStore: getIt(),
       ),
     )
     ..registerFactoryParam<ClassDetailBloc, LengoalClass, void>(

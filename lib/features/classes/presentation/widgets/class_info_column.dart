@@ -1,4 +1,5 @@
 import 'package:lengoal/core/core.dart';
+import 'package:lengoal/features/classes/presentation/bloc/class_attendance/class_attendance_store.dart';
 import 'package:lengoal/features/classes/presentation/models/class_summary.dart';
 
 class ClassInfoColumn extends StatelessWidget {
@@ -15,7 +16,6 @@ class ClassInfoColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = context.colors;
     final isFree = item.priceLabel == null;
     final tagBackground = isFree
         ? const Color(0xFFDAF2E4)
@@ -95,30 +95,82 @@ class ClassInfoColumn extends StatelessWidget {
         ),
         if (showProgress && item.isSubscribed) ...[
           Gap(stackDate ? 10 : AppSpacing.s8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
-            child: LinearProgressIndicator(
-              value: item.progress,
-              minHeight: 4,
-              backgroundColor: colorScheme.outlineVariant.withValues(
-                alpha: 0.4,
-              ),
-              valueColor: AlwaysStoppedAnimation(colorScheme.primary),
-            ),
-          ),
-          Gap(stackDate ? 6 : AppSpacing.s4),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(
-              context.l10n.dashboardCompletedPercent(
-                (item.progress * 100).round(),
-              ),
-              style: context.textTheme.bodySmall,
-            ),
-          ),
+          _ClassProgress(item: item, stackDate: stackDate),
         ],
       ],
+    );
+  }
+}
+
+class _ClassProgress extends StatefulWidget {
+  const new({required this.item, required this.stackDate});
+
+  final ClassSummary item;
+  final bool stackDate;
+
+  @override
+  State<_ClassProgress> createState() => _ClassProgressState();
+}
+
+class _ClassProgressState extends State<_ClassProgress> {
+  final ClassAttendanceStore _store = getIt();
+
+  @override
+  void initState() {
+    super.initState();
+    _store.ensure(widget.item.id);
+  }
+
+  @override
+  void didUpdateWidget(_ClassProgress oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.item.id != widget.item.id) _store.ensure(widget.item.id);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = context.colors;
+    return ListenableBuilder(
+      listenable: _store,
+      builder: (context, _) {
+        final attendance = _store.attendanceFor(widget.item.id);
+        final progress =
+            attendance?.fractionOf(widget.item.sessionCount) ??
+            widget.item.progress;
+        return TweenAnimationBuilder<double>(
+          tween: Tween(end: progress),
+          duration: AppMotion.slow,
+          curve: AppMotion.standard,
+          builder: (context, value, _) => Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
+                child: LinearProgressIndicator(
+                  value: value,
+                  minHeight: 4,
+                  backgroundColor: colorScheme.outlineVariant.withValues(
+                    alpha: 0.4,
+                  ),
+                  valueColor: AlwaysStoppedAnimation(colorScheme.primary),
+                ),
+              ),
+              Gap(widget.stackDate ? 6 : AppSpacing.s4),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  context.l10n.dashboardCompletedPercent(
+                    (progress * 100).round(),
+                  ),
+                  style: context.textTheme.bodySmall,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

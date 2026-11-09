@@ -10,6 +10,7 @@ class ClassSummary {
     required this.dateRange,
     required this.progress,
     required this.thumbnailColor,
+    this.sessionCount = 0,
     this.imageUrl,
     this.priceLabel,
     this.isFavorite = false,
@@ -26,6 +27,7 @@ class ClassSummary {
         lengoalClass.endDate,
       ),
       progress: classProgress(lengoalClass),
+      sessionCount: lengoalClass.sessions.length,
       thumbnailColor: classThumbnailColor(lengoalClass.bgColorKey),
       imageUrl: lengoalClass.coverImageUrl,
       priceLabel: lengoalClass.isFree
@@ -41,6 +43,7 @@ class ClassSummary {
   final String instructor;
   final String dateRange;
   final double progress;
+  final int sessionCount;
   final Color thumbnailColor;
   final String? imageUrl;
 
