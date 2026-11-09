@@ -18,6 +18,7 @@ export 'package:lengoal/core/widgets/app_back_button.dart';
 export 'package:lengoal/core/widgets/app_button.dart';
 export 'package:lengoal/core/widgets/app_confirm_dialog.dart';
 export 'package:lengoal/core/widgets/app_snackbar.dart';
+export 'package:lengoal/core/widgets/app_stat_row.dart';
 export 'package:lengoal/core/widgets/app_tab_bar.dart';
 export 'package:lengoal/core/widgets/app_text_field.dart';
 export 'package:lengoal/core/widgets/dashboard_bottom_nav.dart';

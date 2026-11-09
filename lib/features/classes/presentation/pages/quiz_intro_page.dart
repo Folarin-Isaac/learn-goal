@@ -74,21 +74,21 @@ class QuizIntroPage extends StatelessWidget {
                               ),
                             ),
                           const Gap(AppSpacing.s16),
-                          _StatRow(
+                          AppStatRow(
                             icon: Assets.icons.quizQuestionsIcon,
                             label: context.l10n.quizQuestionsCount(
                               session.questionCount,
                             ),
                           ),
                           const Gap(AppSpacing.s8),
-                          _StatRow(
+                          AppStatRow(
                             icon: Assets.icons.quizTimerIcon,
                             label: context.l10n.quizMinutesPerQuestion(
                               session.minutesPerQuestion,
                             ),
                           ),
                           const Gap(AppSpacing.s8),
-                          _StatRow(
+                          AppStatRow(
                             icon: Assets.icons.quizTimerIcon,
                             label: context.l10n.quizPassPercent(
                               session.passPercent,
@@ -123,33 +123,6 @@ class QuizIntroPage extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _StatRow extends StatelessWidget {
-  const new({required this.icon, required this.label});
-
-  final SvgGenImage icon;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 36,
-          height: 36,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: const Color(0xFFE0EBFF),
-            borderRadius: BorderRadius.circular(AppSpacing.r8),
-          ),
-          child: icon.svg(width: 18, height: 18),
-        ),
-        const Gap(AppSpacing.s8),
-        Text(label, style: context.textTheme.bodyLarge),
-      ],
     );
   }
 }
