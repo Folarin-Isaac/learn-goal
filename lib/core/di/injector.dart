@@ -26,6 +26,7 @@ import 'package:lengoal/features/classes/domain/entities/class_goal_scope.dart';
 import 'package:lengoal/features/classes/domain/entities/lengoal_class.dart';
 import 'package:lengoal/features/classes/domain/repositories/class_repository.dart';
 import 'package:lengoal/features/classes/domain/usecases/generate_class_referral_usecase.dart';
+import 'package:lengoal/features/classes/domain/usecases/get_class_attendance_usecase.dart';
 import 'package:lengoal/features/classes/domain/usecases/get_class_educators_usecase.dart';
 import 'package:lengoal/features/classes/domain/usecases/get_class_replay_usecase.dart';
 import 'package:lengoal/features/classes/domain/usecases/get_class_usecase.dart';
@@ -216,6 +217,7 @@ void _initClasses() {
     ..registerLazySingleton(() => GetClassEducatorsUseCase(getIt()))
     ..registerLazySingleton(() => GetClassReplayUseCase(getIt()))
     ..registerLazySingleton(() => GenerateClassReferralUseCase(getIt()))
+    ..registerLazySingleton(() => GetClassAttendanceUseCase(getIt()))
     ..registerLazySingleton(
       () => ClassListSessionSync(
         authRepository: getIt(),
@@ -232,6 +234,7 @@ void _initClasses() {
         getClassEducatorsUseCase: getIt(),
         getClassReplayUseCase: getIt(),
         generateClassReferralUseCase: getIt(),
+        getClassAttendanceUseCase: getIt(),
       ),
     );
 }

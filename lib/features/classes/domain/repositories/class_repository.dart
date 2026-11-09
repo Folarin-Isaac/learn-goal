@@ -1,5 +1,6 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:lengoal/core/error/failures.dart';
+import 'package:lengoal/features/classes/domain/entities/class_attendance.dart';
 import 'package:lengoal/features/classes/domain/entities/class_educator.dart';
 import 'package:lengoal/features/classes/domain/entities/class_page.dart';
 import 'package:lengoal/features/classes/domain/entities/class_referral.dart';
@@ -43,6 +44,8 @@ abstract class ClassRepository {
   Future<Either<Failure, List<ClassEducator>>> getClassEducators(
     String classId,
   );
+
+  Future<Either<Failure, ClassAttendance>> getClassAttendance(String classId);
 
   Future<Either<Failure, ClassReplay>> getClassReplay(String classOutlineId);
 

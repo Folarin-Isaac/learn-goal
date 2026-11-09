@@ -17,4 +17,7 @@ class ClassApiEndpoints {
 
   static String generateReferral(String classId) =>
       '/api/v1/Class/GenerateClassReferral/$classId';
+
+  static String learnerAttendance(String classId) =>
+      '/api/v1/Attendance/GetLearnerCohortAttendance/$classId';
 }

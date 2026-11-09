@@ -5,6 +5,7 @@ import 'package:lengoal/features/classes/data/class_api_endpoints.dart';
 import 'package:lengoal/features/classes/data/datasources/class_remote_data_source.dart';
 import 'package:lengoal/features/classes/data/models/class_educator_model.dart';
 import 'package:lengoal/features/classes/data/models/lengoal_class_model.dart';
+import 'package:lengoal/features/classes/domain/entities/class_attendance.dart';
 import 'package:lengoal/features/classes/domain/entities/class_referral.dart';
 import 'package:lengoal/features/classes/domain/entities/class_replay.dart';
 
@@ -249,6 +250,22 @@ class ClassRemoteDataSourceImpl implements ClassRemoteDataSource {
       return ClassReferral(
         referralCode: Uri.tryParse(link)?.queryParameters['ref'] ?? '',
         referralLink: link,
+      );
+    } on DioException catch (e) {
+      throw _mapException(e);
+    }
+  }
+
+  @override
+  Future<ClassAttendance> getClassAttendance(String classId) async {
+    try {
+      final response = await _apiClient.dio.get<Map<String, dynamic>>(
+        ClassApiEndpoints.learnerAttendance(classId),
+      );
+      final data = _unwrapObject(response.data!);
+      return ClassAttendance(
+        totalSessions: (data['totalSessions'] as num?)?.toInt() ?? 0,
+        attendedSessions: (data['attendedSessions'] as num?)?.toInt() ?? 0,
       );
     } on DioException catch (e) {
       throw _mapException(e);

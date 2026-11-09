@@ -1,5 +1,6 @@
 import 'package:lengoal/features/classes/data/models/class_educator_model.dart';
 import 'package:lengoal/features/classes/data/models/lengoal_class_model.dart';
+import 'package:lengoal/features/classes/domain/entities/class_attendance.dart';
 import 'package:lengoal/features/classes/domain/entities/class_referral.dart';
 import 'package:lengoal/features/classes/domain/entities/class_replay.dart';
 
@@ -41,4 +42,6 @@ abstract class ClassRemoteDataSource {
   Future<ClassReplay> getClassReplay(String classOutlineId);
 
   Future<ClassReferral> generateClassReferral(String classId);
+
+  Future<ClassAttendance> getClassAttendance(String classId);
 }

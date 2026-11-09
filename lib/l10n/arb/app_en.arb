@@ -263,6 +263,18 @@
     "@classDetailsJoinUpcoming": {"description": "Button shown next to an ongoing session"},
     "classDetailsScheduleEmpty": "No sessions scheduled yet",
     "@classDetailsScheduleEmpty": {"description": "Empty state for the Schedule tab"},
+    "classDetailsAttendanceTitle": "Your attendance",
+    "@classDetailsAttendanceTitle": {"description": "Heading of the attendance summary at the top of the Schedule tab"},
+    "classDetailsAttendanceSummary": "{attended} of {total} sessions attended",
+    "@classDetailsAttendanceSummary": {
+        "description": "Attendance count under the attendance heading",
+        "placeholders": {"attended": {"type": "int"}, "total": {"type": "int"}}
+    },
+    "classDetailsAttendancePercent": "{percent}%",
+    "@classDetailsAttendancePercent": {
+        "description": "Attendance percentage next to the attendance bar",
+        "placeholders": {"percent": {"type": "int"}}
+    },
     "classDetailsReviewQuiz": "Review quiz",
     "@classDetailsReviewQuiz": {"description": "Button on a completed quiz"},
     "classDetailsQuizCompleted": "Completed",

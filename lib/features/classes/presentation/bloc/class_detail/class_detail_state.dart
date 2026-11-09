@@ -22,6 +22,7 @@ class ClassDetailState extends Equatable {
   const new({
     required this.lengoalClass,
     this.educators = const [],
+    this.attendance,
     this.isRefreshing = false,
     this.isSharing = false,
     this.loadingReplayId,
@@ -31,6 +32,7 @@ class ClassDetailState extends Equatable {
 
   final LengoalClass lengoalClass;
   final List<ClassEducator> educators;
+  final ClassAttendance? attendance;
   final bool isRefreshing;
   final bool isSharing;
   final String? loadingReplayId;
@@ -44,6 +46,7 @@ class ClassDetailState extends Equatable {
   ClassDetailState copyWith({
     LengoalClass? lengoalClass,
     List<ClassEducator>? educators,
+    ClassAttendance? attendance,
     bool? isRefreshing,
     bool? isSharing,
     String? loadingReplayId,
@@ -51,6 +54,7 @@ class ClassDetailState extends Equatable {
     return ClassDetailState(
       lengoalClass: lengoalClass ?? this.lengoalClass,
       educators: educators ?? this.educators,
+      attendance: attendance ?? this.attendance,
       isRefreshing: isRefreshing ?? this.isRefreshing,
       isSharing: isSharing ?? this.isSharing,
       loadingReplayId: loadingReplayId ?? this.loadingReplayId,
@@ -63,6 +67,7 @@ class ClassDetailState extends Equatable {
     return ClassDetailState(
       lengoalClass: lengoalClass,
       educators: educators,
+      attendance: attendance,
       isRefreshing: isRefreshing,
       isSharing: sharing ?? isSharing,
       effect: effect,
@@ -74,6 +79,7 @@ class ClassDetailState extends Equatable {
   List<Object?> get props => [
     lengoalClass,
     educators,
+    attendance,
     isRefreshing,
     isSharing,
     loadingReplayId,

@@ -1,8 +1,10 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lengoal/features/classes/domain/entities/class_attendance.dart';
 import 'package:lengoal/features/classes/domain/entities/class_educator.dart';
 import 'package:lengoal/features/classes/domain/entities/lengoal_class.dart';
 import 'package:lengoal/features/classes/domain/usecases/generate_class_referral_usecase.dart';
+import 'package:lengoal/features/classes/domain/usecases/get_class_attendance_usecase.dart';
 import 'package:lengoal/features/classes/domain/usecases/get_class_educators_usecase.dart';
 import 'package:lengoal/features/classes/domain/usecases/get_class_replay_usecase.dart';
 import 'package:lengoal/features/classes/domain/usecases/get_class_usecase.dart';
@@ -20,7 +22,9 @@ class ClassDetailBloc extends Bloc<ClassDetailEvent, ClassDetailState> {
     required GetClassEducatorsUseCase getClassEducatorsUseCase,
     required GetClassReplayUseCase getClassReplayUseCase,
     required GenerateClassReferralUseCase generateClassReferralUseCase,
+    required GetClassAttendanceUseCase getClassAttendanceUseCase,
   }) : _getClassUseCase = getClassUseCase,
+       _getClassAttendanceUseCase = getClassAttendanceUseCase,
        _getClassEducatorsUseCase = getClassEducatorsUseCase,
        _getClassReplayUseCase = getClassReplayUseCase,
        _generateClassReferralUseCase = generateClassReferralUseCase,
@@ -34,6 +38,7 @@ class ClassDetailBloc extends Bloc<ClassDetailEvent, ClassDetailState> {
   final GetClassEducatorsUseCase _getClassEducatorsUseCase;
   final GetClassReplayUseCase _getClassReplayUseCase;
   final GenerateClassReferralUseCase _generateClassReferralUseCase;
+  final GetClassAttendanceUseCase _getClassAttendanceUseCase;
 
   Future<void> _onRefreshRequested(
     ClassDetailRefreshRequested event,
@@ -41,9 +46,13 @@ class ClassDetailBloc extends Bloc<ClassDetailEvent, ClassDetailState> {
   ) async {
     emit(state.copyWith(isRefreshing: true));
     final id = state.lengoalClass.id;
-    final (classResult, educatorsResult) = await (
+    final subscribed = state.lengoalClass.isSubscribed;
+    final (classResult, educatorsResult, attendanceResult) = await (
       _getClassUseCase(id),
       _getClassEducatorsUseCase(id),
+      // Attendance only means something for an enrolled learner; skip the
+      // call otherwise rather than show a meaningless 0%.
+      subscribed ? _loadAttendance(id) : Future<ClassAttendance?>.value(),
     ).wait;
     // The backend's isSubscribed flag isn't reliable; once a list has
     // established the learner is subscribed, a refresh can't undo that.
@@ -51,12 +60,18 @@ class ClassDetailBloc extends Bloc<ClassDetailEvent, ClassDetailState> {
     emit(
       state.copyWith(
         isRefreshing: false,
-        lengoalClass: state.lengoalClass.isSubscribed
-            ? fresh?.asSubscribed()
-            : fresh,
+        lengoalClass: subscribed ? fresh?.asSubscribed() : fresh,
         educators: educatorsResult.getRight().toNullable(),
+        attendance: attendanceResult,
       ),
     );
+  }
+
+  // A failed attendance call just hides the summary; it isn't worth an
+  // error snackbar on top of an otherwise working page.
+  Future<ClassAttendance?> _loadAttendance(String classId) async {
+    final result = await _getClassAttendanceUseCase(classId);
+    return result.getRight().toNullable();
   }
 
   Future<void> _onShareRequested(

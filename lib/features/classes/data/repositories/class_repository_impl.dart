@@ -3,6 +3,7 @@ import 'package:lengoal/core/error/exceptions.dart';
 import 'package:lengoal/core/error/failures.dart';
 import 'package:lengoal/core/network/network_info.dart';
 import 'package:lengoal/features/classes/data/datasources/class_remote_data_source.dart';
+import 'package:lengoal/features/classes/domain/entities/class_attendance.dart';
 import 'package:lengoal/features/classes/domain/entities/class_educator.dart';
 import 'package:lengoal/features/classes/domain/entities/class_page.dart';
 import 'package:lengoal/features/classes/domain/entities/class_referral.dart';
@@ -111,6 +112,11 @@ class ClassRepositoryImpl implements ClassRepository {
     String classId,
   ) {
     return _guard(() => _remoteDataSource.getClassEducators(classId));
+  }
+
+  @override
+  Future<Either<Failure, ClassAttendance>> getClassAttendance(String classId) {
+    return _guard(() => _remoteDataSource.getClassAttendance(classId));
   }
 
   @override
