@@ -98,7 +98,7 @@ class _GoalStagePageState extends State<GoalStagePage> {
                       if (state.saveStatus == GoalSaveStatus.success) {
                         AppHaptics.success();
                         getIt<AuthRepository>().completeGoalSetup();
-                        context.goNamed(RouteNames.dashboard);
+                        context.goNamed(RouteNames.explore);
                       }
                     },
                     builder: (context, state) {
@@ -182,7 +182,7 @@ class _GoalStagePageState extends State<GoalStagePage> {
                 onPressed: () {
                   AppHaptics.selection();
                   getIt<AuthRepository>().completeGoalSetup();
-                  context.goNamed(RouteNames.dashboard);
+                  context.goNamed(RouteNames.explore);
                 },
               ),
             ],

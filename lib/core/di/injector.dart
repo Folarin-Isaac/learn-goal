@@ -41,6 +41,11 @@ import 'package:lengoal/features/classes/presentation/bloc/class_detail/class_de
 import 'package:lengoal/features/classes/presentation/bloc/class_list/class_list_bloc.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_list/class_list_session_sync.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_search/class_search_bloc.dart';
+import 'package:lengoal/features/explore/data/datasources/explore_remote_data_source.dart';
+import 'package:lengoal/features/explore/data/repositories/explore_repository_impl.dart';
+import 'package:lengoal/features/explore/domain/repositories/explore_repository.dart';
+import 'package:lengoal/features/explore/domain/usecases/get_explore_feed_usecases.dart';
+import 'package:lengoal/features/explore/presentation/bloc/explore_cubit.dart';
 import 'package:lengoal/features/goal_setup/data/datasources/goal_remote_data_source.dart';
 import 'package:lengoal/features/goal_setup/data/datasources/goal_remote_data_source_impl.dart';
 import 'package:lengoal/features/goal_setup/data/repositories/goal_repository_impl.dart';
@@ -81,6 +86,7 @@ Future<void> setupInjector({bool enableNetworkLogging = false}) async {
   _initProfile();
   _initClasses();
   _initPayments();
+  _initExplore();
 
   // Resolve the stored session before the first frame and before the
   // session syncs start, so the router never sees an "unknown" status
@@ -129,6 +135,33 @@ Stream<ActiveGoalState> _goalStates(ActiveGoalCubit cubit) {
     final subscription = cubit.stream.listen(controller.add);
     controller.onCancel = subscription.cancel;
   });
+}
+
+void _initExplore() {
+  getIt
+    ..registerLazySingleton<ExploreRemoteDataSource>(
+      () => ExploreRemoteDataSourceImpl(getIt()),
+    )
+    ..registerLazySingleton<ExploreRepository>(
+      () => ExploreRepositoryImpl(
+        remoteDataSource: getIt(),
+        networkInfo: getIt(),
+      ),
+    )
+    ..registerLazySingleton(() => GetExploreCategoriesUseCase(getIt()))
+    ..registerLazySingleton(() => GetCategoryClassesUseCase(getIt()))
+    ..registerLazySingleton(() => GetOngoingClassesUseCase(getIt()))
+    ..registerLazySingleton(() => GetUpcomingClassesUseCase(getIt()))
+    ..registerLazySingleton(() => GetTopEducatorsUseCase(getIt()))
+    ..registerFactory(
+      () => ExploreCubit(
+        getCategories: getIt(),
+        getCategoryClasses: getIt(),
+        getOngoingClasses: getIt(),
+        getUpcomingClasses: getIt(),
+        getTopEducators: getIt(),
+      ),
+    );
 }
 
 void _initPayments() {

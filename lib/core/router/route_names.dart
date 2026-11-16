@@ -10,6 +10,7 @@ class RouteNames {
   static const String resetPasswordSent = 'resetPasswordSent';
   static const String resetPassword = 'resetPassword';
   static const String resetPasswordSuccess = 'resetPasswordSuccess';
+  static const String explore = 'explore';
   static const String dashboard = 'dashboard';
   static const String myClasses = 'myClasses';
   static const String recommendedClasses = 'recommendedClasses';

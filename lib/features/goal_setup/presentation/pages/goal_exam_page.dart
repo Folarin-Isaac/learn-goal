@@ -135,7 +135,7 @@ class GoalExamPage extends StatelessWidget {
                 onPressed: () {
                   AppHaptics.selection();
                   getIt<AuthRepository>().completeGoalSetup();
-                  context.goNamed(RouteNames.dashboard);
+                  context.goNamed(RouteNames.explore);
                 },
               ),
             ],

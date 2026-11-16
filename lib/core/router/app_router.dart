@@ -12,6 +12,7 @@ import 'package:lengoal/features/classes/presentation/models/quiz_session.dart';
 import 'package:lengoal/features/community/community.dart';
 import 'package:lengoal/features/community/presentation/models/community_post.dart';
 import 'package:lengoal/features/dashboard/dashboard.dart';
+import 'package:lengoal/features/explore/explore.dart';
 import 'package:lengoal/features/goal_setup/goal_setup.dart';
 import 'package:lengoal/features/practice/practice.dart';
 import 'package:lengoal/features/practice/presentation/models/practice_mock.dart';
@@ -46,7 +47,7 @@ class AppRouter {
         // not a voluntary push — redirects can't pass `extra`.
         return _authRepository.needsGoalSetup
             ? '${RoutePaths.goalCategory}?first=true'
-            : RoutePaths.dashboard;
+            : RoutePaths.explore;
       }
       if (status == AuthStatus.unauthenticated && !isPublicRoute) {
         return RoutePaths.login;
@@ -129,6 +130,17 @@ class AppRouter {
             HomeShell(navigationShell: navigationShell, children: children),
         branches: [
           StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RoutePaths.explore,
+                name: RouteNames.explore,
+                pageBuilder: (context, state) =>
+                    const NoTransitionPage(child: ExplorePage()),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            preload: true,
             routes: [
               GoRoute(
                 path: RoutePaths.dashboard,

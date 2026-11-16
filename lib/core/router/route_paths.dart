@@ -10,6 +10,7 @@ class RoutePaths {
   static const String resetPasswordSent = '/forgot-password/sent';
   static const String resetPassword = '/forgot-password/reset';
   static const String resetPasswordSuccess = '/forgot-password/success';
+  static const String explore = '/explore';
   static const String dashboard = '/dashboard';
   static const String myClasses = '/dashboard/my-classes';
   static const String recommendedClasses = '/dashboard/recommended-classes';

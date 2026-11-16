@@ -32,6 +32,10 @@ class AppTheme {
       dialogTheme: DialogThemeData(
         backgroundColor: isDark ? null : Colors.white,
       ),
+      cardTheme: CardThemeData(
+        color: isDark ? null : Colors.white,
+        surfaceTintColor: Colors.transparent,
+      ),
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         foregroundColor: colorScheme.onSurface,

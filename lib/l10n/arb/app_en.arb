@@ -150,6 +150,77 @@
     "resetPasswordSuccessContinue": "Continue",
     "@resetPasswordSuccessContinue": {"description": "Continue button on the reset-success screen"},
 
+    "exploreTitle": "Explore",
+    "@exploreTitle": {"description": "Explore page heading"},
+    "exploreCategoryEyebrow": "EXPLORE BY CATEGORY",
+    "@exploreCategoryEyebrow": {"description": "Small label above the category section"},
+    "exploreCategoryTitle": "What do you want to master?",
+    "@exploreCategoryTitle": {"description": "Category section heading"},
+    "exploreCategorySubtitle": "Browse across every learning domain, from professional certifications to creative skills. Only categories with active classes are shown.",
+    "@exploreCategorySubtitle": {"description": "Category section description"},
+    "exploreClear": "Clear",
+    "@exploreClear": {"description": "Chip that clears the selected category"},
+    "exploreLiveEyebrow": "LIVE NOW",
+    "@exploreLiveEyebrow": {"description": "Small label above the ongoing classes section"},
+    "exploreLiveTitle": "Jump into a cohort already in progress",
+    "@exploreLiveTitle": {"description": "Ongoing classes section heading"},
+    "exploreLiveSubtitle": "There's still time to join, catch up, and finish strong",
+    "@exploreLiveSubtitle": {"description": "Ongoing classes section description"},
+    "exploreUpcomingEyebrow": "COMING UP",
+    "@exploreUpcomingEyebrow": {"description": "Small label above the upcoming classes section"},
+    "exploreUpcomingTitle": "Be ready before the first class",
+    "@exploreUpcomingTitle": {"description": "Upcoming classes section heading"},
+    "exploreUpcomingSubtitle": "Register early, secure your spot, and get access to pre-class materials before day one",
+    "@exploreUpcomingSubtitle": {"description": "Upcoming classes section description"},
+    "exploreEducatorsEyebrow": "TOP EDUCATORS",
+    "@exploreEducatorsEyebrow": {"description": "Small label above the top educators section"},
+    "exploreEducatorsTitle": "Learn from the best in their field",
+    "@exploreEducatorsTitle": {"description": "Top educators section heading"},
+    "exploreEducatorsSubtitle": "Our top educators are active, highly rated, and passionate about helping you grow.",
+    "@exploreEducatorsSubtitle": {"description": "Top educators section description"},
+    "exploreLearners": "{count, plural, =1{1 learner} other{{count} learners}}",
+    "@exploreLearners": {
+        "description": "Number of learners enrolled in a class",
+        "placeholders": {"count": {"type": "int"}}
+    },
+    "exploreSpotsFilled": "{filled} of {total} spots filled",
+    "@exploreSpotsFilled": {
+        "description": "Enrollment progress on an upcoming class card",
+        "placeholders": {"filled": {"type": "int"}, "total": {"type": "int"}}
+    },
+    "exploreFromDates": "From {dates}",
+    "@exploreFromDates": {
+        "description": "Date range on an ongoing class card",
+        "placeholders": {"dates": {"type": "String"}}
+    },
+    "exploreStartsDates": "Starts {dates}",
+    "@exploreStartsDates": {
+        "description": "Date range on an upcoming class card",
+        "placeholders": {"dates": {"type": "String"}}
+    },
+    "exploreFillingFast": "Filling fast",
+    "@exploreFillingFast": {"description": "Badge on an upcoming class that is mostly full"},
+    "exploreJoinNow": "Join now",
+    "@exploreJoinNow": {"description": "Button on an Explore class card"},
+    "exploreViewClass": "View class",
+    "@exploreViewClass": {"description": "Button on an Explore class card the learner already joined"},
+    "exploreViewProfile": "View profile",
+    "@exploreViewProfile": {"description": "Button on a top educator card"},
+    "exploreRatings": "({count, plural, =1{1 rating} other{{count} ratings}})",
+    "@exploreRatings": {
+        "description": "Number of ratings next to an educator's score",
+        "placeholders": {"count": {"type": "int"}}
+    },
+    "exploreActiveCohorts": "{count, plural, =1{1 active cohort} other{{count} active cohorts}}",
+    "@exploreActiveCohorts": {
+        "description": "Number of running cohorts on a top educator card",
+        "placeholders": {"count": {"type": "int"}}
+    },
+    "exploreEducatorsEmpty": "No educators to show yet",
+    "@exploreEducatorsEmpty": {"description": "Empty state for the top educators row"},
+    "exploreSectionError": "Couldn't load this section. Pull down to try again.",
+    "@exploreSectionError": {"description": "Shown in an Explore row whose request failed"},
+
     "dashboardWelcome": "Welcome, {firstName}",
     "@dashboardWelcome": {
         "description": "Dashboard greeting heading",
@@ -176,6 +247,8 @@
     },
     "dashboardSignedOutMessage": "You've been signed out",
     "@dashboardSignedOutMessage": {"description": "Snackbar shown right after logging out"},
+    "dashboardNavExplore": "Explore",
+    "@dashboardNavExplore": {"description": "Bottom nav label"},
     "dashboardNavDashboard": "Dashboard",
     "@dashboardNavDashboard": {"description": "Bottom nav label"},
     "dashboardNavClasses": "Classes",

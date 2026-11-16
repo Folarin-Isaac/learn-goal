@@ -19,6 +19,10 @@ class _NavItem {
 
 final _items = [
   _NavItem(
+    Assets.icons.exploreIcon,
+    (context) => context.l10n.dashboardNavExplore,
+  ),
+  _NavItem(
     Assets.icons.dashboardIcon,
     (context) => context.l10n.dashboardNavDashboard,
   ),
@@ -72,11 +76,12 @@ class DashboardBottomNav extends StatelessWidget {
                     : onSelect != null
                     ? () => onSelect!(i)
                     : switch (i) {
-                        0 => () => context.goNamed(RouteNames.dashboard),
-                        1 => () => context.goNamed(RouteNames.classesHub),
-                        // 2 => () => context.goNamed(RouteNames.practice),
-                        // 3 => () => context.goNamed(RouteNames.community),
-                        2 => () => context.goNamed(RouteNames.chats),
+                        0 => () => context.goNamed(RouteNames.explore),
+                        1 => () => context.goNamed(RouteNames.dashboard),
+                        2 => () => context.goNamed(RouteNames.classesHub),
+                        // 3 => () => context.goNamed(RouteNames.practice),
+                        // 4 => () => context.goNamed(RouteNames.community),
+                        3 => () => context.goNamed(RouteNames.chats),
                         _ => null,
                       },
               ),

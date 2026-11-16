@@ -42,6 +42,12 @@ class $AssetsIconsGen {
   /// File path: assets/icons/classes_icon.svg
   SvgGenImage get classesIcon => const SvgGenImage('assets/icons/classes_icon.svg');
 
+  /// File path: assets/icons/clock_icon.svg
+  SvgGenImage get clockIcon => const SvgGenImage('assets/icons/clock_icon.svg');
+
+  /// File path: assets/icons/close_circle_icon.svg
+  SvgGenImage get closeCircleIcon => const SvgGenImage('assets/icons/close_circle_icon.svg');
+
   /// File path: assets/icons/community_comment_icon.svg
   SvgGenImage get communityCommentIcon =>
       const SvgGenImage('assets/icons/community_comment_icon.svg');
@@ -73,8 +79,14 @@ class $AssetsIconsGen {
   /// File path: assets/icons/edit_icon_white.svg
   SvgGenImage get editIconWhite => const SvgGenImage('assets/icons/edit_icon_white.svg');
 
+  /// File path: assets/icons/educator_star_icon.svg
+  SvgGenImage get educatorStarIcon => const SvgGenImage('assets/icons/educator_star_icon.svg');
+
   /// File path: assets/icons/excel_file_icon.svg
   SvgGenImage get excelFileIcon => const SvgGenImage('assets/icons/excel_file_icon.svg');
+
+  /// File path: assets/icons/explore_icon.svg
+  SvgGenImage get exploreIcon => const SvgGenImage('assets/icons/explore_icon.svg');
 
   /// File path: assets/icons/favorite_filled_icon.svg
   SvgGenImage get favoriteFilledIcon => const SvgGenImage('assets/icons/favorite_filled_icon.svg');
@@ -173,6 +185,8 @@ class $AssetsIconsGen {
     chatsIcon,
     chevronRightIcon,
     classesIcon,
+    clockIcon,
+    closeCircleIcon,
     communityCommentIcon,
     communityIcon,
     communityLikeIcon,
@@ -183,7 +197,9 @@ class $AssetsIconsGen {
     downloadIcon,
     editIconBlue,
     editIconWhite,
+    educatorStarIcon,
     excelFileIcon,
+    exploreIcon,
     favoriteFilledIcon,
     favoriteOutlineIcon,
     freeTagIcon,
@@ -217,9 +233,16 @@ class $AssetsIconsGen {
 class $AssetsImagesGen {
   const $AssetsImagesGen();
 
+  /// File path: assets/images/educator_card_pattern.svg
+  SvgGenImage get educatorCardPattern =>
+      const SvgGenImage('assets/images/educator_card_pattern.svg');
+
   /// File path: assets/images/envelope_illustration.png
   AssetGenImage get envelopeIllustration =>
       const AssetGenImage('assets/images/envelope_illustration.png');
+
+  /// File path: assets/images/lightning.png
+  AssetGenImage get lightning => const AssetGenImage('assets/images/lightning.png');
 
   /// File path: assets/images/logo.png
   AssetGenImage get logo => const AssetGenImage('assets/images/logo.png');
@@ -238,7 +261,9 @@ class $AssetsImagesGen {
 
   /// List of all assets
   List<dynamic> get values => [
+    educatorCardPattern,
     envelopeIllustration,
+    lightning,
     logo,
     practiceEmptyIllustration,
     practiceStatsPattern,

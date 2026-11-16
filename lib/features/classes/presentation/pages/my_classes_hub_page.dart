@@ -64,110 +64,132 @@ class _MyClassesHubPageState extends State<MyClassesHubPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.s24,
-                AppSpacing.s24,
-                AppSpacing.s24,
-                0,
-              ),
-              child: Entrance(
-                child: _isSearching
-                    ? Row(
-                        children: [
-                          IconButton(
-                            onPressed: _stopSearch,
-                            icon: const Icon(Icons.close),
-                          ),
-                          Expanded(
-                            child: TextField(
-                              controller: _searchController,
-                              autofocus: true,
-                              textInputAction: TextInputAction.search,
-                              onChanged: (value) =>
-                                  setState(() => _query = value),
-                              decoration: InputDecoration(
-                                hintText: context.l10n.dashboardSearchHint,
-                                prefixIcon: Padding(
-                                  padding: const EdgeInsets.all(14),
-                                  child: Assets.icons.searchIcon.svg(
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ColoredBox(
+            color: context.colors.surface,
+            child: SafeArea(
+              bottom: false,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.s24,
+                      AppSpacing.s24,
+                      AppSpacing.s24,
+                      0,
+                    ),
+                    child: Entrance(
+                      child: _isSearching
+                          ? Row(
+                              children: [
+                                IconButton(
+                                  onPressed: _stopSearch,
+                                  icon: const Icon(Icons.close),
+                                ),
+                                Expanded(
+                                  child: TextField(
+                                    controller: _searchController,
+                                    autofocus: true,
+                                    textInputAction: TextInputAction.search,
+                                    onChanged: (value) =>
+                                        setState(() => _query = value),
+                                    decoration: InputDecoration(
+                                      hintText:
+                                          context.l10n.dashboardSearchHint,
+                                      prefixIcon: Padding(
+                                        padding: const EdgeInsets.all(14),
+                                        child: Assets.icons.searchIcon.svg(
+                                          width: 20,
+                                          height: 20,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            )
+                          : Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    context.l10n.dashboardMyClasses,
+                                    style: context.textTheme.headlineSmall,
+                                  ),
+                                ),
+                                IconButton(
+                                  onPressed: _startSearch,
+                                  icon: Assets.icons.searchIcon.svg(
                                     width: 20,
                                     height: 20,
                                   ),
                                 ),
-                              ),
+                              ],
                             ),
-                          ),
-                        ],
-                      )
-                    : Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              context.l10n.dashboardMyClasses,
-                              style: context.textTheme.headlineSmall,
-                            ),
-                          ),
-                          IconButton(
-                            onPressed: _startSearch,
-                            icon: Assets.icons.searchIcon.svg(
-                              width: 20,
-                              height: 20,
-                            ),
-                          ),
-                        ],
-                      ),
-              ),
-            ),
-            Entrance(
-              index: 1,
-              child: AppTabBar(
-                controller: _tabController,
-                labels: [
-                  context.l10n.dashboardSubscribedClasses,
-                  context.l10n.dashboardSavedClasses,
+                    ),
+                  ),
+                  Entrance(
+                    index: 1,
+                    child: AppTabBar(
+                      controller: _tabController,
+                      labels: [
+                        context.l10n.dashboardSubscribedClasses,
+                        context.l10n.dashboardSavedClasses,
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
-            const Gap(AppSpacing.s16),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s24),
-              child: Entrance(
-                index: 2,
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: ClassFilterChip(
-                    current: _filter,
-                    onChanged: (value) => setState(() => _filter = value),
-                  ),
-                ),
-              ),
-            ),
-            const Gap(AppSpacing.s16),
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                physics: const NeverScrollableScrollPhysics(),
+          ),
+          Expanded(
+            child: SafeArea(
+              top: false,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _ClassTab(
-                    source: ClassListSource.subscribed,
-                    filter: _filter,
-                    query: _query,
+                  const Gap(AppSpacing.s16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.s24,
+                    ),
+                    child: Entrance(
+                      index: 2,
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: ClassFilterChip(
+                          current: _filter,
+                          onChanged: (value) => setState(() => _filter = value),
+                        ),
+                      ),
+                    ),
                   ),
-                  _ClassTab(
-                    source: ClassListSource.saved,
-                    filter: _filter,
-                    query: _query,
+                  const Gap(AppSpacing.s16),
+                  Expanded(
+                    child: TabBarView(
+                      controller: _tabController,
+                      physics: const NeverScrollableScrollPhysics(),
+                      children: [
+                        _ClassTab(
+                          source: ClassListSource.subscribed,
+                          filter: _filter,
+                          query: _query,
+                        ),
+                        _ClassTab(
+                          source: ClassListSource.saved,
+                          filter: _filter,
+                          query: _query,
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
