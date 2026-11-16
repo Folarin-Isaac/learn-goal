@@ -184,6 +184,7 @@
     "classDetailsMaterialExternalLink": "Enlace externo",
     "classDetailsMaterialFileResource": "Recurso de archivo",
     "materialViewerLoadFailed": "No se pudo cargar este documento",
+    "materialViewerUnsupported": "Este tipo de archivo aún no se puede ver en la app",
     "classDetailsWatchReplay": "Ver repetición",
     "classDetailsYearsExperience": "{count, plural, =1{1 año de experiencia} other{{count} años de experiencia}}",
     "classDetailsShareText": "Únete a mí en {className} en Lengoal: {link}",

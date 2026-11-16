@@ -105,8 +105,15 @@ MaterialFileType materialFileTypeFor(String url) {
   final lower = url.toLowerCase();
   if (RegExp(r'\.pdf\b').hasMatch(lower)) return MaterialFileType.pdf;
   if (RegExp(r'\.docx?\b').hasMatch(lower)) return MaterialFileType.word;
-  if (RegExp(r'\.(xlsx?|csv)\b').hasMatch(lower)) {
-    return MaterialFileType.excel;
+  if (RegExp(r'\.xls[xm]?\b').hasMatch(lower)) return MaterialFileType.excel;
+  if (RegExp(r'\.(pptx?|ppsx?)\b').hasMatch(lower)) {
+    return MaterialFileType.powerpoint;
+  }
+  if (RegExp(r'\.(png|jpe?g|gif|webp|bmp)\b').hasMatch(lower)) {
+    return MaterialFileType.image;
+  }
+  if (RegExp(r'\.(txt|csv|md)\b').hasMatch(lower)) {
+    return MaterialFileType.text;
   }
   return MaterialFileType.file;
 }

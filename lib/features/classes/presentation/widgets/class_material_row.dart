@@ -13,11 +13,9 @@ class ClassMaterialRow extends StatelessWidget {
 
   bool get _isLink => material.fileType == MaterialFileType.link;
 
-  bool get _opensInApp => material.fileType == MaterialFileType.pdf;
-
   Future<void> _open(BuildContext context) async {
     AppHaptics.selection();
-    if (_opensInApp) {
+    if (!_isLink) {
       unawaited(context.pushNamed(RouteNames.materialViewer, extra: material));
       return;
     }
@@ -65,9 +63,7 @@ class ClassMaterialRow extends StatelessWidget {
               ),
               const Gap(AppSpacing.s8),
               Icon(
-                _opensInApp
-                    ? Icons.visibility_outlined
-                    : Icons.open_in_new_rounded,
+                _isLink ? Icons.open_in_new_rounded : Icons.visibility_outlined,
                 size: _actionIconSize,
                 color: muted,
               ),
@@ -99,6 +95,30 @@ class _FileIcon extends StatelessWidget {
       MaterialFileType.excel => Assets.icons.excelFileIcon.svg(
         width: size,
         height: size,
+      ),
+      MaterialFileType.powerpoint => _CircleIcon(
+        size: size,
+        child: const Icon(
+          Icons.slideshow_outlined,
+          size: 18,
+          color: Color(0xFFD24726),
+        ),
+      ),
+      MaterialFileType.image => _CircleIcon(
+        size: size,
+        child: Icon(
+          Icons.image_outlined,
+          size: 18,
+          color: context.colors.primary,
+        ),
+      ),
+      MaterialFileType.text => _CircleIcon(
+        size: size,
+        child: Icon(
+          Icons.description_outlined,
+          size: 18,
+          color: context.colors.primary,
+        ),
       ),
       MaterialFileType.file => _CircleIcon(
         size: size,
