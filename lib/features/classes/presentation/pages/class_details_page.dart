@@ -6,10 +6,11 @@ import 'package:lengoal/features/classes/domain/entities/lengoal_class.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_detail/class_detail_bloc.dart';
 import 'package:lengoal/features/classes/presentation/models/class_detail.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_details/class_about_tab.dart';
-import 'package:lengoal/features/classes/presentation/widgets/class_details/class_certificate_tab.dart';
+// import 'package:lengoal/features/classes/presentation/widgets/class_details/class_certificate_tab.dart';
+import 'package:lengoal/features/classes/presentation/widgets/class_details/class_communications_tab.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_details/class_detail_header.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_details/class_materials_tab.dart';
-import 'package:lengoal/features/classes/presentation/widgets/class_details/class_quiz_tab.dart';
+// import 'package:lengoal/features/classes/presentation/widgets/class_details/class_quiz_tab.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_details/class_schedule_tab.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -85,11 +86,12 @@ class _ClassDetailsView extends StatelessWidget {
   Widget build(BuildContext context) {
     final isSubscribed = detail.item.isSubscribed;
     final tabs = [
-      context.l10n.classDetailsTabAbout,
-      context.l10n.classDetailsTabSchedule,
-      if (isSubscribed) context.l10n.classDetailsTabQuiz,
+      context.l10n.classDetailsTabOverview,
+      context.l10n.classDetailsTabCommunications,
       context.l10n.classDetailsTabMaterials,
-      context.l10n.classDetailsTabCertificate,
+      context.l10n.classDetailsTabSchedule,
+      // if (isSubscribed) context.l10n.classDetailsTabQuiz,
+      // context.l10n.classDetailsTabCertificate,
     ];
 
     return DefaultTabController(
@@ -143,14 +145,17 @@ class _ClassDetailsView extends StatelessWidget {
                 child: TabBarView(
                   children: [
                     ClassAboutTab(detail: detail, educators: educators),
+                    const ClassCommunicationsTab(),
+                    ClassMaterialsTab(materials: detail.materials),
                     ClassScheduleTab(
                       sessions: detail.sessions,
                       loadingReplayId: loadingReplayId,
                       isSubscribed: isSubscribed,
                     ),
-                    if (isSubscribed) ClassQuizTab(quizzes: detail.quizzes),
-                    ClassMaterialsTab(materials: detail.materials),
-                    ClassCertificateTab(hasCertificate: detail.hasCertificate),
+                    // if (isSubscribed) ClassQuizTab(quizzes: detail.quizzes),
+                    // ClassCertificateTab(
+                    //   hasCertificate: detail.hasCertificate,
+                    // ),
                   ],
                 ),
               ),
