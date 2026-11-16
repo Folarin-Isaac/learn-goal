@@ -17,22 +17,25 @@ class ClassMaterialsTab extends StatelessWidget {
         ),
       );
     }
-    return Card(
-      margin: const EdgeInsets.all(AppSpacing.s24),
-      elevation: 1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppSpacing.r16),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
-        child: Column(
-          children: [
-            for (var i = 0; i < materials.length; i++) ...[
-              ClassMaterialRow(material: materials[i]),
-              if (i != materials.length - 1)
-                Divider(height: 1, color: context.colors.outlineVariant),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(AppSpacing.s24),
+      child: Card(
+        margin: EdgeInsets.zero,
+        elevation: 1,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppSpacing.r16),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
+          child: Column(
+            children: [
+              for (var i = 0; i < materials.length; i++) ...[
+                ClassMaterialRow(material: materials[i]),
+                if (i != materials.length - 1)
+                  Divider(height: 1, color: context.colors.outlineVariant),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

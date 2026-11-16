@@ -82,9 +82,6 @@ class $AssetsIconsGen {
   /// File path: assets/icons/educator_star_icon.svg
   SvgGenImage get educatorStarIcon => const SvgGenImage('assets/icons/educator_star_icon.svg');
 
-  /// File path: assets/icons/excel_file_icon.svg
-  SvgGenImage get excelFileIcon => const SvgGenImage('assets/icons/excel_file_icon.svg');
-
   /// File path: assets/icons/explore_icon.svg
   SvgGenImage get exploreIcon => const SvgGenImage('assets/icons/explore_icon.svg');
 
@@ -110,9 +107,6 @@ class $AssetsIconsGen {
 
   /// File path: assets/icons/link_icon.svg
   SvgGenImage get linkIcon => const SvgGenImage('assets/icons/link_icon.svg');
-
-  /// File path: assets/icons/pdf_file_icon.svg
-  SvgGenImage get pdfFileIcon => const SvgGenImage('assets/icons/pdf_file_icon.svg');
 
   /// File path: assets/icons/play_icon.svg
   SvgGenImage get playIcon => const SvgGenImage('assets/icons/play_icon.svg');
@@ -172,9 +166,6 @@ class $AssetsIconsGen {
   /// File path: assets/icons/update_password_icon.svg
   SvgGenImage get updatePasswordIcon => const SvgGenImage('assets/icons/update_password_icon.svg');
 
-  /// File path: assets/icons/word_file_icon.svg
-  SvgGenImage get wordFileIcon => const SvgGenImage('assets/icons/word_file_icon.svg');
-
   /// List of all assets
   List<SvgGenImage> get values => [
     backArrowIcon,
@@ -198,7 +189,6 @@ class $AssetsIconsGen {
     editIconBlue,
     editIconWhite,
     educatorStarIcon,
-    excelFileIcon,
     exploreIcon,
     favoriteFilledIcon,
     favoriteOutlineIcon,
@@ -207,7 +197,6 @@ class $AssetsIconsGen {
     heartIcon,
     keypadBackspaceIcon,
     linkIcon,
-    pdfFileIcon,
     playIcon,
     practiceArrowLeftIcon,
     practiceArrowRightIcon,
@@ -226,7 +215,6 @@ class $AssetsIconsGen {
     supportBadgeIcon,
     supportIcon,
     updatePasswordIcon,
-    wordFileIcon,
   ];
 }
 
@@ -241,11 +229,17 @@ class $AssetsImagesGen {
   AssetGenImage get envelopeIllustration =>
       const AssetGenImage('assets/images/envelope_illustration.png');
 
+  /// File path: assets/images/excel_file_icon.png
+  AssetGenImage get excelFileIcon => const AssetGenImage('assets/images/excel_file_icon.png');
+
   /// File path: assets/images/lightning.png
   AssetGenImage get lightning => const AssetGenImage('assets/images/lightning.png');
 
   /// File path: assets/images/logo.png
   AssetGenImage get logo => const AssetGenImage('assets/images/logo.png');
+
+  /// File path: assets/images/pdf_file_icon.png
+  AssetGenImage get pdfFileIcon => const AssetGenImage('assets/images/pdf_file_icon.png');
 
   /// File path: assets/images/practice_empty_illustration.svg
   SvgGenImage get practiceEmptyIllustration =>
@@ -259,15 +253,21 @@ class $AssetsImagesGen {
   AssetGenImage get profileAvatarIllustration =>
       const AssetGenImage('assets/images/profile_avatar_illustration.png');
 
+  /// File path: assets/images/word_file_icon.png
+  AssetGenImage get wordFileIcon => const AssetGenImage('assets/images/word_file_icon.png');
+
   /// List of all assets
   List<dynamic> get values => [
     educatorCardPattern,
     envelopeIllustration,
+    excelFileIcon,
     lightning,
     logo,
+    pdfFileIcon,
     practiceEmptyIllustration,
     practiceStatsPattern,
     profileAvatarIllustration,
+    wordFileIcon,
   ];
 }
 

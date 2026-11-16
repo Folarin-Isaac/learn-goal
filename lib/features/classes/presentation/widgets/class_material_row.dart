@@ -84,15 +84,15 @@ class _FileIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return switch (fileType) {
-      MaterialFileType.pdf => Assets.icons.pdfFileIcon.svg(
+      MaterialFileType.pdf => Assets.images.pdfFileIcon.image(
         width: size,
         height: size,
       ),
-      MaterialFileType.word => Assets.icons.wordFileIcon.svg(
+      MaterialFileType.word => Assets.images.wordFileIcon.image(
         width: size,
         height: size,
       ),
-      MaterialFileType.excel => Assets.icons.excelFileIcon.svg(
+      MaterialFileType.excel => Assets.images.excelFileIcon.image(
         width: size,
         height: size,
       ),

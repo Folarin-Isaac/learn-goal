@@ -327,6 +327,8 @@
     "@classDetailsStatusPaid": {"description": "Status pill next to the price tag for a paid class"},
     "classDetailsBuyNow": "Buy now",
     "@classDetailsBuyNow": {"description": "Purchase button on a not-yet-subscribed class"},
+    "classDetailsEnrollFree": "Enroll for free",
+    "@classDetailsEnrollFree": {"description": "Enroll button on a free, not-yet-subscribed class (replaces Buy now)"},
     "classDetailsSaveClass": "Save class",
     "@classDetailsSaveClass": {"description": "Bookmark button on a not-yet-subscribed class"},
     "classDetailsOutlineHeading": "Class outline",

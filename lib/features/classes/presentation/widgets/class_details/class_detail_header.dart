@@ -149,9 +149,15 @@ class ClassDetailHeader extends StatelessWidget {
         if (!item.isSubscribed) ...[
           const Gap(AppSpacing.s16),
           AppButton(
-            label: context.l10n.classDetailsBuyNow,
+            label: isFree
+                ? context.l10n.classDetailsEnrollFree
+                : context.l10n.classDetailsBuyNow,
             onPressed: () {
               AppHaptics.selection();
+              if (isFree) {
+                AppSnackbar.info(context.l10n.dashboardComingSoon);
+                return;
+              }
               unawaited(context.pushNamed(RouteNames.payment, extra: detail));
             },
           ),

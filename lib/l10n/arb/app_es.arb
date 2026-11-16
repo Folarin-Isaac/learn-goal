@@ -169,6 +169,7 @@
     "classDetailsRatingCount": "({count} reseñas)",
     "classDetailsStatusPaid": "De pago",
     "classDetailsBuyNow": "Comprar ahora",
+    "classDetailsEnrollFree": "Inscríbete gratis",
     "classDetailsSaveClass": "Guardar clase",
     "classDetailsOutlineHeading": "Resumen de la clase",
     "classDetailsAboutInstructor": "Sobre el instructor: {name}",
