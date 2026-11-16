@@ -18,6 +18,7 @@ class RouteNames {
   static const String calendar = 'calendar';
   static const String classesHub = 'classesHub';
   static const String classDetails = 'classDetails';
+  static const String materialViewer = 'materialViewer';
   static const String quizIntro = 'quizIntro';
   static const String quizTaking = 'quizTaking';
   static const String quizResults = 'quizResults';

@@ -18,6 +18,7 @@ class RoutePaths {
   static const String calendar = '/dashboard/calendar';
   static const String classesHub = '/classes';
   static const String classDetails = '/classes/details';
+  static const String materialViewer = '/classes/material';
   static const String quizIntro = '/classes/quiz';
   static const String quizTaking = '/classes/quiz/take';
   static const String quizResults = '/classes/quiz/results';

@@ -7,6 +7,7 @@ import 'package:lengoal/features/chats/chats.dart';
 import 'package:lengoal/features/chats/presentation/models/chat_conversation.dart';
 import 'package:lengoal/features/classes/classes.dart';
 import 'package:lengoal/features/classes/presentation/models/class_detail.dart';
+import 'package:lengoal/features/classes/presentation/models/class_material.dart';
 import 'package:lengoal/features/classes/presentation/models/class_quiz.dart';
 import 'package:lengoal/features/classes/presentation/models/quiz_session.dart';
 import 'package:lengoal/features/community/community.dart';
@@ -210,6 +211,14 @@ class AppRouter {
         pageBuilder: (context, state) => AppPageTransitions.build(
           state: state,
           child: ClassDetailsPage(lengoalClass: state.extra! as LengoalClass),
+        ),
+      ),
+      GoRoute(
+        path: RoutePaths.materialViewer,
+        name: RouteNames.materialViewer,
+        pageBuilder: (context, state) => AppPageTransitions.build(
+          state: state,
+          child: MaterialViewerPage(material: state.extra! as ClassMaterial),
         ),
       ),
       GoRoute(

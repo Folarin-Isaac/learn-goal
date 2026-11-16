@@ -116,6 +116,7 @@ app.*.map.json
 lib/l10n/gen/
 
 CLAUDE.md
+ENDPOINTS.md
 
 .env.development
 .env.production
