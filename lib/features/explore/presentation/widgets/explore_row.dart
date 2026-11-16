@@ -57,7 +57,7 @@ class ExploreRow<T> extends StatelessWidget {
             Entrance(
               index: i,
               offset: const Offset(20, 0),
-              child: itemBuilder(context, items[i], i),
+              child: RepaintBoundary(child: itemBuilder(context, items[i], i)),
             ),
           ],
         ],

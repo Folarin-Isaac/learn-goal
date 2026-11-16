@@ -68,13 +68,22 @@ class ClassCover extends StatelessWidget {
       color: item.thumbnailColor,
       child: imageUrl == null
           ? const SizedBox.expand()
-          : CachedNetworkImage(
-              imageUrl: imageUrl,
-              fit: BoxFit.cover,
-              width: double.infinity,
-              height: double.infinity,
-              fadeInDuration: AppMotion.base,
-              errorWidget: (context, url, error) => const SizedBox.expand(),
+          : LayoutBuilder(
+              builder: (context, constraints) {
+                final pixelRatio = MediaQuery.devicePixelRatioOf(context);
+                final width = constraints.maxWidth;
+                return CachedNetworkImage(
+                  imageUrl: imageUrl,
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: double.infinity,
+                  memCacheWidth: width.isFinite
+                      ? (width * pixelRatio).round()
+                      : null,
+                  fadeInDuration: AppMotion.base,
+                  errorWidget: (context, url, error) => const SizedBox.expand(),
+                );
+              },
             ),
     );
   }

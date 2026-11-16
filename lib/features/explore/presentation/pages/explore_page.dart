@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/rendering.dart';
+
 import 'package:lengoal/core/core.dart';
 import 'package:lengoal/features/explore/presentation/bloc/explore_cubit.dart';
 import 'package:lengoal/features/explore/presentation/widgets/explore_category_chips.dart';
@@ -33,6 +35,7 @@ class _ExploreView extends StatelessWidget {
   static const double _cardWidthShare = 0.82;
   static const double _minCardWidth = 260;
   static const double _maxCardWidth = 340;
+  static const double _cacheExtent = 3000;
 
   @override
   Widget build(BuildContext context) {
@@ -51,6 +54,7 @@ class _ExploreView extends StatelessWidget {
               onRefresh: cubit.load,
               child: ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
+                scrollCacheExtent: const ScrollCacheExtent.pixels(_cacheExtent),
                 padding: const EdgeInsets.only(
                   top: AppSpacing.s16,
                   bottom: AppSpacing.s32,

@@ -150,53 +150,58 @@ class _Banner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final photo = photoUrl;
-    return AspectRatio(
-      aspectRatio: _aspectRatio,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(AppSpacing.r8),
-        child: ColoredBox(
-          color: theme.background,
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final circleSize = constraints.maxHeight * _circleShare;
-              final photoSize = circleSize - _photoInset * 2;
-              final placeholder = Icon(
-                Icons.person_rounded,
-                size: photoSize * 0.6,
-                color: Colors.white,
-              );
-              return Stack(
-                fit: StackFit.expand,
-                children: [
-                  Assets.images.educatorCardPattern.svg(fit: BoxFit.cover),
-                  Center(
-                    child: Container(
-                      width: circleSize,
-                      height: circleSize,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: theme.circle.withValues(alpha: 0.8),
-                      ),
-                      child: ClipOval(
-                        child: SizedBox.square(
-                          dimension: photoSize,
-                          child: photo == null
-                              ? placeholder
-                              : CachedNetworkImage(
-                                  imageUrl: photo,
-                                  fit: BoxFit.cover,
-                                  fadeInDuration: AppMotion.base,
-                                  errorWidget: (context, url, error) =>
-                                      placeholder,
-                                ),
+    final pixelRatio = MediaQuery.devicePixelRatioOf(context);
+    return RepaintBoundary(
+      child: AspectRatio(
+        aspectRatio: _aspectRatio,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(AppSpacing.r8),
+          child: ColoredBox(
+            color: theme.background,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final circleSize = constraints.maxHeight * _circleShare;
+                final photoSize = circleSize - _photoInset * 2;
+                final placeholder = Icon(
+                  Icons.person_rounded,
+                  size: photoSize * 0.6,
+                  color: Colors.white,
+                );
+                return Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Assets.images.educatorCardPattern.svg(fit: BoxFit.cover),
+                    Center(
+                      child: Container(
+                        width: circleSize,
+                        height: circleSize,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: theme.circle.withValues(alpha: 0.8),
+                        ),
+                        child: ClipOval(
+                          child: SizedBox.square(
+                            dimension: photoSize,
+                            child: photo == null
+                                ? placeholder
+                                : CachedNetworkImage(
+                                    imageUrl: photo,
+                                    fit: BoxFit.cover,
+                                    memCacheWidth: (photoSize * pixelRatio)
+                                        .round(),
+                                    fadeInDuration: AppMotion.base,
+                                    errorWidget: (context, url, error) =>
+                                        placeholder,
+                                  ),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
-              );
-            },
+                  ],
+                );
+              },
+            ),
           ),
         ),
       ),
