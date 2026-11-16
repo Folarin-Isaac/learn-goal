@@ -342,6 +342,8 @@
     "@classDetailsJoinUpcoming": {"description": "Button shown next to an ongoing session"},
     "classDetailsScheduleEmpty": "No sessions scheduled yet",
     "@classDetailsScheduleEmpty": {"description": "Empty state for the Schedule tab"},
+    "classDetailsScheduleEnrollHint": "Enroll to join these sessions and watch replays",
+    "@classDetailsScheduleEnrollHint": {"description": "Hint above the dimmed session list when the learner isn't enrolled"},
     "classDetailsReviewQuiz": "Review quiz",
     "@classDetailsReviewQuiz": {"description": "Button on a completed quiz"},
     "classDetailsQuizCompleted": "Completed",

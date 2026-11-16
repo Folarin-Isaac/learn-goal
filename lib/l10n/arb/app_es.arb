@@ -175,6 +175,7 @@
     "classDetailsAboutInstructor": "Sobre el instructor: {name}",
     "classDetailsJoinUpcoming": "Unirse a la clase",
     "classDetailsScheduleEmpty": "Aún no hay sesiones programadas",
+    "classDetailsScheduleEnrollHint": "Inscríbete para unirte a estas sesiones y ver las repeticiones",
     "classDetailsReviewQuiz": "Revisar cuestionario",
     "classDetailsQuizCompleted": "Completado",
     "classDetailsQuizDue": "Fecha límite: {date}",
