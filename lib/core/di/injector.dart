@@ -19,12 +19,16 @@ import 'package:lengoal/features/auth/domain/usecases/reset_password_usecase.dar
 import 'package:lengoal/features/auth/domain/usecases/verify_otp_usecase.dart';
 import 'package:lengoal/features/auth/presentation/bloc/auth/auth_bloc.dart';
 import 'package:lengoal/features/auth/presentation/bloc/change_password/change_password_bloc.dart';
+import 'package:lengoal/features/classes/data/datasources/class_discussion_remote_data_source.dart';
 import 'package:lengoal/features/classes/data/datasources/class_remote_data_source.dart';
 import 'package:lengoal/features/classes/data/datasources/class_remote_data_source_impl.dart';
+import 'package:lengoal/features/classes/data/repositories/class_discussion_repository_impl.dart';
 import 'package:lengoal/features/classes/data/repositories/class_repository_impl.dart';
 import 'package:lengoal/features/classes/domain/entities/class_goal_scope.dart';
 import 'package:lengoal/features/classes/domain/entities/lengoal_class.dart';
+import 'package:lengoal/features/classes/domain/repositories/class_discussion_repository.dart';
 import 'package:lengoal/features/classes/domain/repositories/class_repository.dart';
+import 'package:lengoal/features/classes/domain/usecases/class_discussion_usecases.dart';
 import 'package:lengoal/features/classes/domain/usecases/generate_class_referral_usecase.dart';
 import 'package:lengoal/features/classes/domain/usecases/get_class_attendance_usecase.dart';
 import 'package:lengoal/features/classes/domain/usecases/get_class_educators_usecase.dart';
@@ -38,6 +42,7 @@ import 'package:lengoal/features/classes/domain/usecases/search_classes_usecase.
 import 'package:lengoal/features/classes/domain/usecases/set_class_saved_usecase.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_attendance/class_attendance_store.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_detail/class_detail_bloc.dart';
+import 'package:lengoal/features/classes/presentation/bloc/class_discussion/class_discussion_cubit.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_list/class_list_bloc.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_list/class_list_session_sync.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_search/class_search_bloc.dart';
@@ -264,6 +269,26 @@ void _initClasses() {
         allGoalScopes: _allGoalScopes(getIt()),
         blocFor: classListBlocFor,
         attendanceStore: getIt(),
+      ),
+    )
+    ..registerLazySingleton<ClassDiscussionRemoteDataSource>(
+      () => ClassDiscussionRemoteDataSourceImpl(getIt()),
+    )
+    ..registerLazySingleton<ClassDiscussionRepository>(
+      () => ClassDiscussionRepositoryImpl(
+        remoteDataSource: getIt(),
+        networkInfo: getIt(),
+      ),
+    )
+    ..registerLazySingleton(() => GetDiscussionPostsUseCase(getIt()))
+    ..registerLazySingleton(() => GetDiscussionRepliesUseCase(getIt()))
+    ..registerLazySingleton(() => PostDiscussionMessageUseCase(getIt()))
+    ..registerFactoryParam<ClassDiscussionCubit, String, void>(
+      (classId, _) => ClassDiscussionCubit(
+        classId: classId,
+        getPosts: getIt(),
+        getReplies: getIt(),
+        postMessage: getIt(),
       ),
     )
     ..registerFactoryParam<ClassDetailBloc, LengoalClass, void>(

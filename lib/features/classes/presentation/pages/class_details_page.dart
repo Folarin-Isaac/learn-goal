@@ -6,6 +6,7 @@ import 'package:lengoal/core/core.dart';
 import 'package:lengoal/features/classes/domain/entities/class_educator.dart';
 import 'package:lengoal/features/classes/domain/entities/lengoal_class.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_detail/class_detail_bloc.dart';
+import 'package:lengoal/features/classes/presentation/bloc/class_discussion/class_discussion_cubit.dart';
 import 'package:lengoal/features/classes/presentation/models/class_detail.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_details/class_about_tab.dart';
 // import 'package:lengoal/features/classes/presentation/widgets/class_details/class_certificate_tab.dart';
@@ -23,10 +24,21 @@ class ClassDetailsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) =>
-          getIt<ClassDetailBloc>(param1: lengoalClass)
-            ..add(const ClassDetailRefreshRequested()),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) =>
+              getIt<ClassDetailBloc>(param1: lengoalClass)
+                ..add(const ClassDetailRefreshRequested()),
+        ),
+        BlocProvider(
+          create: (_) {
+            final cubit = getIt<ClassDiscussionCubit>(param1: lengoalClass.id);
+            unawaited(cubit.load());
+            return cubit;
+          },
+        ),
+      ],
       child: BlocConsumer<ClassDetailBloc, ClassDetailState>(
         listenWhen: (previous, current) =>
             previous.effectCount != current.effectCount,
@@ -152,7 +164,7 @@ class _ClassDetailsView extends StatelessWidget {
             body: TabBarView(
               children: [
                 ClassAboutTab(detail: detail, educators: educators),
-                const ClassCommunicationsTab(),
+                ClassCommunicationsTab(isSubscribed: isSubscribed),
                 ClassMaterialsTab(materials: detail.materials),
                 ClassScheduleTab(
                   sessions: detail.sessions,

@@ -9,6 +9,9 @@ class ClassApiEndpoints {
   static const String unsaveClass = '/api/v1/Learner/LearnerRemoveSavesClass';
   static const String classReplay = '/api/v1/Class/class-replay';
   static const String searchClasses = '/api/v1/Landing/learner/search';
+  static const String classDiscussion = '/api/v1/ClassDiscussion';
+  static const String classDiscussionReplies =
+      '/api/v1/ClassDiscussion/get-replies';
 
   static String classById(String id) => '/api/v1/Class/GetClass/$id';
 

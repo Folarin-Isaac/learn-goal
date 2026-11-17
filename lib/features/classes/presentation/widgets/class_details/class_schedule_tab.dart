@@ -1,6 +1,7 @@
 import 'package:lengoal/core/core.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_detail/class_detail_bloc.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_details/class_details_tab_scroll.dart';
+import 'package:lengoal/features/classes/presentation/widgets/class_details/class_enroll_hint.dart';
 import 'package:lengoal/features/dashboard/presentation/models/calendar_session.dart';
 import 'package:lengoal/features/dashboard/presentation/widgets/calendar_session_card.dart';
 
@@ -36,7 +37,11 @@ class ClassScheduleTab extends StatelessWidget {
             itemCount: sessions.length + offset,
             separatorBuilder: (context, index) => const Gap(AppSpacing.s16),
             itemBuilder: (context, index) {
-              if (index < offset) return const _EnrollHint();
+              if (index < offset) {
+                return ClassEnrollHint(
+                  message: context.l10n.classDetailsScheduleEnrollHint,
+                );
+              }
               final session = sessions[index - offset];
               if (!isSubscribed) {
                 return IgnorePointer(
@@ -89,37 +94,6 @@ class ClassScheduleTab extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _EnrollHint extends StatelessWidget {
-  const new();
-
-  @override
-  Widget build(BuildContext context) {
-    final muted = context.colors.onSurfaceVariant;
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.s16,
-        vertical: 12,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.accentBlue.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(AppSpacing.r12),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.lock_outline_rounded, size: 18, color: muted),
-          const Gap(12),
-          Expanded(
-            child: Text(
-              context.l10n.classDetailsScheduleEnrollHint,
-              style: context.textTheme.bodyMedium?.copyWith(color: muted),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
