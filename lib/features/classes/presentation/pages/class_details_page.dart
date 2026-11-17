@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show listEquals;
+
 import 'package:lengoal/core/core.dart';
 import 'package:lengoal/features/classes/domain/entities/class_educator.dart';
 import 'package:lengoal/features/classes/domain/entities/lengoal_class.dart';
@@ -98,71 +100,109 @@ class _ClassDetailsView extends StatelessWidget {
       length: tabs.length,
       child: Scaffold(
         body: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.s24,
-                  AppSpacing.s24,
-                  AppSpacing.s24,
-                  0,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Entrance(
-                      child: Row(
-                        children: [
-                          const AppBackButton(),
-                          const Gap(AppSpacing.s8),
-                          Expanded(
-                            child: Text(
-                              context.l10n.classDetailsTitle,
-                              style: context.textTheme.headlineSmall,
+          child: NestedScrollView(
+            headerSliverBuilder: (context, innerBoxIsScrolled) => [
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.s24,
+                    AppSpacing.s24,
+                    AppSpacing.s24,
+                    AppSpacing.s8,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Entrance(
+                        child: Row(
+                          children: [
+                            const AppBackButton(),
+                            const Gap(AppSpacing.s8),
+                            Expanded(
+                              child: Text(
+                                context.l10n.classDetailsTitle,
+                                style: context.textTheme.headlineSmall,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                    const Gap(AppSpacing.s16),
-                    Entrance(
-                      index: 1,
-                      child: ClassDetailHeader(
-                        detail: detail,
-                        isSharing: isSharing,
+                      const Gap(AppSpacing.s16),
+                      Entrance(
+                        index: 1,
+                        child: ClassDetailHeader(
+                          detail: detail,
+                          isSharing: isSharing,
+                        ),
                       ),
-                    ),
-                    const Gap(AppSpacing.s8),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-              Entrance(
-                index: 2,
-                child: AppTabBar(labels: tabs, isScrollable: true),
-              ),
-              Expanded(
-                child: TabBarView(
-                  children: [
-                    ClassAboutTab(detail: detail, educators: educators),
-                    const ClassCommunicationsTab(),
-                    ClassMaterialsTab(materials: detail.materials),
-                    ClassScheduleTab(
-                      sessions: detail.sessions,
-                      loadingReplayId: loadingReplayId,
-                      isSubscribed: isSubscribed,
-                    ),
-                    // if (isSubscribed) ClassQuizTab(quizzes: detail.quizzes),
-                    // ClassCertificateTab(
-                    //   hasCertificate: detail.hasCertificate,
-                    // ),
-                  ],
+              SliverOverlapAbsorber(
+                handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
+                  context,
+                ),
+                sliver: SliverPersistentHeader(
+                  pinned: true,
+                  delegate: _TabBarHeader(labels: tabs),
                 ),
               ),
             ],
+            body: TabBarView(
+              children: [
+                ClassAboutTab(detail: detail, educators: educators),
+                const ClassCommunicationsTab(),
+                ClassMaterialsTab(materials: detail.materials),
+                ClassScheduleTab(
+                  sessions: detail.sessions,
+                  loadingReplayId: loadingReplayId,
+                  isSubscribed: isSubscribed,
+                ),
+                // if (isSubscribed) ClassQuizTab(quizzes: detail.quizzes),
+                // ClassCertificateTab(
+                //   hasCertificate: detail.hasCertificate,
+                // ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
+}
+
+class _TabBarHeader extends SliverPersistentHeaderDelegate {
+  const new({required this.labels});
+
+  final List<String> labels;
+
+  static final double _height = const AppTabBar(labels: [])
+      .preferredSize
+      .height;
+
+  @override
+  double get minExtent => _height;
+
+  @override
+  double get maxExtent => _height;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return ColoredBox(
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: Entrance(
+        index: 2,
+        child: AppTabBar(labels: labels, isScrollable: true),
+      ),
+    );
+  }
+
+  @override
+  bool shouldRebuild(_TabBarHeader oldDelegate) =>
+      !listEquals(labels, oldDelegate.labels);
 }

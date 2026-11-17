@@ -1,4 +1,5 @@
 import 'package:lengoal/core/core.dart';
+import 'package:lengoal/features/classes/presentation/widgets/class_details/class_details_tab_scroll.dart';
 
 class ClassCertificateTab extends StatelessWidget {
   const new({required this.hasCertificate, super.key});
@@ -7,31 +8,38 @@ class ClassCertificateTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.s24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (!hasCertificate) ...[
-            Text(
-              context.l10n.classDetailsCertificateLocked,
-              style: context.textTheme.titleLarge,
+    return ClassDetailsTabScroll(
+      storageKey: 'classDetailsCertificate',
+      slivers: [
+        SliverPadding(
+          padding: ClassDetailsTabScroll.padding,
+          sliver: SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (!hasCertificate) ...[
+                  Text(
+                    context.l10n.classDetailsCertificateLocked,
+                    style: context.textTheme.titleLarge,
+                  ),
+                  const Gap(AppSpacing.s24),
+                ] else ...[
+                  const _CertificatePreview(),
+                  const Gap(AppSpacing.s24),
+                ],
+                AppButton(
+                  label: context.l10n.classDetailsDownloadCertificate,
+                  isOutlined: true,
+                  onPressed: () {
+                    AppHaptics.selection();
+                    AppSnackbar.info(context.l10n.dashboardComingSoon);
+                  },
+                ),
+              ],
             ),
-            const Gap(AppSpacing.s24),
-          ] else ...[
-            const _CertificatePreview(),
-            const Gap(AppSpacing.s24),
-          ],
-          AppButton(
-            label: context.l10n.classDetailsDownloadCertificate,
-            isOutlined: true,
-            onPressed: () {
-              AppHaptics.selection();
-              AppSnackbar.info(context.l10n.dashboardComingSoon);
-            },
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

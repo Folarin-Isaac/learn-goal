@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:lengoal/core/core.dart';
 import 'package:lengoal/features/classes/domain/entities/class_educator.dart';
 import 'package:lengoal/features/classes/presentation/models/class_detail.dart';
+import 'package:lengoal/features/classes/presentation/widgets/class_details/class_details_tab_scroll.dart';
 
 class ClassAboutTab extends StatelessWidget {
   const new({required this.detail, required this.educators, super.key});
@@ -11,39 +12,51 @@ class ClassAboutTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.s24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (detail.outline.isNotEmpty) ...[
-            Text(
-              context.l10n.classDetailsOutlineHeading,
-              style: context.textTheme.titleLarge,
+    return ClassDetailsTabScroll(
+      storageKey: 'classDetailsAbout',
+      slivers: [
+        SliverPadding(
+          padding: ClassDetailsTabScroll.padding,
+          sliver: SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (detail.outline.isNotEmpty) ...[
+                  Text(
+                    context.l10n.classDetailsOutlineHeading,
+                    style: context.textTheme.titleLarge,
+                  ),
+                  const Gap(AppSpacing.s8),
+                  Text(detail.outline, style: context.textTheme.bodyMedium),
+                  const Gap(AppSpacing.s24),
+                ],
+                if (educators.isEmpty) ...[
+                  Text(
+                    context.l10n.classDetailsAboutInstructor(
+                      detail.item.instructor,
+                    ),
+                    style: context.textTheme.titleLarge,
+                  ),
+                  if (detail.instructorTitle.isNotEmpty) ...[
+                    const Gap(AppSpacing.s4),
+                    Text(
+                      detail.instructorTitle,
+                      style: context.textTheme.bodyMedium,
+                    ),
+                  ],
+                ] else
+                  for (var i = 0; i < educators.length; i++) ...[
+                    if (i > 0) const Gap(AppSpacing.s24),
+                    _EducatorSection(
+                      educator: educators[i],
+                      tierName: detail.instructorTitle,
+                    ),
+                  ],
+              ],
             ),
-            const Gap(AppSpacing.s8),
-            Text(detail.outline, style: context.textTheme.bodyMedium),
-            const Gap(AppSpacing.s24),
-          ],
-          if (educators.isEmpty) ...[
-            Text(
-              context.l10n.classDetailsAboutInstructor(detail.item.instructor),
-              style: context.textTheme.titleLarge,
-            ),
-            if (detail.instructorTitle.isNotEmpty) ...[
-              const Gap(AppSpacing.s4),
-              Text(detail.instructorTitle, style: context.textTheme.bodyMedium),
-            ],
-          ] else
-            for (var i = 0; i < educators.length; i++) ...[
-              if (i > 0) const Gap(AppSpacing.s24),
-              _EducatorSection(
-                educator: educators[i],
-                tierName: detail.instructorTitle,
-              ),
-            ],
-        ],
-      ),
+          ),
+        ),
+      ],
     );
   }
 }
