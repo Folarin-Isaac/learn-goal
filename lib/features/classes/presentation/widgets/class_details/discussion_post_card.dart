@@ -60,10 +60,12 @@ class _DiscussionPostCardState extends State<DiscussionPostCard> {
             const Gap(12),
             Row(
               children: [
-                Assets.icons.communityLikeIcon.svg(width: 18, height: 18),
-                const Gap(AppSpacing.s4),
-                Text('${widget.post.likeCount}', style: muted),
-                const Gap(AppSpacing.s16),
+                // Hidden until POST /ClassDiscussion/like stops returning a
+                // server error.
+                // Assets.icons.communityLikeIcon.svg(width: 18, height: 18),
+                // const Gap(AppSpacing.s4),
+                // Text('${widget.post.likeCount}', style: muted),
+                // const Gap(AppSpacing.s16),
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: () {

@@ -4,7 +4,7 @@ import 'package:lengoal/features/classes/domain/entities/discussion_post.dart';
 DiscussionPost discussionPostFromJson(Map<String, dynamic> json) {
   return DiscussionPost(
     id: json['id'] as String? ?? '',
-    parentPostId: json['parentPostId'] as String?,
+    parentPostId: _nonEmpty(json['parentPostId']),
     senderUserId: json['senderUserId'] as String?,
     senderName: json['senderName'] as String? ?? '',
     content: json['content'] as String? ?? '',
@@ -14,6 +14,9 @@ DiscussionPost discussionPostFromJson(Map<String, dynamic> json) {
     likeCount: (json['likeCount'] as num?)?.toInt() ?? 0,
   );
 }
+
+String? _nonEmpty(Object? value) =>
+    value is String && value.trim().isNotEmpty ? value : null;
 
 // createdAt arrives without a zone designator; the backend stores UTC, so
 // it's read as UTC rather than device-local time.

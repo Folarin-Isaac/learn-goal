@@ -12,12 +12,15 @@ class ClassDiscussionRepositoryImpl implements ClassDiscussionRepository {
   final ClassDiscussionRemoteDataSource _remoteDataSource;
   final NetworkInfo _networkInfo;
 
-  // The feed arrives oldest first; the discussion reads newest first.
+  // The feed mixes replies in with top-level posts; replies are dropped
+  // here because they're shown under their post via get-replies. It also
+  // arrives oldest first, while the discussion reads newest first.
   @override
   Future<Either<Failure, List<DiscussionPost>>> getPosts(String classId) {
     return _guard(() async {
       final posts = await _remoteDataSource.getPosts(classId);
-      return posts..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return posts.where((post) => post.parentPostId == null).toList()
+        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
     });
   }
 
