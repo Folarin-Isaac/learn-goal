@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:lengoal/core/core.dart';
 import 'package:lengoal/features/explore/domain/entities/top_educator.dart';
@@ -55,7 +56,13 @@ class ExploreEducatorCard extends StatelessWidget {
 
   void _viewProfile(BuildContext context) {
     AppHaptics.selection();
-    AppSnackbar.info(context.l10n.dashboardComingSoon);
+    if (educator.id.isEmpty) {
+      AppSnackbar.info(context.l10n.educatorProfileLoadFailed);
+      return;
+    }
+    unawaited(
+      context.pushNamed(RouteNames.educatorProfile, extra: educator.id),
+    );
   }
 
   @override

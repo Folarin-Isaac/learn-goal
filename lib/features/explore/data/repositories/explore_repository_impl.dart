@@ -3,6 +3,7 @@ import 'package:lengoal/core/error/exceptions.dart';
 import 'package:lengoal/core/error/failures.dart';
 import 'package:lengoal/core/network/network_info.dart';
 import 'package:lengoal/features/explore/data/datasources/explore_remote_data_source.dart';
+import 'package:lengoal/features/explore/domain/entities/educator_profile.dart';
 import 'package:lengoal/features/explore/domain/entities/explore_category.dart';
 import 'package:lengoal/features/explore/domain/entities/explore_class.dart';
 import 'package:lengoal/features/explore/domain/entities/top_educator.dart';
@@ -48,6 +49,13 @@ class ExploreRepositoryImpl implements ExploreRepository {
   @override
   Future<Either<Failure, List<TopEducator>>> getTopEducators() {
     return _guard(_remoteDataSource.getTopEducators);
+  }
+
+  @override
+  Future<Either<Failure, EducatorProfile>> getEducatorProfile(
+    String educatorId,
+  ) {
+    return _guard(() => _remoteDataSource.getEducatorProfile(educatorId));
   }
 
   Future<Either<Failure, T>> _guard<T>(Future<T> Function() action) async {

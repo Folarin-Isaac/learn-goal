@@ -9,4 +9,6 @@ class ExploreApiEndpoints {
   static const String upcomingClasses =
       '/api/v1/Landing/learner/upcoming-classes';
   static const String topEducators = '/api/v1/Landing/learner/top-educators';
+  static String educatorProfile(String educatorId) =>
+      '/api/v1/Landing/learner/educators/$educatorId';
 }

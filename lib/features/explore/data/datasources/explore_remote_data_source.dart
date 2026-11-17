@@ -3,6 +3,7 @@ import 'package:lengoal/core/error/exceptions.dart';
 import 'package:lengoal/core/network/api_client.dart';
 import 'package:lengoal/features/explore/data/explore_api_endpoints.dart';
 import 'package:lengoal/features/explore/data/models/explore_models.dart';
+import 'package:lengoal/features/explore/domain/entities/educator_profile.dart';
 import 'package:lengoal/features/explore/domain/entities/explore_category.dart';
 import 'package:lengoal/features/explore/domain/entities/explore_class.dart';
 import 'package:lengoal/features/explore/domain/entities/top_educator.dart';
@@ -17,6 +18,8 @@ abstract class ExploreRemoteDataSource {
   Future<List<ExploreClass>> getUpcomingClasses();
 
   Future<List<TopEducator>> getTopEducators();
+
+  Future<EducatorProfile> getEducatorProfile(String educatorId);
 }
 
 class ExploreRemoteDataSourceImpl implements ExploreRemoteDataSource {
@@ -68,19 +71,40 @@ class ExploreRemoteDataSourceImpl implements ExploreRemoteDataSource {
     return items.map(topEducatorFromJson).toList();
   }
 
+  @override
+  Future<EducatorProfile> getEducatorProfile(String educatorId) async {
+    final data = await _get(ExploreApiEndpoints.educatorProfile(educatorId));
+    if (data is! Map<String, dynamic>) {
+      throw ServerException();
+    }
+    return educatorProfileFromJson(data);
+  }
+
   Future<List<Map<String, dynamic>>> _getPage(
     String path, {
     int pageSize = _rowPageSize,
     Map<String, dynamic> extraParameters = const {},
   }) async {
+    final data = await _get(
+      path,
+      queryParameters: {
+        'PageSize': pageSize,
+        'PageNumber': 1,
+        ...extraParameters,
+      },
+    );
+    final items = data is List<dynamic> ? data : const <dynamic>[];
+    return items.whereType<Map<String, dynamic>>().toList();
+  }
+
+  Future<Object?> _get(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+  }) async {
     try {
       final response = await _apiClient.dio.get<Map<String, dynamic>>(
         path,
-        queryParameters: {
-          'PageSize': pageSize,
-          'PageNumber': 1,
-          ...extraParameters,
-        },
+        queryParameters: queryParameters,
       );
       final body = response.data!;
       if (body['succeeded'] == false) {
@@ -89,8 +113,7 @@ class ExploreRemoteDataSourceImpl implements ExploreRemoteDataSource {
               'Something went wrong. Please try again.',
         );
       }
-      final data = body['data'] as List<dynamic>? ?? const [];
-      return data.whereType<Map<String, dynamic>>().toList();
+      return body['data'];
     } on DioException catch (e) {
       if (e.type == DioExceptionType.connectionError ||
           e.type == DioExceptionType.connectionTimeout) {

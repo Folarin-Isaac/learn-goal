@@ -222,6 +222,14 @@ class AppRouter {
         ),
       ),
       GoRoute(
+        path: RoutePaths.educatorProfile,
+        name: RouteNames.educatorProfile,
+        pageBuilder: (context, state) => AppPageTransitions.build(
+          state: state,
+          child: EducatorProfilePage(educatorId: state.extra! as String),
+        ),
+      ),
+      GoRoute(
         path: RoutePaths.quizIntro,
         name: RouteNames.quizIntro,
         pageBuilder: (context, state) => AppPageTransitions.build(

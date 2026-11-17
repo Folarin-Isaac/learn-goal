@@ -1,5 +1,6 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:lengoal/core/error/failures.dart';
+import 'package:lengoal/features/explore/domain/entities/educator_profile.dart';
 import 'package:lengoal/features/explore/domain/entities/explore_category.dart';
 import 'package:lengoal/features/explore/domain/entities/explore_class.dart';
 import 'package:lengoal/features/explore/domain/entities/top_educator.dart';
@@ -17,4 +18,8 @@ abstract class ExploreRepository {
   Future<Either<Failure, List<ExploreClass>>> getUpcomingClasses();
 
   Future<Either<Failure, List<TopEducator>>> getTopEducators();
+
+  Future<Either<Failure, EducatorProfile>> getEducatorProfile(
+    String educatorId,
+  );
 }

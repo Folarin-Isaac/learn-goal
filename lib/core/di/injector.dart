@@ -45,6 +45,7 @@ import 'package:lengoal/features/explore/data/datasources/explore_remote_data_so
 import 'package:lengoal/features/explore/data/repositories/explore_repository_impl.dart';
 import 'package:lengoal/features/explore/domain/repositories/explore_repository.dart';
 import 'package:lengoal/features/explore/domain/usecases/get_explore_feed_usecases.dart';
+import 'package:lengoal/features/explore/presentation/bloc/educator_profile_cubit.dart';
 import 'package:lengoal/features/explore/presentation/bloc/explore_cubit.dart';
 import 'package:lengoal/features/goal_setup/data/datasources/goal_remote_data_source.dart';
 import 'package:lengoal/features/goal_setup/data/datasources/goal_remote_data_source_impl.dart';
@@ -153,6 +154,8 @@ void _initExplore() {
     ..registerLazySingleton(() => GetOngoingClassesUseCase(getIt()))
     ..registerLazySingleton(() => GetUpcomingClassesUseCase(getIt()))
     ..registerLazySingleton(() => GetTopEducatorsUseCase(getIt()))
+    ..registerLazySingleton(() => GetEducatorProfileUseCase(getIt()))
+    ..registerFactory(() => EducatorProfileCubit(getIt()))
     ..registerFactory(
       () => ExploreCubit(
         getCategories: getIt(),

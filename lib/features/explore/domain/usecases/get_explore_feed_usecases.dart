@@ -1,5 +1,6 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:lengoal/core/error/failures.dart';
+import 'package:lengoal/features/explore/domain/entities/educator_profile.dart';
 import 'package:lengoal/features/explore/domain/entities/explore_category.dart';
 import 'package:lengoal/features/explore/domain/entities/explore_class.dart';
 import 'package:lengoal/features/explore/domain/entities/top_educator.dart';
@@ -48,4 +49,13 @@ class GetTopEducatorsUseCase {
 
   Future<Either<Failure, List<TopEducator>>> call() =>
       _repository.getTopEducators();
+}
+
+class GetEducatorProfileUseCase {
+  new(this._repository);
+
+  final ExploreRepository _repository;
+
+  Future<Either<Failure, EducatorProfile>> call(String educatorId) =>
+      _repository.getEducatorProfile(educatorId);
 }
