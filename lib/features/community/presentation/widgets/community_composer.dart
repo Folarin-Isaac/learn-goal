@@ -19,6 +19,12 @@ class CommunityComposer extends StatelessWidget {
   static const int _maxVisibleLines = 5;
   static const double _fieldRadius = 24;
 
+  static OutlineInputBorder _border([BorderSide side = BorderSide.none]) =>
+      OutlineInputBorder(
+        borderRadius: BorderRadius.circular(_fieldRadius),
+        borderSide: side,
+      );
+
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -48,9 +54,10 @@ class CommunityComposer extends StatelessWidget {
               hintText: hint,
               filled: true,
               fillColor: context.colors.surfaceContainerHighest,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(_fieldRadius),
-                borderSide: BorderSide.none,
+              border: _border(),
+              enabledBorder: _border(),
+              focusedBorder: _border(
+                BorderSide(color: context.colors.primary, width: 1.5),
               ),
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.s16,
