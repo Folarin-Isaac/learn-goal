@@ -83,6 +83,16 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    return PopScope(
+      canPop: !_isSigningOut,
+      child: AbsorbPointer(
+        absorbing: _isSigningOut,
+        child: _buildScaffold(context),
+      ),
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context) {
     return Scaffold(
       body: SafeArea(
         child: Padding(
