@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lengoal/core/error/failures.dart';
 import 'package:lengoal/features/auth/domain/repositories/auth_repository.dart';
 
 part 'auth_event.dart';
@@ -31,7 +34,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthLoggedOut event,
     Emitter<AuthState> emit,
   ) async {
-    await _authRepository.logout();
-    emit(const AuthUnauthenticated());
+    final result = await _authRepository.logout();
+    result.match((failure) => event.completer?.complete(failure), (_) {
+      emit(const AuthUnauthenticated());
+      event.completer?.complete();
+    });
   }
 }

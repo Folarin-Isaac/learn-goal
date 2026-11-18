@@ -12,6 +12,10 @@ class AuthCheckRequested extends AuthEvent {
   const new();
 }
 
+// The completer resolves with the failure when sign-out is refused (no
+// connection), or null once the learner is signed out.
 class AuthLoggedOut extends AuthEvent {
-  const new();
+  const new({this.completer});
+
+  final Completer<Failure?>? completer;
 }

@@ -1,4 +1,4 @@
-﻿import 'package:lengoal/core/core.dart';
+import 'package:lengoal/core/core.dart';
 import 'package:lengoal/features/auth/auth.dart';
 
 class RegisterPage extends StatelessWidget {
@@ -169,7 +169,7 @@ class _RegisterViewState extends State<_RegisterView> {
                       onPressed: () => _submit(context),
                     ),
                     const Gap(AppSpacing.s16),
-                    GoogleSignInButton(onPressed: () {}),
+                    // GoogleSignInButton(onPressed: isSubmitting ? null : () {})
                     const Gap(AppSpacing.s16),
                     Center(
                       child: Wrap(
@@ -179,11 +179,13 @@ class _RegisterViewState extends State<_RegisterView> {
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
                           GestureDetector(
-                            onTap: () {
-                              context.unfocus();
-                              AppHaptics.selection();
-                              context.pop();
-                            },
+                            onTap: isSubmitting
+                                ? null
+                                : () {
+                                    context.unfocus();
+                                    AppHaptics.selection();
+                                    context.pop();
+                                  },
                             child: Text(
                               context.l10n.registerSignInLink,
                               style: Theme.of(context).textTheme.bodyMedium

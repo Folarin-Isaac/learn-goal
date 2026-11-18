@@ -157,11 +157,14 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
   }
 
+  // Any timeout or connection failure counts as "never answered", not just
+  // the connection errors _mapException treats as offline.
   @override
   Future<void> logout() async {
     try {
       await _apiClient.dio.post<void>(ApiEndpoints.logout);
     } on DioException catch (e) {
+      if (e.response == null) throw NetworkException();
       throw _mapException(e);
     }
   }

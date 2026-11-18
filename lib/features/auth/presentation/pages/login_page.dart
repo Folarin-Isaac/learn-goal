@@ -165,11 +165,17 @@ class _LoginViewState extends State<_LoginView> {
                           ),
                         ),
                         GestureDetector(
-                          onTap: () {
-                            context.unfocus();
-                            AppHaptics.selection();
-                            context.pushNamed(RouteNames.forgotPassword);
-                          },
+                          onTap: isSubmitting
+                              ? null
+                              : () {
+                                  context.unfocus();
+                                  AppHaptics.selection();
+                                  unawaited(
+                                    context.pushNamed(
+                                      RouteNames.forgotPassword,
+                                    ),
+                                  );
+                                },
                           child: Text(
                             context.l10n.loginForgotPassword,
                             style: Theme.of(context).textTheme.bodyMedium
@@ -198,11 +204,15 @@ class _LoginViewState extends State<_LoginView> {
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
                           GestureDetector(
-                            onTap: () {
-                              context.unfocus();
-                              AppHaptics.selection();
-                              context.pushNamed(RouteNames.register);
-                            },
+                            onTap: isSubmitting
+                                ? null
+                                : () {
+                                    context.unfocus();
+                                    AppHaptics.selection();
+                                    unawaited(
+                                      context.pushNamed(RouteNames.register),
+                                    );
+                                  },
                             child: Text(
                               context.l10n.loginSignUpLink,
                               style: Theme.of(context).textTheme.bodyMedium

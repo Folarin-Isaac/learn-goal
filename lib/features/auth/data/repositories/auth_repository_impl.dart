@@ -187,11 +187,21 @@ class AuthRepositoryImpl implements AuthRepository {
     );
   }
 
+  // Sign-out is server-confirmed: without a connection the learner stays
+  // signed in. Once the server has answered, even with an error such as an
+  // already-expired session, the local session is cleared too.
   @override
   Future<Either<Failure, Unit>> logout() async {
+    if (!await _networkInfo.isConnected) {
+      return const Left(NetworkFailure());
+    }
     try {
       await _remoteDataSource.logout();
-    } catch (_) {}
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(e.message));
+    } on Exception {
+      // The server answered; nothing more can be done from here.
+    }
     await _clearSession();
     _setStatus(AuthStatus.unauthenticated);
     return right(unit);

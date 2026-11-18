@@ -32,5 +32,7 @@ abstract class AuthRemoteDataSource {
     required String newPassword,
   });
 
+  // Throws NetworkException when the server never answered, so the caller
+  // can keep the learner signed in.
   Future<void> logout();
 }

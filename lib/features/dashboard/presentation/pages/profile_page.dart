@@ -1,4 +1,5 @@
 import 'package:lengoal/core/core.dart';
+import 'package:lengoal/core/error/failures.dart';
 import 'package:lengoal/features/auth/auth.dart';
 import 'package:lengoal/features/profile/profile.dart';
 
@@ -60,10 +61,14 @@ class _ProfilePageState extends State<ProfilePage> {
       cancelLabel: context.l10n.commonCancel,
       confirmLabel: context.l10n.profileSignOut,
     );
-    if (confirmed == true && context.mounted) {
-      setState(() => _isSigningOut = true);
-      context.read<AuthBloc>().add(const AuthLoggedOut());
-    }
+    if (confirmed != true || !context.mounted) return;
+    setState(() => _isSigningOut = true);
+    final completer = Completer<Failure?>();
+    context.read<AuthBloc>().add(AuthLoggedOut(completer: completer));
+    final failure = await completer.future;
+    if (failure == null || !mounted) return;
+    setState(() => _isSigningOut = false);
+    AppHaptics.error();
   }
 
   Future<void> _confirmDeleteAccount(BuildContext context) async {

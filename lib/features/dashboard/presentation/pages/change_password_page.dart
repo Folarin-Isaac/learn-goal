@@ -78,83 +78,93 @@ class _ChangePasswordViewState extends State<_ChangePasswordView> {
           },
           builder: (context, state) {
             final isSubmitting = state.isSubmitting;
-            return Form(
-              key: _formKey,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(AppSpacing.s24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      children: [
-                        const AppBackButton(),
-                        const Gap(AppSpacing.s8),
-                        Expanded(
-                          child: Text(
-                            context.l10n.profileUpdatePassword,
-                            style: context.textTheme.headlineSmall,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const Gap(AppSpacing.s8),
-                    Text(
-                      context.l10n.changePasswordSubtitle,
-                      style: context.textTheme.bodyMedium,
-                    ),
-                    const Gap(AppSpacing.s24),
-                    AppTextField(
-                      controller: _currentController,
-                      label: context.l10n.changePasswordCurrentLabel,
-                      hint: context.l10n.changePasswordCurrentHint,
-                      isPassword: true,
-                      textInputAction: TextInputAction.next,
-                      autofillHints: const [AutofillHints.password],
-                      enabled: !isSubmitting,
-                      validator: (value) => Validators.notEmpty(
-                        context,
-                        value,
-                        context.l10n.changePasswordCurrentLabel,
-                      ),
-                    ),
-                    const Gap(AppSpacing.s16),
-                    AppTextField(
-                      controller: _newController,
-                      label: context.l10n.changePasswordNewLabel,
-                      hint: context.l10n.changePasswordNewHint,
-                      isPassword: true,
-                      textInputAction: TextInputAction.next,
-                      autofillHints: const [AutofillHints.newPassword],
-                      enabled: !isSubmitting,
-                      validator: _validateNewPassword,
-                    ),
-                    const Gap(AppSpacing.s16),
-                    AppTextField(
-                      controller: _confirmController,
-                      label: context.l10n.changePasswordConfirmLabel,
-                      hint: context.l10n.changePasswordConfirmHint,
-                      isPassword: true,
-                      textInputAction: TextInputAction.done,
-                      autofillHints: const [AutofillHints.newPassword],
-                      enabled: !isSubmitting,
-                      validator: (value) => Validators.confirmPassword(
-                        context,
-                        value,
-                        _newController.text,
-                        fieldLabel: context.l10n.changePasswordConfirmLabel,
-                      ),
-                    ),
-                    const Gap(AppSpacing.s32),
-                    AppButton(
-                      label: context.l10n.profileSaveButton,
-                      isLoading: isSubmitting,
-                      onPressed: isSubmitting ? null : _submit,
-                    ),
-                  ],
-                ),
+            return PopScope(
+              canPop: !isSubmitting,
+              child: AbsorbPointer(
+                absorbing: isSubmitting,
+                child: _buildForm(context, isSubmitting: isSubmitting),
               ),
             );
           },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildForm(BuildContext context, {required bool isSubmitting}) {
+    return Form(
+      key: _formKey,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(AppSpacing.s24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                const AppBackButton(),
+                const Gap(AppSpacing.s8),
+                Expanded(
+                  child: Text(
+                    context.l10n.profileUpdatePassword,
+                    style: context.textTheme.headlineSmall,
+                  ),
+                ),
+              ],
+            ),
+            const Gap(AppSpacing.s8),
+            Text(
+              context.l10n.changePasswordSubtitle,
+              style: context.textTheme.bodyMedium,
+            ),
+            const Gap(AppSpacing.s24),
+            AppTextField(
+              controller: _currentController,
+              label: context.l10n.changePasswordCurrentLabel,
+              hint: context.l10n.changePasswordCurrentHint,
+              isPassword: true,
+              textInputAction: TextInputAction.next,
+              autofillHints: const [AutofillHints.password],
+              enabled: !isSubmitting,
+              validator: (value) => Validators.notEmpty(
+                context,
+                value,
+                context.l10n.changePasswordCurrentLabel,
+              ),
+            ),
+            const Gap(AppSpacing.s16),
+            AppTextField(
+              controller: _newController,
+              label: context.l10n.changePasswordNewLabel,
+              hint: context.l10n.changePasswordNewHint,
+              isPassword: true,
+              textInputAction: TextInputAction.next,
+              autofillHints: const [AutofillHints.newPassword],
+              enabled: !isSubmitting,
+              validator: _validateNewPassword,
+            ),
+            const Gap(AppSpacing.s16),
+            AppTextField(
+              controller: _confirmController,
+              label: context.l10n.changePasswordConfirmLabel,
+              hint: context.l10n.changePasswordConfirmHint,
+              isPassword: true,
+              textInputAction: TextInputAction.done,
+              autofillHints: const [AutofillHints.newPassword],
+              enabled: !isSubmitting,
+              validator: (value) => Validators.confirmPassword(
+                context,
+                value,
+                _newController.text,
+                fieldLabel: context.l10n.changePasswordConfirmLabel,
+              ),
+            ),
+            const Gap(AppSpacing.s32),
+            AppButton(
+              label: context.l10n.profileSaveButton,
+              isLoading: isSubmitting,
+              onPressed: isSubmitting ? null : _submit,
+            ),
+          ],
         ),
       ),
     );

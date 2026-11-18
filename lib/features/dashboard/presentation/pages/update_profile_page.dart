@@ -151,76 +151,90 @@ class _UpdateProfileViewState extends State<_UpdateProfileView> {
             }
           },
           builder: (context, state) {
-            return Form(
-              key: _formKey,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(AppSpacing.s24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      children: [
-                        const AppBackButton(),
-                        const Gap(AppSpacing.s8),
-                        Expanded(
-                          child: Text(
-                            context.l10n.profileUpdateProfileTitle,
-                            style: context.textTheme.headlineSmall,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const Gap(AppSpacing.s24),
-                    Center(
-                      child: ProfileAvatar(
-                        localPath: state.pendingAvatarPath,
-                        imageUrl: state.effectiveAvatarUrl,
-                        isBusy: state.saveStatus == ProfileSaveStatus.uploading,
-                        onEdit: _pickAvatar,
-                      ),
-                    ),
-                    const Gap(AppSpacing.s24),
-                    AppTextField(
-                      controller: _firstNameController,
-                      label: context.l10n.registerFirstNameLabel,
-                      hint: context.l10n.registerFirstNameHint,
-                      validator: (value) => Validators.notEmpty(
-                        context,
-                        value,
-                        context.l10n.registerFirstNameLabel,
-                      ),
-                    ),
-                    const Gap(AppSpacing.s16),
-                    AppTextField(
-                      controller: _lastNameController,
-                      label: context.l10n.registerLastNameLabel,
-                      hint: context.l10n.registerLastNameHint,
-                      validator: (value) => Validators.notEmpty(
-                        context,
-                        value,
-                        context.l10n.registerLastNameLabel,
-                      ),
-                    ),
-                    const Gap(AppSpacing.s16),
-                    AppTextField(
-                      controller: _phoneController,
-                      label: context.l10n.registerPhoneLabel,
-                      hint: context.l10n.registerPhoneHint,
-                      keyboardType: TextInputType.phone,
-                      validator: (value) =>
-                          Validators.phoneNumber(context, value),
-                    ),
-                    const Gap(AppSpacing.s24),
-                    AppButton(
-                      label: context.l10n.profileSaveButton,
-                      isLoading: state.saveStatus == ProfileSaveStatus.saving,
-                      onPressed: (!_isDirty || state.isBusy) ? null : _save,
-                    ),
-                  ],
+            final isSaving = state.saveStatus == ProfileSaveStatus.saving;
+            return _buildForm(context, state, isSaving: isSaving);
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildForm(
+    BuildContext context,
+    UpdateProfileState state, {
+    required bool isSaving,
+  }) {
+    return Form(
+      key: _formKey,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(AppSpacing.s24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                const AppBackButton(),
+                const Gap(AppSpacing.s8),
+                Expanded(
+                  child: Text(
+                    context.l10n.profileUpdateProfileTitle,
+                    style: context.textTheme.headlineSmall,
+                  ),
+                ),
+              ],
+            ),
+            const Gap(AppSpacing.s24),
+            Center(
+              child: IgnorePointer(
+                ignoring: isSaving,
+                child: ProfileAvatar(
+                  localPath: state.pendingAvatarPath,
+                  imageUrl: state.effectiveAvatarUrl,
+                  isBusy: state.saveStatus == ProfileSaveStatus.uploading,
+                  onEdit: _pickAvatar,
                 ),
               ),
-            );
-          },
+            ),
+            const Gap(AppSpacing.s24),
+            AppTextField(
+              controller: _firstNameController,
+              label: context.l10n.registerFirstNameLabel,
+              hint: context.l10n.registerFirstNameHint,
+              enabled: !isSaving,
+              validator: (value) => Validators.notEmpty(
+                context,
+                value,
+                context.l10n.registerFirstNameLabel,
+              ),
+            ),
+            const Gap(AppSpacing.s16),
+            AppTextField(
+              controller: _lastNameController,
+              label: context.l10n.registerLastNameLabel,
+              hint: context.l10n.registerLastNameHint,
+              enabled: !isSaving,
+              validator: (value) => Validators.notEmpty(
+                context,
+                value,
+                context.l10n.registerLastNameLabel,
+              ),
+            ),
+            const Gap(AppSpacing.s16),
+            AppTextField(
+              controller: _phoneController,
+              label: context.l10n.registerPhoneLabel,
+              hint: context.l10n.registerPhoneHint,
+              keyboardType: TextInputType.phone,
+              enabled: !isSaving,
+              validator: (value) => Validators.phoneNumber(context, value),
+            ),
+            const Gap(AppSpacing.s24),
+            AppButton(
+              label: context.l10n.profileSaveButton,
+              isLoading: state.saveStatus == ProfileSaveStatus.saving,
+              onPressed: (!_isDirty || state.isBusy) ? null : _save,
+            ),
+          ],
         ),
       ),
     );
