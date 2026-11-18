@@ -186,6 +186,8 @@
     "classDiscussionRepliesFailed": "No se pudieron cargar las respuestas.",
     "classDiscussionEducatorTag": "Educador",
     "classDiscussionAdminTag": "Administrador",
+    "classDiscussionSeeMore": "Ver más",
+    "classDiscussionSeeLess": "Ver menos",
     "classDiscussionEdited": "Editado",
     "classDetailsTabCertificate": "Certificado",
     "classDetailsRatingCount": "({count} reseñas)",

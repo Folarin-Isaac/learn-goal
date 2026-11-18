@@ -1,4 +1,4 @@
-﻿import 'package:lengoal/core/core.dart';
+import 'package:lengoal/core/core.dart';
 import 'package:lengoal/features/auth/auth.dart';
 
 class LoginPage extends StatelessWidget {
@@ -105,8 +105,11 @@ class _LoginViewState extends State<_LoginView> {
                       validator: (value) => Validators.password(context, value),
                     ),
                     const Gap(AppSpacing.s16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    Wrap(
+                      alignment: WrapAlignment.spaceBetween,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: AppSpacing.s16,
+                      runSpacing: AppSpacing.s8,
                       children: [
                         InkWell(
                           borderRadius: BorderRadius.circular(AppSpacing.r8),
@@ -149,9 +152,13 @@ class _LoginViewState extends State<_LoginView> {
                                   ),
                                 ),
                                 const Gap(AppSpacing.s4),
-                                Text(
-                                  context.l10n.loginKeepSignedIn,
-                                  style: Theme.of(context).textTheme.bodyMedium,
+                                Flexible(
+                                  child: Text(
+                                    context.l10n.loginKeepSignedIn,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium,
+                                  ),
                                 ),
                               ],
                             ),

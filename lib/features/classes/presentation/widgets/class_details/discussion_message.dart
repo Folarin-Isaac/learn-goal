@@ -96,8 +96,77 @@ class DiscussionMessage extends StatelessWidget {
           ],
         ),
         const Gap(AppSpacing.s8),
-        Text(post.content, style: context.textTheme.bodyMedium),
+        _ExpandableText(text: post.content),
       ],
+    );
+  }
+}
+
+class _ExpandableText extends StatefulWidget {
+  const new({required this.text});
+
+  final String text;
+
+  @override
+  State<_ExpandableText> createState() => _ExpandableTextState();
+}
+
+class _ExpandableTextState extends State<_ExpandableText> {
+  static const int _collapsedLines = 6;
+
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = context.textTheme.bodyMedium;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final painter = TextPainter(
+          text: TextSpan(text: widget.text, style: style),
+          maxLines: _collapsedLines,
+          textDirection: Directionality.of(context),
+          textScaler: MediaQuery.textScalerOf(context),
+        )..layout(maxWidth: constraints.maxWidth);
+        final overflows = painter.didExceedMaxLines;
+        painter.dispose();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AnimatedSize(
+              duration: AppMotion.base,
+              curve: AppMotion.standard,
+              alignment: Alignment.topCenter,
+              child: Text(
+                widget.text,
+                style: style,
+                maxLines: _expanded ? null : _collapsedLines,
+                overflow: _expanded ? null : TextOverflow.ellipsis,
+              ),
+            ),
+            if (overflows)
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  AppHaptics.selection();
+                  setState(() => _expanded = !_expanded);
+                },
+                child: Padding(
+                  padding: const EdgeInsets.only(top: AppSpacing.s4),
+                  child: Text(
+                    _expanded
+                        ? context.l10n.classDiscussionSeeLess
+                        : context.l10n.classDiscussionSeeMore,
+                    style: context.textTheme.bodySmall?.copyWith(
+                      color: AppColors.accentBlue,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 }

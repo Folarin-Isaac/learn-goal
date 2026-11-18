@@ -16,9 +16,13 @@ class CommunityComposer extends StatelessWidget {
   final String? avatarInitial;
   final Color? avatarColor;
 
+  static const int _maxVisibleLines = 5;
+  static const double _fieldRadius = 24;
+
   @override
   Widget build(BuildContext context) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         if (avatarInitial != null) ...[
           CircleAvatar(
@@ -35,12 +39,16 @@ class CommunityComposer extends StatelessWidget {
         Expanded(
           child: TextField(
             controller: controller,
+            minLines: 1,
+            maxLines: _maxVisibleLines,
+            keyboardType: TextInputType.multiline,
+            textCapitalization: TextCapitalization.sentences,
             decoration: InputDecoration(
               hintText: hint,
               filled: true,
               fillColor: context.colors.surfaceContainerHighest,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
+                borderRadius: BorderRadius.circular(_fieldRadius),
                 borderSide: BorderSide.none,
               ),
               contentPadding: const EdgeInsets.symmetric(

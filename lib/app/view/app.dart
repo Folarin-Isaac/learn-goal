@@ -5,6 +5,7 @@ import 'package:lengoal/core/network/connectivity_cubit.dart';
 import 'package:lengoal/core/router/app_router.dart';
 import 'package:lengoal/core/theme/app_theme.dart';
 import 'package:lengoal/core/widgets/connectivity_banner.dart';
+import 'package:lengoal/core/widgets/content_width_limiter.dart';
 import 'package:lengoal/core/widgets/splash_overlay.dart';
 import 'package:lengoal/features/auth/presentation/bloc/auth/auth_bloc.dart';
 import 'package:lengoal/l10n/l10n.dart';
@@ -30,7 +31,9 @@ class App extends StatelessWidget {
         supportedLocales: AppLocalizations.supportedLocales,
         routerConfig: AppRouter.router,
         builder: (context, child) => SplashOverlay(
-          child: ConnectivityBanner(child: child ?? const SizedBox.shrink()),
+          child: ContentWidthLimiter(
+            child: ConnectivityBanner(child: child ?? const SizedBox.shrink()),
+          ),
         ),
       ),
     );

@@ -70,7 +70,7 @@ class ClassInfoColumn extends StatelessWidget {
         ] else
           Row(
             children: [
-              tag,
+              Flexible(child: tag),
               const Gap(AppSpacing.s8),
               Expanded(child: date),
             ],

@@ -22,11 +22,19 @@ class ClassDiscussionCubit extends Cubit<ClassDiscussionState> {
   final GetDiscussionRepliesUseCase _getReplies;
   final PostDiscussionMessageUseCase _postMessage;
 
-  // A failed refresh keeps the posts already on screen.
+  // A failed refresh keeps the posts already on screen. Open threads
+  // reload alongside the posts rather than after them.
   Future<void> load() async {
     if (state.posts.isEmpty) {
       emit(state.copyWith(status: DiscussionStatus.loading));
     }
+    await Future.wait([
+      _loadPosts(),
+      ...state.expandedPostIds.map(_loadReplies),
+    ]);
+  }
+
+  Future<void> _loadPosts() async {
     final result = await _getPosts(_classId);
     if (isClosed) return;
     result.match(
@@ -40,7 +48,6 @@ class ClassDiscussionCubit extends Cubit<ClassDiscussionState> {
       (posts) =>
           emit(state.copyWith(status: DiscussionStatus.loaded, posts: posts)),
     );
-    await Future.wait(state.expandedPostIds.map(_loadReplies));
   }
 
   Future<void> toggleReplies(String postId) async {
