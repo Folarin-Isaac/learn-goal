@@ -187,6 +187,7 @@ class _SearchField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextField(
+      autofillHints: null,
       readOnly: true,
       onTap: () {
         AppHaptics.selection();

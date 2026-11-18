@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lengoal/core/di/injector.dart';
 import 'package:lengoal/core/network/connectivity_cubit.dart';
@@ -12,6 +13,19 @@ import 'package:lengoal/l10n/l10n.dart';
 
 class App extends StatelessWidget {
   const new({super.key});
+
+  static SystemUiOverlayStyle _systemBarsStyle(Brightness brightness) {
+    final isDark = brightness == Brightness.dark;
+    final icons = isDark ? Brightness.light : Brightness.dark;
+    return SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: icons,
+      statusBarBrightness: brightness,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarIconBrightness: icons,
+      systemNavigationBarContrastEnforced: false,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,9 +44,14 @@ class App extends StatelessWidget {
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         routerConfig: AppRouter.router,
-        builder: (context, child) => SplashOverlay(
-          child: ContentWidthLimiter(
-            child: ConnectivityBanner(child: child ?? const SizedBox.shrink()),
+        builder: (context, child) => AnnotatedRegion<SystemUiOverlayStyle>(
+          value: _systemBarsStyle(Theme.of(context).brightness),
+          child: SplashOverlay(
+            child: ContentWidthLimiter(
+              child: ConnectivityBanner(
+                child: child ?? const SizedBox.shrink(),
+              ),
+            ),
           ),
         ),
       ),

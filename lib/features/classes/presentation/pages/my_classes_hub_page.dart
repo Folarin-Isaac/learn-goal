@@ -91,6 +91,7 @@ class _MyClassesHubPageState extends State<MyClassesHubPage>
                                 ),
                                 Expanded(
                                   child: TextField(
+                                    autofillHints: null,
                                     controller: _searchController,
                                     autofocus: true,
                                     textInputAction: TextInputAction.search,

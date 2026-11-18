@@ -5,6 +5,6 @@ import 'package:lengoal/core/env/env.dart';
 
 Future<void> main() async {
   await Env.load(Flavor.development);
-  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   await bootstrap(() => const App(), enableNetworkLogging: true);
 }

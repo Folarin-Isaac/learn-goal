@@ -9,6 +9,7 @@ class GoalSearchField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextField(
+      autofillHints: null,
       onChanged: onChanged,
       decoration: InputDecoration(
         hintText: hint,

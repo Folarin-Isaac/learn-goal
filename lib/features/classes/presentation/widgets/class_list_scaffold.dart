@@ -203,6 +203,7 @@ class _ClassListScaffoldState extends State<ClassListScaffold> {
         IconButton(onPressed: _stopSearch, icon: const Icon(Icons.close)),
         Expanded(
           child: TextField(
+            autofillHints: null,
             controller: _searchController,
             autofocus: true,
             onChanged: (value) => setState(() => _query = value),

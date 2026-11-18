@@ -66,6 +66,7 @@ class _ClassSearchViewState extends State<_ClassSearchView> {
                   const Gap(AppSpacing.s8),
                   Expanded(
                     child: TextField(
+                      autofillHints: null,
                       controller: _controller,
                       autofocus: true,
                       textInputAction: TextInputAction.search,

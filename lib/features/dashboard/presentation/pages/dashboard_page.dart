@@ -109,6 +109,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       Entrance(
                         index: 2,
                         child: TextField(
+                          autofillHints: null,
                           readOnly: true,
                           onTap: () {
                             AppHaptics.selection();

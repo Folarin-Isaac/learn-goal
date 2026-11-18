@@ -19,6 +19,7 @@ class ChatComposer extends StatelessWidget {
         ),
         Expanded(
           child: TextField(
+            autofillHints: null,
             controller: controller,
             decoration: InputDecoration(
               hintText: context.l10n.communityShareHint,

@@ -122,6 +122,7 @@ class _ChatListState extends State<_ChatList>
       padding: const EdgeInsets.all(AppSpacing.s24),
       children: [
         TextField(
+          autofillHints: null,
           controller: _searchController,
           onChanged: (value) => setState(() => _query = value),
           decoration: InputDecoration(

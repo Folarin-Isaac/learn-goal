@@ -38,6 +38,7 @@ class CommunityComposer extends StatelessWidget {
         ],
         Expanded(
           child: TextField(
+            autofillHints: null,
             controller: controller,
             minLines: 1,
             maxLines: _maxVisibleLines,
