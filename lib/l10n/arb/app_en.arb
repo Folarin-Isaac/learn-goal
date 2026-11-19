@@ -413,6 +413,8 @@
     "@classDetailsQuizEmpty": {"description": "Empty state for the Quiz tab"},
     "classDetailsMaterialsEmpty": "No materials yet",
     "@classDetailsMaterialsEmpty": {"description": "Empty state for the Materials tab"},
+    "classDetailsMaterialsEnrollHint": "Enroll to access this class's learning materials",
+    "@classDetailsMaterialsEnrollHint": {"description": "Hint on the Materials tab when the learner isn't enrolled"},
     "classDetailsLinkOpenFailed": "Couldn't open this link",
     "@classDetailsLinkOpenFailed": {"description": "Snackbar when a material, replay or other external link fails to open"},
     "classDetailsMaterialExternalLink": "External Link",

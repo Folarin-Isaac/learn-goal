@@ -216,7 +216,10 @@ class _ClassDetailsView extends StatelessWidget {
               children: [
                 ClassAboutTab(detail: detail, educators: educators),
                 ClassCommunicationsTab(isSubscribed: isSubscribed),
-                ClassMaterialsTab(materials: detail.materials),
+                ClassMaterialsTab(
+                  materials: detail.materials,
+                  isSubscribed: isSubscribed,
+                ),
                 ClassScheduleTab(
                   lengoalClass: detail.source,
                   sessions: detail.sessions,

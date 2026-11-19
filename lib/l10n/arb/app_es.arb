@@ -206,6 +206,7 @@
     "classDetailsQuizBy": "por {name}",
     "classDetailsQuizEmpty": "Aún no hay cuestionarios",
     "classDetailsMaterialsEmpty": "Aún no hay materiales",
+    "classDetailsMaterialsEnrollHint": "Inscríbete para acceder a los materiales de esta clase",
     "classDetailsLinkOpenFailed": "No se pudo abrir este enlace",
     "classDetailsMaterialExternalLink": "Enlace externo",
     "classDetailsMaterialFileResource": "Recurso de archivo",

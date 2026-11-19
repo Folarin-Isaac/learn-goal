@@ -9,7 +9,9 @@ class CalendarSessionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tap = onTap;
     return Pressable(
+      enabled: tap != null,
       child: Card(
         elevation: 1,
         margin: EdgeInsets.zero,
@@ -18,14 +20,12 @@ class CalendarSessionCard extends StatelessWidget {
         ),
         child: InkWell(
           borderRadius: BorderRadius.circular(AppSpacing.r16),
-          onTap: () {
-            AppHaptics.selection();
-            if (onTap != null) {
-              onTap!();
-            } else {
-              AppSnackbar.info(context.l10n.dashboardComingSoon);
-            }
-          },
+          onTap: tap == null
+              ? null
+              : () {
+                  AppHaptics.selection();
+                  tap();
+                },
           child: Padding(
             padding: const EdgeInsets.all(AppSpacing.s16),
             child: Column(
