@@ -10,7 +10,7 @@ environment:
 dependencies:
   bloc: ^9.2.1
   cached_network_image: ^4.0.6
-  connectivity_plus: ^6.1.0
+  connectivity_plus: ^7.0.0
   device_preview: ^3.0.0
   dio: ^5.7.0
   equatable: ^2.0.5
@@ -28,6 +28,7 @@ dependencies:
   go_router: ^15.0.0
   image_picker: ^1.1.2
   intl: ^0.20.2
+  livekit_client: ^2.14.0
   material_ui: ^1.1.1
   pdfrx: 2.6.6
   share_plus: ^12.0.2
@@ -71,12 +72,12 @@ flutter_gen:
     flutter_svg: true
   assets:
     # .env.* are plain config files loaded by explicit path via
-    # flutter_dotenv (see lib/core/env/env.dart) — never through the
+    # flutter_dotenv (see lib/core/env/env.dart) â€” never through the
     # generated Assets class. They still need to stay in flutter.assets
     # above so Flutter bundles them, but flutter_gen's name-from-file
     # heuristic treats ".development"/".staging"/".production" as an
     # extension the same way it strips ".png", leaving ".env" for all
-    # three — which collide into the same generated identifier (aEnv)
+    # three â€” which collide into the same generated identifier (aEnv)
     # and fail to compile. Excluding them here is the fix.
     exclude:
       - .env.development

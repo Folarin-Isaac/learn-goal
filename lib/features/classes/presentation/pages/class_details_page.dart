@@ -200,6 +200,7 @@ class _ClassDetailsView extends StatelessWidget {
                 ClassCommunicationsTab(isSubscribed: isSubscribed),
                 ClassMaterialsTab(materials: detail.materials),
                 ClassScheduleTab(
+                  lengoalClass: detail.source,
                   sessions: detail.sessions,
                   loadingReplayId: loadingReplayId,
                   isSubscribed: isSubscribed,

@@ -6,6 +6,8 @@ import 'package:lengoal/features/classes/domain/entities/class_page.dart';
 import 'package:lengoal/features/classes/domain/entities/class_referral.dart';
 import 'package:lengoal/features/classes/domain/entities/class_replay.dart';
 import 'package:lengoal/features/classes/domain/entities/lengoal_class.dart';
+import 'package:lengoal/features/classes/domain/entities/live_class_access.dart';
+import 'package:lengoal/features/classes/domain/entities/live_class_status.dart';
 
 abstract class ClassRepository {
   Future<Either<Failure, List<LengoalClass>>> getSubscribedClasses({
@@ -52,4 +54,10 @@ abstract class ClassRepository {
   Future<Either<Failure, ClassReplay>> getClassReplay(String classOutlineId);
 
   Future<Either<Failure, ClassReferral>> generateClassReferral(String classId);
+
+  Future<Either<Failure, LiveClassAccess>> joinLiveClass(String classOutlineId);
+
+  Future<Either<Failure, LiveClassStatus>> getLiveClassStatus(
+    String classOutlineId,
+  );
 }

@@ -1,0 +1,290 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
+import 'package:lengoal/core/utils/logger.dart';
+import 'package:lengoal/features/classes/domain/entities/live_class_access.dart';
+import 'package:livekit_client/livekit_client.dart';
+
+enum LiveRoomConnection { connecting, connected, reconnecting, closed }
+
+enum LiveRoomCloseKind { left, classEnded, dropped, failed }
+
+// A participant as the room UI draws it: their camera or shared screen,
+// or null to fall back to an avatar.
+class LiveRoomTile {
+  const new({
+    required this.participant,
+    required this.track,
+    this.isScreenShare = false,
+  });
+
+  final Participant participant;
+  final VideoTrack? track;
+  final bool isScreenShare;
+}
+
+// Owns the LiveKit Room for one visit to a live class: connects with the
+// token from ClassRoom/join, applies the lobby's mic/camera choice, and
+// turns room events into a connection state the page can draw. Room and
+// its participants are ChangeNotifiers too, so the UI listens to them for
+// membership and track changes.
+class LiveRoomController extends ChangeNotifier {
+  new({
+    required this.access,
+    required this.joinWithMic,
+    required this.joinWithCamera,
+    this.educatorId,
+    Room? room,
+  }) : room =
+           room ??
+           Room(
+             roomOptions: const RoomOptions(
+               adaptiveStream: true,
+               dynacast: true,
+               defaultAudioOutputOptions: AudioOutputOptions(speakerOn: true),
+             ),
+           );
+
+  final LiveClassAccess access;
+  final bool joinWithMic;
+  final bool joinWithCamera;
+  final String? educatorId;
+  final Room room;
+
+  late final EventsListener<RoomEvent> _events = room.createListener();
+
+  LiveRoomConnection _connection = LiveRoomConnection.connecting;
+  LiveRoomConnection get connection => _connection;
+
+  LiveRoomCloseKind? _closeKind;
+  LiveRoomCloseKind? get closeKind => _closeKind;
+
+  String? _failure;
+  String? get failure => _failure;
+
+  bool _busy = false;
+  bool get busy => _busy;
+
+  CameraPosition _cameraPosition = CameraPosition.front;
+  bool _disposed = false;
+
+  bool get isRecording => room.isRecording;
+
+  // Learners may be listen-only; the server decides through the token.
+  bool get canPublish => room.localParticipant?.permissions.canPublish ?? false;
+
+  bool get isMicOn => room.localParticipant?.isMicrophoneEnabled() ?? false;
+
+  bool get isCameraOn => room.localParticipant?.isCameraEnabled() ?? false;
+
+  int get participantCount =>
+      room.remoteParticipants.length + (room.localParticipant == null ? 0 : 1);
+
+  List<Participant> get participants => [
+    ...room.remoteParticipants.values,
+    ?room.localParticipant,
+  ];
+
+  Future<void> connect() async {
+    _events
+      ..on<RoomReconnectingEvent>(
+        (_) => _setConnection(LiveRoomConnection.reconnecting),
+      )
+      ..on<RoomReconnectedEvent>(
+        (_) => _setConnection(LiveRoomConnection.connected),
+      )
+      ..on<RoomDisconnectedEvent>(_onDisconnected)
+      ..on<RoomRecordingStatusChanged>((_) => _notify())
+      ..on<TrackSubscribedEvent>((_) => _notify())
+      ..on<TrackUnsubscribedEvent>((_) => _notify())
+      ..on<TrackMutedEvent>((_) => _notify())
+      ..on<TrackUnmutedEvent>((_) => _notify())
+      ..on<LocalTrackPublishedEvent>((_) => _notify())
+      ..on<LocalTrackUnpublishedEvent>((_) => _notify())
+      ..on<ParticipantPermissionsUpdatedEvent>((_) => _notify());
+    try {
+      await room.connect(access.serverUrl, access.token);
+    } on Object catch (e) {
+      AppLogger.e('[live] connect failed: $e');
+      _failure = e.toString();
+      _closeKind = LiveRoomCloseKind.failed;
+      _setConnection(LiveRoomConnection.closed);
+      return;
+    }
+    AppLogger.d(
+      '[live] connected: room=${room.name} '
+      'canPublish=$canPublish remotes=${room.remoteParticipants.length}',
+    );
+    _setConnection(LiveRoomConnection.connected);
+    if (!canPublish) return;
+    if (joinWithMic) await setMicrophone(enabled: true);
+    if (joinWithCamera) await setCamera(enabled: true);
+  }
+
+  void _onDisconnected(RoomDisconnectedEvent event) {
+    AppLogger.d('[live] disconnected: ${event.reason}');
+    _closeKind ??= switch (event.reason) {
+      DisconnectReason.clientInitiated => LiveRoomCloseKind.left,
+      DisconnectReason.roomDeleted => LiveRoomCloseKind.classEnded,
+      _ => LiveRoomCloseKind.dropped,
+    };
+    _setConnection(LiveRoomConnection.closed);
+  }
+
+  // Returns false when the device refused (usually a denied permission).
+  Future<bool> setMicrophone({required bool enabled}) {
+    return _run(() async {
+      await room.localParticipant?.setMicrophoneEnabled(enabled);
+    });
+  }
+
+  Future<bool> setCamera({required bool enabled}) {
+    return _run(() async {
+      await room.localParticipant?.setCameraEnabled(
+        enabled,
+        cameraCaptureOptions: CameraCaptureOptions(
+          cameraPosition: _cameraPosition,
+        ),
+      );
+    });
+  }
+
+  Future<bool> flipCamera() {
+    return _run(() async {
+      final track = _localCamera;
+      if (track == null) return;
+      final next = _cameraPosition.switched();
+      await track.setCameraPosition(next);
+      _cameraPosition = next;
+    });
+  }
+
+  Future<void> leave() async {
+    _closeKind = LiveRoomCloseKind.left;
+    await room.disconnect();
+    _setConnection(LiveRoomConnection.closed);
+  }
+
+  // What fills the main area, in order: a shared screen (the educator's
+  // slides), the educator, whoever is talking, then anyone else. The
+  // educator is matched by identity, which LiveKit sets to the user id the
+  // web sends with join; if that guess is wrong the later rules still pick
+  // a sensible tile.
+  LiveRoomTile? get stage {
+    final remotes = room.remoteParticipants.values.toList();
+    for (final participant in _educatorFirst(remotes)) {
+      final screen = _video(participant, screenShare: true);
+      if (screen != null) {
+        return LiveRoomTile(
+          participant: participant,
+          track: screen,
+          isScreenShare: true,
+        );
+      }
+    }
+    final educator = remotes.where(_isEducator).firstOrNull;
+    final speaker = room.activeSpeakers
+        .whereType<RemoteParticipant>()
+        .firstOrNull;
+    final withCamera = remotes
+        .where((p) => _video(p, screenShare: false) != null)
+        .firstOrNull;
+    final pick = educator ?? speaker ?? withCamera ?? remotes.firstOrNull;
+    if (pick == null) return null;
+    return LiveRoomTile(
+      participant: pick,
+      track: _video(pick, screenShare: false),
+    );
+  }
+
+  // Everyone not on the stage, the learner last. When a screen is on the
+  // stage its presenter still gets a camera tile.
+  List<LiveRoomTile> filmstrip(LiveRoomTile? stage) {
+    return [
+      for (final participant in participants)
+        if (stage == null ||
+            stage.isScreenShare ||
+            participant.identity != stage.participant.identity)
+          LiveRoomTile(
+            participant: participant,
+            track: _video(participant, screenShare: false),
+          ),
+    ];
+  }
+
+  bool isEducator(Participant participant) => _isEducator(participant);
+
+  bool _isEducator(Participant participant) {
+    final id = educatorId;
+    return id != null &&
+        id.isNotEmpty &&
+        participant.identity.toLowerCase() == id.toLowerCase();
+  }
+
+  Iterable<RemoteParticipant> _educatorFirst(List<RemoteParticipant> remotes) =>
+      [...remotes.where(_isEducator), ...remotes.where((p) => !_isEducator(p))];
+
+  static VideoTrack? _video(
+    Participant participant, {
+    required bool screenShare,
+  }) {
+    for (final publication in participant.videoTrackPublications) {
+      if (publication.isScreenShare != screenShare) continue;
+      if (publication.muted) continue;
+      final track = publication.track;
+      if (track is VideoTrack) return track;
+    }
+    return null;
+  }
+
+  LocalVideoTrack? get _localCamera {
+    final publications = room.localParticipant?.videoTrackPublications ?? [];
+    for (final publication in publications) {
+      if (publication.source != TrackSource.camera) continue;
+      final track = publication.track;
+      if (track is LocalVideoTrack) return track;
+    }
+    return null;
+  }
+
+  Future<bool> _run(Future<void> Function() action) async {
+    if (_busy) return true;
+    _busy = true;
+    _notify();
+    try {
+      await action();
+      return true;
+    } on Object catch (e) {
+      AppLogger.e('[live] device action failed: $e');
+      return false;
+    } finally {
+      _busy = false;
+      _notify();
+    }
+  }
+
+  void _setConnection(LiveRoomConnection value) {
+    if (_connection == value) return;
+    _connection = value;
+    _notify();
+  }
+
+  void _notify() {
+    if (!_disposed) notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    unawaited(_events.dispose());
+    unawaited(_shutdown());
+    super.dispose();
+  }
+
+  Future<void> _shutdown() async {
+    if (room.connectionState != ConnectionState.disconnected) {
+      await room.disconnect();
+    }
+    await room.dispose();
+  }
+}

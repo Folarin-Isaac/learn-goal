@@ -11,6 +11,8 @@ class ClassApiEndpoints {
   static const String searchClasses = '/api/v1/Landing/learner/search';
   static const String queryClassesForLearner =
       '/api/v1/Class/QueryClassesForALearner';
+  static const String joinLiveClass = '/api/v1/ClassRoom/join';
+  static const String liveClassStatus = '/api/v1/ClassRoom/recording-status';
   static const String classDiscussion = '/api/v1/ClassDiscussion';
   static const String classDiscussionReplies =
       '/api/v1/ClassDiscussion/get-replies';

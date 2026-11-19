@@ -19,6 +19,7 @@ class RoutePaths {
   static const String classesHub = '/classes';
   static const String classDetails = '/classes/details';
   static const String materialViewer = '/classes/material';
+  static const String liveClass = '/classes/live';
   static const String educatorProfile = '/educators/profile';
   static const String quizIntro = '/classes/quiz';
   static const String quizTaking = '/classes/quiz/take';

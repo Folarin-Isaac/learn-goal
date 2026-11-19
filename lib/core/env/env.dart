@@ -16,6 +16,7 @@ class Env {
 
   static String get baseUrl => _require('BASE_URL');
   static String get apiKey => dotenv.env['API_KEY'] ?? '';
+  static String get liveKitUrl => dotenv.env['LIVEKIT_URL'] ?? '';
 
   static String _require(String key) {
     final value = dotenv.env[key];

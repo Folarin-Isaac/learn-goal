@@ -10,6 +10,7 @@ import 'package:lengoal/features/classes/classes.dart';
 import 'package:lengoal/features/classes/presentation/models/class_detail.dart';
 import 'package:lengoal/features/classes/presentation/models/class_material.dart';
 import 'package:lengoal/features/classes/presentation/models/class_quiz.dart';
+import 'package:lengoal/features/classes/presentation/models/live_class_session.dart';
 import 'package:lengoal/features/classes/presentation/models/quiz_session.dart';
 import 'package:lengoal/features/community/community.dart';
 import 'package:lengoal/features/community/presentation/models/community_post.dart';
@@ -213,6 +214,14 @@ class AppRouter {
         pageBuilder: (context, state) => AppPageTransitions.build(
           state: state,
           child: ClassDetailsPage(lengoalClass: state.extra! as LengoalClass),
+        ),
+      ),
+      GoRoute(
+        path: RoutePaths.liveClass,
+        name: RouteNames.liveClass,
+        pageBuilder: (context, state) => AppPageTransitions.build(
+          state: state,
+          child: LiveClassPage(session: state.extra! as LiveClassSession),
         ),
       ),
       GoRoute(

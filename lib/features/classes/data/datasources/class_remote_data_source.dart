@@ -3,6 +3,8 @@ import 'package:lengoal/features/classes/data/models/lengoal_class_model.dart';
 import 'package:lengoal/features/classes/domain/entities/class_attendance.dart';
 import 'package:lengoal/features/classes/domain/entities/class_referral.dart';
 import 'package:lengoal/features/classes/domain/entities/class_replay.dart';
+import 'package:lengoal/features/classes/domain/entities/live_class_access.dart';
+import 'package:lengoal/features/classes/domain/entities/live_class_status.dart';
 
 abstract class ClassRemoteDataSource {
   Future<List<LengoalClassModel>> getSubscribedClasses({
@@ -46,4 +48,8 @@ abstract class ClassRemoteDataSource {
   Future<ClassReferral> generateClassReferral(String classId);
 
   Future<ClassAttendance> getClassAttendance(String classId);
+
+  Future<LiveClassAccess> joinLiveClass(String classOutlineId);
+
+  Future<LiveClassStatus> getLiveClassStatus(String classOutlineId);
 }

@@ -19,6 +19,7 @@ class RouteNames {
   static const String classesHub = 'classesHub';
   static const String classDetails = 'classDetails';
   static const String materialViewer = 'materialViewer';
+  static const String liveClass = 'liveClass';
   static const String educatorProfile = 'educatorProfile';
   static const String quizIntro = 'quizIntro';
   static const String quizTaking = 'quizTaking';

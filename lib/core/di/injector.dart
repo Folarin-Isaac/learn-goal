@@ -1,6 +1,7 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart' show listEquals;
 import 'package:get_it/get_it.dart';
+import 'package:lengoal/core/env/env.dart';
 import 'package:lengoal/core/network/api_client.dart';
 import 'package:lengoal/core/network/connectivity_cubit.dart';
 import 'package:lengoal/core/network/network_info.dart';
@@ -34,10 +35,12 @@ import 'package:lengoal/features/classes/domain/usecases/get_class_attendance_us
 import 'package:lengoal/features/classes/domain/usecases/get_class_educators_usecase.dart';
 import 'package:lengoal/features/classes/domain/usecases/get_class_replay_usecase.dart';
 import 'package:lengoal/features/classes/domain/usecases/get_class_usecase.dart';
+import 'package:lengoal/features/classes/domain/usecases/get_live_class_status_usecase.dart';
 import 'package:lengoal/features/classes/domain/usecases/get_recommended_classes_page_usecase.dart';
 import 'package:lengoal/features/classes/domain/usecases/get_recommended_classes_usecase.dart';
 import 'package:lengoal/features/classes/domain/usecases/get_saved_classes_usecase.dart';
 import 'package:lengoal/features/classes/domain/usecases/get_subscribed_classes_usecase.dart';
+import 'package:lengoal/features/classes/domain/usecases/join_live_class_usecase.dart';
 import 'package:lengoal/features/classes/domain/usecases/search_classes_usecase.dart';
 import 'package:lengoal/features/classes/domain/usecases/set_class_saved_usecase.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_attendance/class_attendance_store.dart';
@@ -46,6 +49,7 @@ import 'package:lengoal/features/classes/presentation/bloc/class_discussion/clas
 import 'package:lengoal/features/classes/presentation/bloc/class_list/class_list_bloc.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_list/class_list_session_sync.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_search/class_search_bloc.dart';
+import 'package:lengoal/features/classes/presentation/bloc/live_class/live_class_cubit.dart';
 import 'package:lengoal/features/explore/data/datasources/explore_remote_data_source.dart';
 import 'package:lengoal/features/explore/data/repositories/explore_repository_impl.dart';
 import 'package:lengoal/features/explore/domain/repositories/explore_repository.dart';
@@ -242,7 +246,7 @@ void _initClasses() {
   }
   getIt
     ..registerLazySingleton<ClassRemoteDataSource>(
-      () => ClassRemoteDataSourceImpl(getIt()),
+      () => ClassRemoteDataSourceImpl(getIt(), liveKitUrl: Env.liveKitUrl),
     )
     ..registerLazySingleton<ClassRepository>(
       () =>
@@ -259,6 +263,15 @@ void _initClasses() {
     ..registerLazySingleton(() => GetClassEducatorsUseCase(getIt()))
     ..registerLazySingleton(() => GetClassReplayUseCase(getIt()))
     ..registerLazySingleton(() => GenerateClassReferralUseCase(getIt()))
+    ..registerLazySingleton(() => JoinLiveClassUseCase(getIt()))
+    ..registerLazySingleton(() => GetLiveClassStatusUseCase(getIt()))
+    ..registerFactoryParam<LiveClassCubit, String, void>(
+      (sessionId, _) => LiveClassCubit(
+        sessionId: sessionId,
+        joinLiveClass: getIt(),
+        getLiveClassStatus: getIt(),
+      ),
+    )
     ..registerLazySingleton(() => GetClassAttendanceUseCase(getIt()))
     ..registerLazySingleton(() => ClassAttendanceStore(getIt()))
     ..registerLazySingleton(

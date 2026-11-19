@@ -8,11 +8,14 @@ import 'package:lengoal/features/classes/data/models/lengoal_class_model.dart';
 import 'package:lengoal/features/classes/domain/entities/class_attendance.dart';
 import 'package:lengoal/features/classes/domain/entities/class_referral.dart';
 import 'package:lengoal/features/classes/domain/entities/class_replay.dart';
+import 'package:lengoal/features/classes/domain/entities/live_class_access.dart';
+import 'package:lengoal/features/classes/domain/entities/live_class_status.dart';
 
 class ClassRemoteDataSourceImpl implements ClassRemoteDataSource {
-  new(this._apiClient);
+  new(this._apiClient, {this._liveKitUrl = ''});
 
   final ApiClient _apiClient;
+  final String _liveKitUrl;
 
   // Lists are rendered in full rather than paginated, so one large page
   // covers them. Each class payload is heavy, hence smaller than the
@@ -330,6 +333,46 @@ class ClassRemoteDataSourceImpl implements ClassRemoteDataSource {
       return ClassAttendance(
         totalSessions: (data['totalSessions'] as num?)?.toInt() ?? 0,
         attendedSessions: (data['attendedSessions'] as num?)?.toInt() ?? 0,
+      );
+    } on DioException catch (e) {
+      throw _mapException(e);
+    }
+  }
+
+  // The web also sends userId, but the API spec's LiveKitQuery only has
+  // classOutlineId (plus guest fields); the server identifies the learner
+  // from the bearer token. `data` is the LiveKit access token.
+  @override
+  Future<LiveClassAccess> joinLiveClass(String classOutlineId) async {
+    if (_liveKitUrl.isEmpty) {
+      throw ServerException('Live classes are not available yet.');
+    }
+    try {
+      final response = await _apiClient.dio.post<Map<String, dynamic>>(
+        ClassApiEndpoints.joinLiveClass,
+        data: {'classOutlineId': classOutlineId},
+      );
+      final token = _nonEmpty(_checkSucceeded(response.data!)['data']);
+      if (token == null) {
+        throw ServerException('Could not join this class. Try again.');
+      }
+      return LiveClassAccess(serverUrl: _liveKitUrl, token: token);
+    } on DioException catch (e) {
+      throw _mapException(e);
+    }
+  }
+
+  @override
+  Future<LiveClassStatus> getLiveClassStatus(String classOutlineId) async {
+    try {
+      final response = await _apiClient.dio.get<Map<String, dynamic>>(
+        ClassApiEndpoints.liveClassStatus,
+        queryParameters: {'classOutlineId': classOutlineId},
+      );
+      final data = _unwrapObject(response.data!);
+      return LiveClassStatus(
+        isRecording: data['isRecording'] == true,
+        participantCount: (data['participantCount'] as num?)?.toInt() ?? 0,
       );
     } on DioException catch (e) {
       throw _mapException(e);

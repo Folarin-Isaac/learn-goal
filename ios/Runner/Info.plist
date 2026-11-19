@@ -3,7 +3,13 @@
 <plist version="1.0">
 <dict>
 	<key>NSCameraUsageDescription</key>
-	<string>Lengoal needs camera access so you can take a new profile photo.</string>
+	<string>Lengoal needs camera access so you can take a new profile photo and turn on your video in live classes.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Lengoal needs microphone access so you can speak in live classes.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+	</array>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Lengoal needs photo library access so you can choose a profile photo.</string>
 	<key>CFBundleLocalizations</key>

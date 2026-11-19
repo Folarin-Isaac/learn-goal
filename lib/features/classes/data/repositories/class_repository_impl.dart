@@ -9,6 +9,8 @@ import 'package:lengoal/features/classes/domain/entities/class_page.dart';
 import 'package:lengoal/features/classes/domain/entities/class_referral.dart';
 import 'package:lengoal/features/classes/domain/entities/class_replay.dart';
 import 'package:lengoal/features/classes/domain/entities/lengoal_class.dart';
+import 'package:lengoal/features/classes/domain/entities/live_class_access.dart';
+import 'package:lengoal/features/classes/domain/entities/live_class_status.dart';
 import 'package:lengoal/features/classes/domain/repositories/class_repository.dart';
 
 class ClassRepositoryImpl implements ClassRepository {
@@ -131,6 +133,20 @@ class ClassRepositoryImpl implements ClassRepository {
   @override
   Future<Either<Failure, ClassReferral>> generateClassReferral(String classId) {
     return _guard(() => _remoteDataSource.generateClassReferral(classId));
+  }
+
+  @override
+  Future<Either<Failure, LiveClassAccess>> joinLiveClass(
+    String classOutlineId,
+  ) {
+    return _guard(() => _remoteDataSource.joinLiveClass(classOutlineId));
+  }
+
+  @override
+  Future<Either<Failure, LiveClassStatus>> getLiveClassStatus(
+    String classOutlineId,
+  ) {
+    return _guard(() => _remoteDataSource.getLiveClassStatus(classOutlineId));
   }
 
   Future<Either<Failure, T>> _guard<T>(Future<T> Function() action) async {
