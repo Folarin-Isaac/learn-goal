@@ -27,6 +27,7 @@ class ClassDetailState extends Equatable {
     this.isRefreshing = false,
     this.isSharing = false,
     this.isEnrolling = false,
+    this.subscriptionKnown = true,
     this.loadingReplayId,
     this.featuredReplay,
     this.activeReplay,
@@ -40,6 +41,12 @@ class ClassDetailState extends Equatable {
   final bool isRefreshing;
   final bool isSharing;
   final bool isEnrolling;
+
+  // False while it isn't yet clear whether the learner owns the class (the
+  // row they tapped came from a list that doesn't say, and their library
+  // hasn't loaded). The header holds back Buy/Save until GetClass answers,
+  // so an owner never sees a flash of purchase buttons.
+  final bool subscriptionKnown;
   final String? loadingReplayId;
 
   // The latest recorded session, shown on the header card (poster + play
@@ -63,6 +70,7 @@ class ClassDetailState extends Equatable {
     bool? isRefreshing,
     bool? isSharing,
     bool? isEnrolling,
+    bool? subscriptionKnown,
     String? loadingReplayId,
   }) {
     return ClassDetailState(
@@ -71,6 +79,7 @@ class ClassDetailState extends Equatable {
       isRefreshing: isRefreshing ?? this.isRefreshing,
       isSharing: isSharing ?? this.isSharing,
       isEnrolling: isEnrolling ?? this.isEnrolling,
+      subscriptionKnown: subscriptionKnown ?? this.subscriptionKnown,
       loadingReplayId: loadingReplayId ?? this.loadingReplayId,
       featuredReplay: featuredReplay,
       activeReplay: activeReplay,
@@ -88,6 +97,7 @@ class ClassDetailState extends Equatable {
       isRefreshing: isRefreshing,
       isSharing: isSharing,
       isEnrolling: isEnrolling,
+      subscriptionKnown: subscriptionKnown,
       loadingReplayId: loadingReplayId,
       featuredReplay: replay,
       activeReplay: showIt ? replay : activeReplay,
@@ -107,6 +117,7 @@ class ClassDetailState extends Equatable {
       isRefreshing: isRefreshing,
       isSharing: isSharing,
       isEnrolling: isEnrolling,
+      subscriptionKnown: subscriptionKnown,
       loadingReplayId: loadingReplayId,
       featuredReplay: featuredReplay,
       activeReplay: replay,
@@ -127,6 +138,7 @@ class ClassDetailState extends Equatable {
       isRefreshing: isRefreshing,
       isSharing: sharing ?? isSharing,
       isEnrolling: enrolling ?? isEnrolling,
+      subscriptionKnown: subscriptionKnown,
       featuredReplay: featuredReplay,
       activeReplay: activeReplay,
       autoPlayReplay: autoPlayReplay,
@@ -142,6 +154,7 @@ class ClassDetailState extends Equatable {
     isRefreshing,
     isSharing,
     isEnrolling,
+    subscriptionKnown,
     loadingReplayId,
     featuredReplay,
     activeReplay,

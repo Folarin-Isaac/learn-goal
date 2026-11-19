@@ -320,9 +320,10 @@ void _initClasses() {
         postMessage: getIt(),
       ),
     )
-    ..registerFactoryParam<ClassDetailBloc, LengoalClass, void>(
-      (initial, _) => ClassDetailBloc(
+    ..registerFactoryParam<ClassDetailBloc, LengoalClass, bool>(
+      (initial, subscriptionKnown) => ClassDetailBloc(
         initial: initial,
+        subscriptionKnown: subscriptionKnown,
         getClassUseCase: getIt(),
         getEducatorProfileUseCase: getIt(),
         getClassReplayUseCase: getIt(),

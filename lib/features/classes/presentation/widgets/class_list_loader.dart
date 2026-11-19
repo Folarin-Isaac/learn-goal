@@ -18,6 +18,17 @@ Future<void> refreshClassLists(List<ClassListSource> sources) {
   ]);
 }
 
+(LengoalClass, bool) withKnownSubscription(LengoalClass lengoalClass) {
+  if (lengoalClass.isSubscribed) return (lengoalClass, true);
+  final library = classListBlocFor(ClassListSource.subscribed).state;
+  final goal = classListBlocFor(ClassListSource.goalSubscribed).state;
+  final id = lengoalClass.id;
+  if (library.classIds.contains(id) || goal.classIds.contains(id)) {
+    return (lengoalClass.asSubscribed(), true);
+  }
+  return (lengoalClass, library.status == ClassListStatus.loaded);
+}
+
 Future<void> toggleSavedClass(
   BuildContext context,
   LengoalClass lengoalClass, {

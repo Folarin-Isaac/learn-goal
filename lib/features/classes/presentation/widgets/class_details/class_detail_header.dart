@@ -14,6 +14,7 @@ class ClassDetailHeader extends StatelessWidget {
     required this.detail,
     required this.isSharing,
     this.isEnrolling = false,
+    this.subscriptionKnown = true,
     this.activeReplay,
     this.autoPlayReplay = false,
     super.key,
@@ -22,6 +23,7 @@ class ClassDetailHeader extends StatelessWidget {
   final ClassDetail detail;
   final bool isSharing;
   final bool isEnrolling;
+  final bool subscriptionKnown;
   final ClassReplay? activeReplay;
   final bool autoPlayReplay;
 
@@ -176,7 +178,11 @@ class ClassDetailHeader extends StatelessWidget {
             ],
           ],
         ),
-        if (!item.isSubscribed) ...[
+        if (!item.isSubscribed && !subscriptionKnown) ...[
+          const Gap(AppSpacing.s16),
+          const _ActionsSkeleton(),
+        ],
+        if (!item.isSubscribed && subscriptionKnown) ...[
           const Gap(AppSpacing.s16),
           AppButton(
             label: isFree
@@ -237,6 +243,26 @@ class ClassDetailHeader extends StatelessWidget {
         ClassListSource.recommended,
         ClassListSource.saved,
       ]),
+    );
+  }
+}
+
+class _ActionsSkeleton extends StatelessWidget {
+  const new();
+
+  static const double _buttonHeight = 55;
+
+  @override
+  Widget build(BuildContext context) {
+    return const Shimmer(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SkeletonBox(height: _buttonHeight, radius: AppSpacing.radiusPill),
+          Gap(AppSpacing.s8),
+          SkeletonBox(height: _buttonHeight, radius: AppSpacing.radiusPill),
+        ],
+      ),
     );
   }
 }

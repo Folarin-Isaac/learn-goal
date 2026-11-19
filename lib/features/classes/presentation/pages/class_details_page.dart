@@ -39,9 +39,11 @@ class _ClassDetailsPageState extends State<ClassDetailsPage> {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (_) =>
-              getIt<ClassDetailBloc>(param1: lengoalClass)
-                ..add(const ClassDetailRefreshRequested()),
+          create: (_) {
+            final (seed, known) = withKnownSubscription(lengoalClass);
+            return getIt<ClassDetailBloc>(param1: seed, param2: known)
+              ..add(const ClassDetailRefreshRequested());
+          },
         ),
         BlocProvider(
           create: (_) {
@@ -60,6 +62,7 @@ class _ClassDetailsPageState extends State<ClassDetailsPage> {
             previous.educators != current.educators ||
             previous.isSharing != current.isSharing ||
             previous.isEnrolling != current.isEnrolling ||
+            previous.subscriptionKnown != current.subscriptionKnown ||
             previous.loadingReplayId != current.loadingReplayId ||
             previous.activeReplay != current.activeReplay ||
             previous.autoPlayReplay != current.autoPlayReplay,
@@ -68,6 +71,7 @@ class _ClassDetailsPageState extends State<ClassDetailsPage> {
           educators: state.educators,
           isSharing: state.isSharing,
           isEnrolling: state.isEnrolling,
+          subscriptionKnown: state.subscriptionKnown,
           loadingReplayId: state.loadingReplayId,
           activeReplay: state.activeReplay,
           autoPlayReplay: state.autoPlayReplay,
@@ -128,6 +132,7 @@ class _ClassDetailsView extends StatelessWidget {
     required this.educators,
     required this.isSharing,
     required this.isEnrolling,
+    required this.subscriptionKnown,
     required this.loadingReplayId,
     required this.activeReplay,
     required this.autoPlayReplay,
@@ -138,6 +143,7 @@ class _ClassDetailsView extends StatelessWidget {
   final List<ClassEducator> educators;
   final bool isSharing;
   final bool isEnrolling;
+  final bool subscriptionKnown;
   final String? loadingReplayId;
   final ClassReplay? activeReplay;
   final bool autoPlayReplay;
@@ -194,6 +200,7 @@ class _ClassDetailsView extends StatelessWidget {
                           detail: detail,
                           isSharing: isSharing,
                           isEnrolling: isEnrolling,
+                          subscriptionKnown: subscriptionKnown,
                           activeReplay: activeReplay,
                           autoPlayReplay: autoPlayReplay,
                         ),

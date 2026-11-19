@@ -25,7 +25,13 @@ class ClassDetailBloc extends Bloc<ClassDetailEvent, ClassDetailState> {
     required this._getClassReplayUseCase,
     required this._generateClassReferralUseCase,
     required this._enrollInFreeClassUseCase,
-  }) : super(ClassDetailState(lengoalClass: initial)) {
+    bool subscriptionKnown = true,
+  }) : super(
+         ClassDetailState(
+           lengoalClass: initial,
+           subscriptionKnown: subscriptionKnown || initial.isSubscribed,
+         ),
+       ) {
     on<ClassDetailRefreshRequested>(_onRefreshRequested);
     on<ClassDetailShareRequested>(_onShareRequested);
     on<ClassDetailReplayRequested>(_onReplayRequested);
@@ -47,23 +53,28 @@ class ClassDetailBloc extends Bloc<ClassDetailEvent, ClassDetailState> {
     emit(state.copyWith(isRefreshing: true));
     final id = state.lengoalClass.id;
     final subscribed = state.lengoalClass.isSubscribed;
-    final (classResult, educator) = await (
-      _getClassUseCase(id),
-      _loadEducator(state.lengoalClass.educatorId),
-    ).wait;
-    // The backend's isSubscribed flag isn't reliable; once a list has
-    // established the learner is subscribed, a refresh can't undo that.
+    final seedEducatorId = state.lengoalClass.educatorId;
+    final educatorRequest = _loadEducator(seedEducatorId);
+    // The class is emitted as soon as it arrives (not after the educator),
+    // because it settles whether the learner owns it, and the header waits
+    // on that. The backend's isSubscribed flag isn't reliable; once a list
+    // has established the learner is subscribed, a refresh can't undo that.
+    final classResult = await _getClassUseCase(id);
     final fresh = classResult.getRight().toNullable();
+    emit(
+      state.copyWith(
+        lengoalClass: subscribed ? fresh?.asSubscribed() : fresh,
+        subscriptionKnown: true,
+      ),
+    );
+    final educator = await educatorRequest;
     final educatorId = fresh?.educatorId;
     final resolved =
         educator ??
-        (educatorId == state.lengoalClass.educatorId
-            ? null
-            : await _loadEducator(educatorId));
+        (educatorId == seedEducatorId ? null : await _loadEducator(educatorId));
     emit(
       state.copyWith(
         isRefreshing: false,
-        lengoalClass: subscribed ? fresh?.asSubscribed() : fresh,
         educators: resolved == null ? null : [resolved],
       ),
     );
