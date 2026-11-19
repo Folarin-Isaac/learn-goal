@@ -48,6 +48,7 @@ typedef _Snapshot = ({
   bool hasMore,
   int nextPage,
   String? pagedCategoryId,
+  String? pagedGoalId,
 });
 
 // One long-lived bloc per list, shared by every screen showing that list.
@@ -146,6 +147,7 @@ class ClassListBloc extends Bloc<ClassListEvent, ClassListState> {
         hasMore: cached.hasMore,
         nextPage: cached.nextPage,
         pagedCategoryId: cached.pagedCategoryId,
+        pagedGoalId: cached.pagedGoalId,
       ),
     );
     if (!_isFresh(cached.at)) await _load(emit);
@@ -200,6 +202,7 @@ class ClassListBloc extends Bloc<ClassListEvent, ClassListState> {
           hasMore: snapshot.hasMore,
           nextPage: snapshot.nextPage,
           pagedCategoryId: snapshot.pagedCategoryId,
+          pagedGoalId: snapshot.pagedGoalId,
           loadMoreFailed: false,
         ),
       ),
@@ -224,6 +227,7 @@ class ClassListBloc extends Bloc<ClassListEvent, ClassListState> {
       page: page,
       pageSize: pageSize,
       categoryId: state.pagedCategoryId,
+      goalId: state.pagedGoalId,
     );
     if (state.scope != scope || state.nextPage != page) return;
     result.match(
@@ -246,6 +250,7 @@ class ClassListBloc extends Bloc<ClassListEvent, ClassListState> {
           hasMore: more.hasMore,
           nextPage: page + 1,
           pagedCategoryId: state.pagedCategoryId,
+          pagedGoalId: state.pagedGoalId,
         );
         emit(next);
       },
@@ -285,15 +290,36 @@ class ClassListBloc extends Bloc<ClassListEvent, ClassListState> {
         hasMore: false,
         nextPage: 1,
         pagedCategoryId: null,
+        pagedGoalId: null,
       ),
     );
   }
 
-  // The goal's category narrows the feed; if that category has nothing,
-  // fall back to the whole feed and keep using it for later pages.
+  // The goal's own approved classes come first; if it has none, the goal's
+  // category narrows the landing feed, and if that's empty too the whole
+  // feed is used. Later pages keep reading from whichever source won.
   Future<Either<Failure, _Snapshot>> _fetchFirstPage(
     ClassGoalScope? scope,
   ) async {
+    final goalId = scope?.goalId;
+    if (goalId != null && goalId.isNotEmpty) {
+      final forGoal = await _getRecommendedClassesPageUseCase(
+        page: 1,
+        pageSize: pageSize,
+        goalId: goalId,
+      );
+      final page = forGoal.getRight().toNullable();
+      if (page != null && page.items.isNotEmpty) {
+        return Right((
+          classes: page.items,
+          at: DateTime.now(),
+          hasMore: page.hasMore,
+          nextPage: 2,
+          pagedCategoryId: null,
+          pagedGoalId: goalId,
+        ));
+      }
+    }
     final category = scope?.categoryId;
     final hasCategory = category != null && category.isNotEmpty;
     var categoryUsed = hasCategory ? category : null;
@@ -318,6 +344,7 @@ class ClassListBloc extends Bloc<ClassListEvent, ClassListState> {
         hasMore: page.hasMore,
         nextPage: 2,
         pagedCategoryId: categoryUsed,
+        pagedGoalId: null,
       ),
     );
   }
@@ -331,11 +358,13 @@ class ClassListBloc extends Bloc<ClassListEvent, ClassListState> {
       ClassListSource.recommended => _getRecommendedClassesUseCase(
         categoryId: scope?.categoryId,
         goalName: scope?.goalName,
+        goalId: scope?.goalId,
         pageSize: 20,
       ),
       ClassListSource.recommendedAll => _getRecommendedClassesUseCase(
         categoryId: scope?.categoryId,
         goalName: scope?.goalName,
+        goalId: scope?.goalId,
       ),
       ClassListSource.saved => _getSavedClassesUseCase(),
     };

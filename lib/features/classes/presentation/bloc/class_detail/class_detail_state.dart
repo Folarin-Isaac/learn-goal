@@ -1,15 +1,15 @@
 part of 'class_detail_bloc.dart';
 
-enum ClassDetailEffectKind { share, open, error }
+enum ClassDetailEffectKind { share, open, error, showReplay }
 
 class ClassDetailEffect extends Equatable {
-  const ClassDetailEffect.share(this.value)
-    : kind = ClassDetailEffectKind.share;
+  const new share(this.value) : kind = ClassDetailEffectKind.share;
 
-  const ClassDetailEffect.open(this.value) : kind = ClassDetailEffectKind.open;
+  const new open(this.value) : kind = ClassDetailEffectKind.open;
 
-  const ClassDetailEffect.error(this.value)
-    : kind = ClassDetailEffectKind.error;
+  const new error(this.value) : kind = ClassDetailEffectKind.error;
+
+  const new showReplay() : kind = ClassDetailEffectKind.showReplay, value = '';
 
   final ClassDetailEffectKind kind;
   final String value;
@@ -25,6 +25,9 @@ class ClassDetailState extends Equatable {
     this.isRefreshing = false,
     this.isSharing = false,
     this.loadingReplayId,
+    this.featuredReplay,
+    this.activeReplay,
+    this.autoPlayReplay = false,
     this.effect,
     this.effectCount = 0,
   });
@@ -34,6 +37,15 @@ class ClassDetailState extends Equatable {
   final bool isRefreshing;
   final bool isSharing;
   final String? loadingReplayId;
+
+  // The latest recorded session, shown on the header card (poster + play
+  // button) when the page opens, as on the web.
+  final ClassReplay? featuredReplay;
+
+  // What the header card shows in place of the cover. autoPlayReplay is
+  // true when the learner picked it from the Schedule tab.
+  final ClassReplay? activeReplay;
+  final bool autoPlayReplay;
 
   // One-off action for the page to perform (share sheet, open URL,
   // snackbar). effectCount bumps on every emission so the same effect
@@ -54,6 +66,43 @@ class ClassDetailState extends Equatable {
       isRefreshing: isRefreshing ?? this.isRefreshing,
       isSharing: isSharing ?? this.isSharing,
       loadingReplayId: loadingReplayId ?? this.loadingReplayId,
+      featuredReplay: featuredReplay,
+      activeReplay: activeReplay,
+      autoPlayReplay: autoPlayReplay,
+      effect: effect,
+      effectCount: effectCount,
+    );
+  }
+
+  ClassDetailState withFeaturedReplay(ClassReplay replay) {
+    final showIt = activeReplay == null;
+    return ClassDetailState(
+      lengoalClass: lengoalClass,
+      educators: educators,
+      isRefreshing: isRefreshing,
+      isSharing: isSharing,
+      loadingReplayId: loadingReplayId,
+      featuredReplay: replay,
+      activeReplay: showIt ? replay : activeReplay,
+      autoPlayReplay: !showIt && autoPlayReplay,
+      effect: effect,
+      effectCount: effectCount,
+    );
+  }
+
+  ClassDetailState withActiveReplay(
+    ClassReplay? replay, {
+    required bool autoPlay,
+  }) {
+    return ClassDetailState(
+      lengoalClass: lengoalClass,
+      educators: educators,
+      isRefreshing: isRefreshing,
+      isSharing: isSharing,
+      loadingReplayId: loadingReplayId,
+      featuredReplay: featuredReplay,
+      activeReplay: replay,
+      autoPlayReplay: autoPlay,
       effect: effect,
       effectCount: effectCount,
     );
@@ -65,6 +114,9 @@ class ClassDetailState extends Equatable {
       educators: educators,
       isRefreshing: isRefreshing,
       isSharing: sharing ?? isSharing,
+      featuredReplay: featuredReplay,
+      activeReplay: activeReplay,
+      autoPlayReplay: autoPlayReplay,
       effect: effect,
       effectCount: effectCount + 1,
     );
@@ -77,6 +129,9 @@ class ClassDetailState extends Equatable {
     isRefreshing,
     isSharing,
     loadingReplayId,
+    featuredReplay,
+    activeReplay,
+    autoPlayReplay,
     effect,
     effectCount,
   ];

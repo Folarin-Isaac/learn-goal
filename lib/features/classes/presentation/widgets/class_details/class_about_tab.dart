@@ -71,7 +71,7 @@ class _EducatorSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final avatar = educator.avatar;
     final hasAvatar = avatar != null && avatar.isNotEmpty;
-    final summary = educator.profileSummary?.trim() ?? '';
+    final summary = htmlToPlainText(educator.profileSummary ?? '');
     final details = [
       if (tierName.isNotEmpty) tierName,
       if (educator.yearsOfExperience > 0)

@@ -23,3 +23,7 @@ final class ClassDetailReplayRequested extends ClassDetailEvent {
   @override
   List<Object?> get props => [sessionId];
 }
+
+final class ClassDetailReplayClosed extends ClassDetailEvent {
+  const new();
+}

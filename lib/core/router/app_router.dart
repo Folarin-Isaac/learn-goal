@@ -2,6 +2,7 @@ import 'package:lengoal/core/core.dart';
 import 'package:lengoal/core/router/app_page_transitions.dart';
 import 'package:lengoal/core/router/go_router_refresh_stream.dart';
 import 'package:lengoal/core/router/home_shell.dart';
+import 'package:lengoal/core/router/in_memory_extra_codec.dart';
 import 'package:lengoal/features/auth/auth.dart';
 import 'package:lengoal/features/chats/chats.dart';
 import 'package:lengoal/features/chats/presentation/models/chat_conversation.dart';
@@ -28,6 +29,7 @@ class AppRouter {
   static final GoRouter router = GoRouter(
     navigatorKey: AppSnackbar.navigatorKey,
     initialLocation: RoutePaths.login,
+    extraCodec: const InMemoryExtraCodec(),
     refreshListenable: GoRouterRefreshStream(_authRepository.authStatusStream),
     redirect: (context, state) {
       final status = _authRepository.currentAuthStatus;

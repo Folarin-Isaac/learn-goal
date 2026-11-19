@@ -2,7 +2,8 @@ part of 'class_list_bloc.dart';
 
 enum ClassListStatus { initial, loading, loaded, failure }
 
-// Lets copyWith tell "leave pagedCategoryId alone" from "set it to null".
+// Lets copyWith tell "leave pagedCategoryId alone" from "set it to null"
+// (same for pagedGoalId).
 const Object _keep = Object();
 
 class ClassListState extends Equatable {
@@ -17,6 +18,7 @@ class ClassListState extends Equatable {
     this.hasMore = false,
     this.nextPage = 1,
     this.pagedCategoryId,
+    this.pagedGoalId,
     this.isLoadingMore = false,
     this.loadMoreFailed = false,
   });
@@ -35,6 +37,9 @@ class ClassListState extends Equatable {
   // The category the pages are actually being read from; null once the
   // goal's own category turned out empty and the full feed took over.
   final String? pagedCategoryId;
+  // Set when pages come from the goal's own approved classes rather than
+  // the landing feed.
+  final String? pagedGoalId;
   final bool isLoadingMore;
   final bool loadMoreFailed;
 
@@ -52,6 +57,7 @@ class ClassListState extends Equatable {
     bool? hasMore,
     int? nextPage,
     Object? pagedCategoryId = _keep,
+    Object? pagedGoalId = _keep,
     bool? isLoadingMore,
     bool? loadMoreFailed,
   }) {
@@ -68,6 +74,9 @@ class ClassListState extends Equatable {
       pagedCategoryId: identical(pagedCategoryId, _keep)
           ? this.pagedCategoryId
           : pagedCategoryId as String?,
+      pagedGoalId: identical(pagedGoalId, _keep)
+          ? this.pagedGoalId
+          : pagedGoalId as String?,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       loadMoreFailed: loadMoreFailed ?? this.loadMoreFailed,
     );
@@ -85,6 +94,7 @@ class ClassListState extends Equatable {
     hasMore,
     nextPage,
     pagedCategoryId,
+    pagedGoalId,
     isLoadingMore,
     loadMoreFailed,
   ];

@@ -85,8 +85,7 @@ CalendarSession calendarSessionFor(
     meetingUrl: '',
     host: host,
     id: session.id,
-    hasReplay:
-        session.isClassRecorded && status == CalendarSessionStatus.concluded,
+    hasReplay: status == CalendarSessionStatus.concluded,
   );
 }
 

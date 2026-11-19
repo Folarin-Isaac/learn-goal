@@ -12,11 +12,13 @@ class GetRecommendedClassesPageUseCase {
     required int page,
     required int pageSize,
     String? categoryId,
+    String? goalId,
   }) {
     return _repository.getRecommendedClassesPage(
       page: page,
       pageSize: pageSize,
       categoryId: categoryId,
+      goalId: goalId,
     );
   }
 }

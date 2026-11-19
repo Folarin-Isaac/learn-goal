@@ -13,7 +13,7 @@ class AppLogger {
   }
 
   static void _log(String level, String message) {
-    if (kDebugMode) {
+    if (!kReleaseMode) {
       debugPrint('[$level] $message');
     }
   }

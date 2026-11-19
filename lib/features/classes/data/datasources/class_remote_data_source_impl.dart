@@ -32,19 +32,27 @@ class ClassRemoteDataSourceImpl implements ClassRemoteDataSource {
     );
   }
 
-  // GetAllClasses is admin-only. The learner landing feed's category list
-  // returns every listed class when no CategoryId is given; the
-  // upcoming-classes feed drops anything that has already started.
-  // With a goal, its category narrows the feed (falling back to the full
-  // feed when that category has nothing), and classes for the goal itself
-  // are ranked first rather than filtered, so the section never goes
-  // empty just because no class targets that exact goal yet.
+  // With a goal, QueryClassesForALearner returns that goal's approved
+  // classes with a reliable isSubscribed. If the goal has none yet, fall
+  // back to the learner landing feed (GetAllClasses is admin-only): the
+  // goal's category narrows it, falling back to the full feed when that
+  // category is empty too, and classes for the goal itself are ranked
+  // first, so the section never goes empty.
   @override
   Future<List<LengoalClassModel>> getRecommendedClasses({
     String? categoryId,
     String? goalName,
+    String? goalId,
     int? pageSize,
   }) async {
+    if (goalId != null && goalId.isNotEmpty) {
+      final forGoal = await _getApprovedForGoal(
+        goalId,
+        page: 1,
+        pageSize: pageSize ?? _pageSize,
+      );
+      if (forGoal.items.isNotEmpty) return forGoal.items;
+    }
     var classes = await _getLandingList(
       ClassApiEndpoints.recommendedClasses,
       pageSize: pageSize,
@@ -75,7 +83,11 @@ class ClassRemoteDataSourceImpl implements ClassRemoteDataSource {
     required int page,
     required int pageSize,
     String? categoryId,
+    String? goalId,
   }) {
+    if (goalId != null && goalId.isNotEmpty) {
+      return _getApprovedForGoal(goalId, page: page, pageSize: pageSize);
+    }
     return _getLandingPage(
       ClassApiEndpoints.recommendedClasses,
       page: page,
@@ -99,6 +111,48 @@ class ClassRemoteDataSourceImpl implements ClassRemoteDataSource {
       pageSize: pageSize,
       extraParameters: {'SearchTerm': searchTerm},
     );
+  }
+
+  // approvalStatus: 1 = Draft, 2 = Pending, 3 = Approved (confirmed with
+  // the backend). The filter is sent as a parameter and re-applied here in
+  // case the server ignores it. Classes that have already ended are
+  // dropped, since a learner can't join them.
+  static const int _approvedStatus = 3;
+
+  Future<({List<LengoalClassModel> items, bool hasMore})> _getApprovedForGoal(
+    String goalId, {
+    required int page,
+    required int pageSize,
+  }) async {
+    try {
+      final response = await _apiClient.dio.get<Map<String, dynamic>>(
+        ClassApiEndpoints.queryClassesForLearner,
+        queryParameters: {
+          'PageSize': pageSize,
+          'PageNumber': page,
+          'GoalId': goalId,
+          'ApprovalStatus': _approvedStatus,
+        },
+      );
+      final body = _checkSucceeded(response.data!);
+      final rows = _unwrapList(body);
+      final now = DateTime.now();
+      final items = rows
+          .where(
+            (json) =>
+                int.tryParse('${json['approvalStatus']}') == _approvedStatus,
+          )
+          .map(LengoalClassModel.fromJson)
+          .where((c) => c.endDate == null || c.endDate!.isAfter(now))
+          .toList();
+      final hasNext = body['hasNextPage'];
+      return (
+        items: items,
+        hasMore: hasNext is bool ? hasNext : rows.length >= pageSize,
+      );
+    } on DioException catch (e) {
+      throw _mapException(e);
+    }
   }
 
   Future<({List<LengoalClassModel> items, bool hasMore})> _getLandingPage(
@@ -221,14 +275,24 @@ class ClassRemoteDataSourceImpl implements ClassRemoteDataSource {
         queryParameters: {'ClassOutlineId': classOutlineId},
       );
       final data = _unwrapObject(response.data!);
-      final url = data['recordFileUrl'] as String?;
-      if (url == null || url.isEmpty) {
+      final fileUrl = _nonEmpty(data['recordFileUrl']);
+      final streamId = _nonEmpty(data['streamId']);
+      if (fileUrl == null && streamId == null) {
         throw ServerException('This replay is not available yet.');
       }
+      // streamId is a Mux playback ID: the web player loads this exact
+      // manifest (confirmed from its network log), and it serves
+      // adaptive quality, which suits mobile data better than the MP4.
       return ClassReplay(
-        recordFileUrl: url,
-        topic: data['topic'] as String?,
-        streamId: data['streamId'] as String?,
+        streamUrl: streamId == null
+            ? null
+            : ClassApiEndpoints.replayStream(streamId),
+        fileUrl: fileUrl,
+        posterUrl: streamId == null
+            ? null
+            : ClassApiEndpoints.replayPoster(streamId),
+        topic: _nonEmpty(data['topic']),
+        startDate: DateTime.tryParse(data['startDate'] as String? ?? ''),
       );
     } on DioException catch (e) {
       throw _mapException(e);
@@ -270,6 +334,12 @@ class ClassRemoteDataSourceImpl implements ClassRemoteDataSource {
     } on DioException catch (e) {
       throw _mapException(e);
     }
+  }
+
+  String? _nonEmpty(Object? value) {
+    if (value is! String) return null;
+    final trimmed = value.trim();
+    return trimmed.isEmpty ? null : trimmed;
   }
 
   Map<String, dynamic> _unwrapObject(Map<String, dynamic> body) {

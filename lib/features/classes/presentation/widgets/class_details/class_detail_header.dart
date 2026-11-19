@@ -1,16 +1,26 @@
 import 'dart:async';
 
 import 'package:lengoal/core/core.dart';
+import 'package:lengoal/features/classes/domain/entities/class_replay.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_detail/class_detail_bloc.dart';
 import 'package:lengoal/features/classes/presentation/models/class_detail.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_list_loader.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_thumbnail.dart';
+import 'package:lengoal/features/classes/presentation/widgets/replay_player/class_replay_player.dart';
 
 class ClassDetailHeader extends StatelessWidget {
-  const new({required this.detail, required this.isSharing, super.key});
+  const new({
+    required this.detail,
+    required this.isSharing,
+    this.activeReplay,
+    this.autoPlayReplay = false,
+    super.key,
+  });
 
   final ClassDetail detail;
   final bool isSharing;
+  final ClassReplay? activeReplay;
+  final bool autoPlayReplay;
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +35,7 @@ class ClassDetailHeader extends StatelessWidget {
     final tagIcon = isFree
         ? Assets.icons.freeTagIcon
         : Assets.icons.premiumTagIcon;
+    final replay = activeReplay;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -33,7 +44,23 @@ class ClassDetailHeader extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppSpacing.r16),
           child: AspectRatio(
             aspectRatio: 16 / 9,
-            child: ClassCover(item: item),
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 250),
+              child: replay == null
+                  ? ClassCover(key: const ValueKey('cover'), item: item)
+                  : ClassReplayPlayer(
+                      key: ValueKey((replay, autoPlayReplay)),
+                      replay: replay,
+                      autoPlay: autoPlayReplay,
+                      title: replay.topic ?? item.title,
+                      onClose: () {
+                        AppHaptics.selection();
+                        context.read<ClassDetailBloc>().add(
+                          const ClassDetailReplayClosed(),
+                        );
+                      },
+                    ),
+            ),
           ),
         ),
         const Gap(AppSpacing.s16),

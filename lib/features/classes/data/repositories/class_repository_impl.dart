@@ -34,12 +34,14 @@ class ClassRepositoryImpl implements ClassRepository {
   Future<Either<Failure, List<LengoalClass>>> getRecommendedClasses({
     String? categoryId,
     String? goalName,
+    String? goalId,
     int? pageSize,
   }) {
     return _guard(
       () => _remoteDataSource.getRecommendedClasses(
         categoryId: categoryId,
         goalName: goalName,
+        goalId: goalId,
         pageSize: pageSize,
       ),
     );
@@ -50,12 +52,14 @@ class ClassRepositoryImpl implements ClassRepository {
     required int page,
     required int pageSize,
     String? categoryId,
+    String? goalId,
   }) {
     return _guard(() async {
       final result = await _remoteDataSource.getRecommendedClassesPage(
         page: page,
         pageSize: pageSize,
         categoryId: categoryId,
+        goalId: goalId,
       );
       return ClassPage(items: result.items, hasMore: result.hasMore);
     });

@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show listEquals;
 
 import 'package:lengoal/core/core.dart';
 import 'package:lengoal/features/classes/domain/entities/class_educator.dart';
+import 'package:lengoal/features/classes/domain/entities/class_replay.dart';
 import 'package:lengoal/features/classes/domain/entities/lengoal_class.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_detail/class_detail_bloc.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_discussion/class_discussion_cubit.dart';
@@ -17,10 +18,19 @@ import 'package:lengoal/features/classes/presentation/widgets/class_details/clas
 import 'package:lengoal/features/classes/presentation/widgets/class_details/class_schedule_tab.dart';
 import 'package:share_plus/share_plus.dart';
 
-class ClassDetailsPage extends StatelessWidget {
+class ClassDetailsPage extends StatefulWidget {
   const new({required this.lengoalClass, super.key});
 
   final LengoalClass lengoalClass;
+
+  @override
+  State<ClassDetailsPage> createState() => _ClassDetailsPageState();
+}
+
+class _ClassDetailsPageState extends State<ClassDetailsPage> {
+  final GlobalKey<NestedScrollViewState> _scrollKey = GlobalKey();
+
+  LengoalClass get lengoalClass => widget.lengoalClass;
 
   @override
   Widget build(BuildContext context) {
@@ -47,12 +57,17 @@ class ClassDetailsPage extends StatelessWidget {
             previous.lengoalClass != current.lengoalClass ||
             previous.educators != current.educators ||
             previous.isSharing != current.isSharing ||
-            previous.loadingReplayId != current.loadingReplayId,
+            previous.loadingReplayId != current.loadingReplayId ||
+            previous.activeReplay != current.activeReplay ||
+            previous.autoPlayReplay != current.autoPlayReplay,
         builder: (context, state) => _ClassDetailsView(
           detail: ClassDetail.fromClass(state.lengoalClass),
           educators: state.educators,
           isSharing: state.isSharing,
           loadingReplayId: state.loadingReplayId,
+          activeReplay: state.activeReplay,
+          autoPlayReplay: state.autoPlayReplay,
+          scrollKey: _scrollKey,
         ),
       ),
     );
@@ -79,6 +94,15 @@ class ClassDetailsPage extends StatelessWidget {
       case ClassDetailEffectKind.error:
         AppHaptics.error();
         AppSnackbar.error(effect.value);
+      case ClassDetailEffectKind.showReplay:
+        final outer = _scrollKey.currentState?.outerController;
+        if (outer != null && outer.hasClients && outer.offset > 0) {
+          await outer.animateTo(
+            0,
+            duration: const Duration(milliseconds: 350),
+            curve: Curves.easeOutCubic,
+          );
+        }
     }
   }
 }
@@ -89,12 +113,18 @@ class _ClassDetailsView extends StatelessWidget {
     required this.educators,
     required this.isSharing,
     required this.loadingReplayId,
+    required this.activeReplay,
+    required this.autoPlayReplay,
+    required this.scrollKey,
   });
 
   final ClassDetail detail;
   final List<ClassEducator> educators;
   final bool isSharing;
   final String? loadingReplayId;
+  final ClassReplay? activeReplay;
+  final bool autoPlayReplay;
+  final GlobalKey<NestedScrollViewState> scrollKey;
 
   @override
   Widget build(BuildContext context) {
@@ -113,6 +143,7 @@ class _ClassDetailsView extends StatelessWidget {
       child: Scaffold(
         body: SafeArea(
           child: NestedScrollView(
+            key: scrollKey,
             headerSliverBuilder: (context, innerBoxIsScrolled) => [
               SliverToBoxAdapter(
                 child: Padding(
@@ -145,6 +176,8 @@ class _ClassDetailsView extends StatelessWidget {
                         child: ClassDetailHeader(
                           detail: detail,
                           isSharing: isSharing,
+                          activeReplay: activeReplay,
+                          autoPlayReplay: autoPlayReplay,
                         ),
                       ),
                     ],

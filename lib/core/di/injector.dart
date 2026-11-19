@@ -295,7 +295,7 @@ void _initClasses() {
       (initial, _) => ClassDetailBloc(
         initial: initial,
         getClassUseCase: getIt(),
-        getClassEducatorsUseCase: getIt(),
+        getEducatorProfileUseCase: getIt(),
         getClassReplayUseCase: getIt(),
         generateClassReferralUseCase: getIt(),
       ),

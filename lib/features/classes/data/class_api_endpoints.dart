@@ -9,6 +9,8 @@ class ClassApiEndpoints {
   static const String unsaveClass = '/api/v1/Learner/LearnerRemoveSavesClass';
   static const String classReplay = '/api/v1/Class/class-replay';
   static const String searchClasses = '/api/v1/Landing/learner/search';
+  static const String queryClassesForLearner =
+      '/api/v1/Class/QueryClassesForALearner';
   static const String classDiscussion = '/api/v1/ClassDiscussion';
   static const String classDiscussionReplies =
       '/api/v1/ClassDiscussion/get-replies';
@@ -23,4 +25,11 @@ class ClassApiEndpoints {
 
   static String learnerAttendance(String classId) =>
       '/api/v1/Attendance/GetLearnerCohortAttendance/$classId';
+
+  static String replayStream(String streamId) =>
+      'https://stream.mux.com/${Uri.encodeComponent(streamId)}.m3u8';
+
+  static String replayPoster(String streamId) =>
+      'https://image.mux.com/${Uri.encodeComponent(streamId)}'
+      '/thumbnail.jpg?width=640';
 }

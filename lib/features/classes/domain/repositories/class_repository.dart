@@ -16,6 +16,7 @@ abstract class ClassRepository {
   Future<Either<Failure, List<LengoalClass>>> getRecommendedClasses({
     String? categoryId,
     String? goalName,
+    String? goalId,
     int? pageSize,
   });
 
@@ -29,6 +30,7 @@ abstract class ClassRepository {
     required int page,
     required int pageSize,
     String? categoryId,
+    String? goalId,
   });
 
   Future<Either<Failure, List<LengoalClass>>> getSavedClasses({
