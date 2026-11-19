@@ -8,6 +8,7 @@ import 'package:lengoal/features/classes/domain/entities/class_replay.dart';
 import 'package:lengoal/features/classes/domain/entities/lengoal_class.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_detail/class_detail_bloc.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_discussion/class_discussion_cubit.dart';
+import 'package:lengoal/features/classes/presentation/bloc/class_list/class_list_bloc.dart';
 import 'package:lengoal/features/classes/presentation/models/class_detail.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_details/class_about_tab.dart';
 // import 'package:lengoal/features/classes/presentation/widgets/class_details/class_certificate_tab.dart';
@@ -16,6 +17,7 @@ import 'package:lengoal/features/classes/presentation/widgets/class_details/clas
 import 'package:lengoal/features/classes/presentation/widgets/class_details/class_materials_tab.dart';
 // import 'package:lengoal/features/classes/presentation/widgets/class_details/class_quiz_tab.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_details/class_schedule_tab.dart';
+import 'package:lengoal/features/classes/presentation/widgets/class_list_loader.dart';
 import 'package:share_plus/share_plus.dart';
 
 class ClassDetailsPage extends StatefulWidget {
@@ -57,6 +59,7 @@ class _ClassDetailsPageState extends State<ClassDetailsPage> {
             previous.lengoalClass != current.lengoalClass ||
             previous.educators != current.educators ||
             previous.isSharing != current.isSharing ||
+            previous.isEnrolling != current.isEnrolling ||
             previous.loadingReplayId != current.loadingReplayId ||
             previous.activeReplay != current.activeReplay ||
             previous.autoPlayReplay != current.autoPlayReplay,
@@ -64,6 +67,7 @@ class _ClassDetailsPageState extends State<ClassDetailsPage> {
           detail: ClassDetail.fromClass(state.lengoalClass),
           educators: state.educators,
           isSharing: state.isSharing,
+          isEnrolling: state.isEnrolling,
           loadingReplayId: state.loadingReplayId,
           activeReplay: state.activeReplay,
           autoPlayReplay: state.autoPlayReplay,
@@ -94,6 +98,17 @@ class _ClassDetailsPageState extends State<ClassDetailsPage> {
       case ClassDetailEffectKind.error:
         AppHaptics.error();
         AppSnackbar.error(effect.value);
+      case ClassDetailEffectKind.enrolled:
+        AppHaptics.success();
+        AppSnackbar.success(l10n.classDetailsEnrolledMessage);
+        unawaited(
+          refreshClassLists(const [
+            ClassListSource.subscribed,
+            ClassListSource.goalSubscribed,
+            ClassListSource.recommended,
+            ClassListSource.saved,
+          ]),
+        );
       case ClassDetailEffectKind.showReplay:
         final outer = _scrollKey.currentState?.outerController;
         if (outer != null && outer.hasClients && outer.offset > 0) {
@@ -112,6 +127,7 @@ class _ClassDetailsView extends StatelessWidget {
     required this.detail,
     required this.educators,
     required this.isSharing,
+    required this.isEnrolling,
     required this.loadingReplayId,
     required this.activeReplay,
     required this.autoPlayReplay,
@@ -121,6 +137,7 @@ class _ClassDetailsView extends StatelessWidget {
   final ClassDetail detail;
   final List<ClassEducator> educators;
   final bool isSharing;
+  final bool isEnrolling;
   final String? loadingReplayId;
   final ClassReplay? activeReplay;
   final bool autoPlayReplay;
@@ -176,6 +193,7 @@ class _ClassDetailsView extends StatelessWidget {
                         child: ClassDetailHeader(
                           detail: detail,
                           isSharing: isSharing,
+                          isEnrolling: isEnrolling,
                           activeReplay: activeReplay,
                           autoPlayReplay: autoPlayReplay,
                         ),

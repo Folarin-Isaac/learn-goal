@@ -2,9 +2,10 @@ import 'package:lengoal/core/core.dart';
 import 'package:lengoal/features/classes/presentation/models/class_detail.dart';
 
 class PaymentSuccessPage extends StatelessWidget {
-  const new({required this.detail, super.key});
+  const new({required this.detail, this.onProceed, super.key});
 
   final ClassDetail detail;
+  final VoidCallback? onProceed;
 
   @override
   Widget build(BuildContext context) {
@@ -36,6 +37,11 @@ class PaymentSuccessPage extends StatelessWidget {
                 label: context.l10n.paymentProceedButton,
                 onPressed: () {
                   AppHaptics.selection();
+                  final proceed = onProceed;
+                  if (proceed != null) {
+                    proceed();
+                    return;
+                  }
                   context.pushReplacementNamed(
                     RouteNames.classDetails,
                     extra: detail.source,

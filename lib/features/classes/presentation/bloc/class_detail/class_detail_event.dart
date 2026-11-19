@@ -27,3 +27,11 @@ final class ClassDetailReplayRequested extends ClassDetailEvent {
 final class ClassDetailReplayClosed extends ClassDetailEvent {
   const new();
 }
+
+final class ClassDetailPaymentCompleted extends ClassDetailEvent {
+  const new();
+}
+
+final class ClassDetailFreeEnrollRequested extends ClassDetailEvent {
+  const new();
+}

@@ -1,6 +1,6 @@
 part of 'class_detail_bloc.dart';
 
-enum ClassDetailEffectKind { share, open, error, showReplay }
+enum ClassDetailEffectKind { share, open, error, showReplay, enrolled }
 
 class ClassDetailEffect extends Equatable {
   const new share(this.value) : kind = ClassDetailEffectKind.share;
@@ -10,6 +10,8 @@ class ClassDetailEffect extends Equatable {
   const new error(this.value) : kind = ClassDetailEffectKind.error;
 
   const new showReplay() : kind = ClassDetailEffectKind.showReplay, value = '';
+
+  const new enrolled() : kind = ClassDetailEffectKind.enrolled, value = '';
 
   final ClassDetailEffectKind kind;
   final String value;
@@ -24,6 +26,7 @@ class ClassDetailState extends Equatable {
     this.educators = const [],
     this.isRefreshing = false,
     this.isSharing = false,
+    this.isEnrolling = false,
     this.loadingReplayId,
     this.featuredReplay,
     this.activeReplay,
@@ -36,6 +39,7 @@ class ClassDetailState extends Equatable {
   final List<ClassEducator> educators;
   final bool isRefreshing;
   final bool isSharing;
+  final bool isEnrolling;
   final String? loadingReplayId;
 
   // The latest recorded session, shown on the header card (poster + play
@@ -58,6 +62,7 @@ class ClassDetailState extends Equatable {
     List<ClassEducator>? educators,
     bool? isRefreshing,
     bool? isSharing,
+    bool? isEnrolling,
     String? loadingReplayId,
   }) {
     return ClassDetailState(
@@ -65,6 +70,7 @@ class ClassDetailState extends Equatable {
       educators: educators ?? this.educators,
       isRefreshing: isRefreshing ?? this.isRefreshing,
       isSharing: isSharing ?? this.isSharing,
+      isEnrolling: isEnrolling ?? this.isEnrolling,
       loadingReplayId: loadingReplayId ?? this.loadingReplayId,
       featuredReplay: featuredReplay,
       activeReplay: activeReplay,
@@ -81,6 +87,7 @@ class ClassDetailState extends Equatable {
       educators: educators,
       isRefreshing: isRefreshing,
       isSharing: isSharing,
+      isEnrolling: isEnrolling,
       loadingReplayId: loadingReplayId,
       featuredReplay: replay,
       activeReplay: showIt ? replay : activeReplay,
@@ -99,6 +106,7 @@ class ClassDetailState extends Equatable {
       educators: educators,
       isRefreshing: isRefreshing,
       isSharing: isSharing,
+      isEnrolling: isEnrolling,
       loadingReplayId: loadingReplayId,
       featuredReplay: featuredReplay,
       activeReplay: replay,
@@ -108,12 +116,17 @@ class ClassDetailState extends Equatable {
     );
   }
 
-  ClassDetailState withEffect(ClassDetailEffect effect, {bool? sharing}) {
+  ClassDetailState withEffect(
+    ClassDetailEffect effect, {
+    bool? sharing,
+    bool? enrolling,
+  }) {
     return ClassDetailState(
       lengoalClass: lengoalClass,
       educators: educators,
       isRefreshing: isRefreshing,
       isSharing: sharing ?? isSharing,
+      isEnrolling: enrolling ?? isEnrolling,
       featuredReplay: featuredReplay,
       activeReplay: activeReplay,
       autoPlayReplay: autoPlayReplay,
@@ -128,6 +141,7 @@ class ClassDetailState extends Equatable {
     educators,
     isRefreshing,
     isSharing,
+    isEnrolling,
     loadingReplayId,
     featuredReplay,
     activeReplay,

@@ -86,39 +86,71 @@ class AppConfirmDialog extends StatelessWidget {
               ),
             ],
             const Gap(AppSpacing.s24),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.errorRed,
-                      side: const BorderSide(color: AppColors.errorRed),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppSpacing.r4),
-                      ),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final cancel = OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.errorRed,
+                    side: const BorderSide(color: AppColors.errorRed),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppSpacing.r4),
                     ),
-                    onPressed: () => Navigator.of(context).pop(false),
-                    child: Text(cancelLabel),
                   ),
-                ),
-                const Gap(AppSpacing.s8),
-                Expanded(
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: confirmColor,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppSpacing.r4),
-                      ),
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: Text(cancelLabel, textAlign: TextAlign.center),
+                );
+                final confirm = ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: confirmColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppSpacing.r4),
                     ),
-                    onPressed: () => Navigator.of(context).pop(true),
-                    child: Text(confirmLabel),
                   ),
-                ),
-              ],
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: Text(confirmLabel, textAlign: TextAlign.center),
+                );
+                const gap = AppSpacing.s8;
+                final half = (constraints.maxWidth - gap) / 2;
+                final fitsSideBySide = [
+                  cancelLabel,
+                  confirmLabel,
+                ].every((label) => _labelWidth(context, label) <= half);
+                if (fitsSideBySide) {
+                  return Row(
+                    children: [
+                      Expanded(child: cancel),
+                      const Gap(gap),
+                      Expanded(child: confirm),
+                    ],
+                  );
+                }
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [confirm, const Gap(gap), cancel],
+                );
+              },
             ),
           ],
         ),
       ),
     );
+  }
+
+  static const double _buttonPadding = 2 * AppSpacing.s24 + 2;
+
+  double _labelWidth(BuildContext context, String label) {
+    final theme = Theme.of(context);
+    final style =
+        theme.elevatedButtonTheme.style?.textStyle?.resolve({}) ??
+        theme.textTheme.labelLarge;
+    final painter = TextPainter(
+      text: TextSpan(text: label, style: style),
+      textDirection: Directionality.of(context),
+      textScaler: MediaQuery.textScalerOf(context),
+      maxLines: 1,
+    )..layout();
+    final width = painter.width + _buttonPadding;
+    painter.dispose();
+    return width;
   }
 }

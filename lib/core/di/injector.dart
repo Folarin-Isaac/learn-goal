@@ -71,7 +71,9 @@ import 'package:lengoal/features/goal_setup/presentation/bloc/goal_setup/goal_se
 import 'package:lengoal/features/payments/data/datasources/payment_remote_data_source.dart';
 import 'package:lengoal/features/payments/data/repositories/payment_repository_impl.dart';
 import 'package:lengoal/features/payments/domain/repositories/payment_repository.dart';
+import 'package:lengoal/features/payments/domain/usecases/class_payment_usecases.dart';
 import 'package:lengoal/features/payments/domain/usecases/get_payment_history_usecase.dart';
+import 'package:lengoal/features/payments/presentation/bloc/class_payment/class_payment_cubit.dart';
 import 'package:lengoal/features/payments/presentation/bloc/payment_history/payment_history_cubit.dart';
 import 'package:lengoal/features/profile/profile.dart';
 
@@ -188,6 +190,20 @@ void _initPayments() {
       ),
     )
     ..registerLazySingleton(() => GetPaymentHistoryUseCase(getIt()))
+    ..registerLazySingleton(() => InitialisePaymentUseCase(getIt()))
+    ..registerLazySingleton(() => VerifyPaymentUseCase(getIt()))
+    ..registerLazySingleton(() => AbandonPaymentUseCase(getIt()))
+    ..registerLazySingleton(() => EnrollInFreeClassUseCase(getIt(), getIt()))
+    ..registerFactoryParam<ClassPaymentCubit, String, double>(
+      (classId, amount) => ClassPaymentCubit(
+        classId: classId,
+        amount: amount,
+        getLearnerProfile: getIt(),
+        initialisePayment: getIt(),
+        verifyPayment: getIt(),
+        abandonPayment: getIt(),
+      ),
+    )
     ..registerFactory(
       () => PaymentHistoryCubit(
         getLearnerProfileUseCase: getIt(),
@@ -311,6 +327,7 @@ void _initClasses() {
         getEducatorProfileUseCase: getIt(),
         getClassReplayUseCase: getIt(),
         generateClassReferralUseCase: getIt(),
+        enrollInFreeClassUseCase: getIt(),
       ),
     );
 }

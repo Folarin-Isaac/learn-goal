@@ -9,6 +9,7 @@ import 'package:lengoal/features/classes/domain/usecases/get_class_replay_usecas
 import 'package:lengoal/features/classes/domain/usecases/get_class_usecase.dart';
 import 'package:lengoal/features/explore/domain/entities/educator_profile.dart';
 import 'package:lengoal/features/explore/domain/usecases/get_explore_feed_usecases.dart';
+import 'package:lengoal/features/payments/domain/usecases/class_payment_usecases.dart';
 
 part 'class_detail_event.dart';
 part 'class_detail_state.dart';
@@ -23,17 +24,21 @@ class ClassDetailBloc extends Bloc<ClassDetailEvent, ClassDetailState> {
     required this._getEducatorProfileUseCase,
     required this._getClassReplayUseCase,
     required this._generateClassReferralUseCase,
+    required this._enrollInFreeClassUseCase,
   }) : super(ClassDetailState(lengoalClass: initial)) {
     on<ClassDetailRefreshRequested>(_onRefreshRequested);
     on<ClassDetailShareRequested>(_onShareRequested);
     on<ClassDetailReplayRequested>(_onReplayRequested);
     on<ClassDetailReplayClosed>(_onReplayClosed);
+    on<ClassDetailPaymentCompleted>(_onPaymentCompleted);
+    on<ClassDetailFreeEnrollRequested>(_onFreeEnrollRequested);
   }
 
   final GetClassUseCase _getClassUseCase;
   final GetEducatorProfileUseCase _getEducatorProfileUseCase;
   final GetClassReplayUseCase _getClassReplayUseCase;
   final GenerateClassReferralUseCase _generateClassReferralUseCase;
+  final EnrollInFreeClassUseCase _enrollInFreeClassUseCase;
 
   Future<void> _onRefreshRequested(
     ClassDetailRefreshRequested event,
@@ -158,6 +163,39 @@ class ClassDetailBloc extends Bloc<ClassDetailEvent, ClassDetailState> {
             .withActiveReplay(replay, autoPlay: true)
             .withEffect(const ClassDetailEffect.showReplay()),
       ),
+    );
+  }
+
+  void _onPaymentCompleted(
+    ClassDetailPaymentCompleted event,
+    Emitter<ClassDetailState> emit,
+  ) {
+    emit(state.copyWith(lengoalClass: state.lengoalClass.asSubscribed()));
+    add(const ClassDetailRefreshRequested());
+  }
+
+  Future<void> _onFreeEnrollRequested(
+    ClassDetailFreeEnrollRequested event,
+    Emitter<ClassDetailState> emit,
+  ) async {
+    if (state.isEnrolling || state.lengoalClass.isSubscribed) return;
+    emit(state.copyWith(isEnrolling: true));
+    final result = await _enrollInFreeClassUseCase(state.lengoalClass.id);
+    result.match(
+      (failure) => emit(
+        state.withEffect(
+          ClassDetailEffect.error(failure.message),
+          enrolling: false,
+        ),
+      ),
+      (_) {
+        emit(
+          state
+              .copyWith(lengoalClass: state.lengoalClass.asSubscribed())
+              .withEffect(const ClassDetailEffect.enrolled(), enrolling: false),
+        );
+        add(const ClassDetailRefreshRequested());
+      },
     );
   }
 

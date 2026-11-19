@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:lengoal/core/core.dart';
 import 'package:lengoal/features/classes/domain/entities/class_replay.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_detail/class_detail_bloc.dart';
+import 'package:lengoal/features/classes/presentation/bloc/class_list/class_list_bloc.dart';
 import 'package:lengoal/features/classes/presentation/models/class_detail.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_list_loader.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_thumbnail.dart';
@@ -12,6 +13,7 @@ class ClassDetailHeader extends StatelessWidget {
   const new({
     required this.detail,
     required this.isSharing,
+    this.isEnrolling = false,
     this.activeReplay,
     this.autoPlayReplay = false,
     super.key,
@@ -19,6 +21,7 @@ class ClassDetailHeader extends StatelessWidget {
 
   final ClassDetail detail;
   final bool isSharing;
+  final bool isEnrolling;
   final ClassReplay? activeReplay;
   final bool autoPlayReplay;
 
@@ -179,13 +182,16 @@ class ClassDetailHeader extends StatelessWidget {
             label: isFree
                 ? context.l10n.classDetailsEnrollFree
                 : context.l10n.classDetailsBuyNow,
+            isLoading: isEnrolling,
             onPressed: () {
               AppHaptics.selection();
               if (isFree) {
-                AppSnackbar.info(context.l10n.dashboardComingSoon);
+                context.read<ClassDetailBloc>().add(
+                  const ClassDetailFreeEnrollRequested(),
+                );
                 return;
               }
-              unawaited(context.pushNamed(RouteNames.payment, extra: detail));
+              unawaited(_buy(context));
             },
           ),
           const Gap(AppSpacing.s8),
@@ -213,6 +219,24 @@ class ClassDetailHeader extends StatelessWidget {
           ),
         ],
       ],
+    );
+  }
+
+  Future<void> _buy(BuildContext context) async {
+    final bloc = context.read<ClassDetailBloc>();
+    final paid = await context.pushNamed<bool>(
+      RouteNames.payment,
+      extra: detail,
+    );
+    if (paid != true) return;
+    bloc.add(const ClassDetailPaymentCompleted());
+    unawaited(
+      refreshClassLists(const [
+        ClassListSource.subscribed,
+        ClassListSource.goalSubscribed,
+        ClassListSource.recommended,
+        ClassListSource.saved,
+      ]),
     );
   }
 }
