@@ -1,12 +1,11 @@
 import 'package:flutter/widgets.dart';
+import 'package:lengoal/core/utils/extensions/string_extensions.dart';
 import 'package:lengoal/l10n/l10n.dart';
 
 class Validators {
   const new();
 
-  static final RegExp _emailRegex = RegExp(
-    r'^[a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,10}$',
-  );
+  static final RegExp _emailRegex = emailPattern;
   static final RegExp _uppercase = RegExp('[A-Z]');
   static final RegExp _lowercase = RegExp('[a-z]');
   static final RegExp _specialChar = RegExp(r'[!@#$%^&*(),.?":{}|<>_\-]');
