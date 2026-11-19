@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:lengoal/core/core.dart';
 import 'package:lengoal/features/classes/presentation/models/class_detail.dart';
 import 'package:lengoal/features/explore/domain/entities/educator_profile.dart';
