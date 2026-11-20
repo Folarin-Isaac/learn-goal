@@ -43,7 +43,7 @@ class _ClassReplayPlayerState extends State<ClassReplayPlayer> {
   bool _fullscreen = false;
   bool _wakelockOn = false;
   bool _started = false;
-  OverlayEntry? _fullscreenEntry;
+  Route<void>? _fullscreenRoute;
 
   List<String> get _sources => widget.replay.sources;
 
@@ -64,13 +64,20 @@ class _ClassReplayPlayerState extends State<ClassReplayPlayer> {
 
   @override
   void dispose() {
-    final entry = _fullscreenEntry;
-    if (entry != null) {
-      _fullscreenEntry = null;
-      entry.remove();
+    final route = _fullscreenRoute;
+    final controller = _controller;
+    if (route != null) {
+      _fullscreenRoute = null;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (route.isActive) route.navigator?.removeRoute(route);
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) => _release(controller),
+        );
+      });
       unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge));
+    } else {
+      _release(controller);
     }
-    _release(_controller);
     if (_started) {
       unawaited(WakelockPlus.disable());
       unawaited(
@@ -140,9 +147,11 @@ class _ClassReplayPlayerState extends State<ClassReplayPlayer> {
 
   void _enterFullscreen() {
     final controller = _controller;
-    if (_fullscreenEntry != null || controller == null) return;
-    final entry = OverlayEntry(
-      builder: (_) => Material(
+    if (_fullscreenRoute != null || controller == null) return;
+    final route = PageRouteBuilder<void>(
+      transitionDuration: Duration.zero,
+      reverseTransitionDuration: Duration.zero,
+      pageBuilder: (_, _, _) => Material(
         color: Colors.black,
         child: ReplayPlayerSurface(
           controller: controller,
@@ -155,20 +164,30 @@ class _ClassReplayPlayerState extends State<ClassReplayPlayer> {
         ),
       ),
     );
-    Overlay.of(context, rootOverlay: true).insert(entry);
-    _fullscreenEntry = entry;
+    _fullscreenRoute = route;
     setState(() => _fullscreen = true);
     unawaited(SystemChrome.setPreferredOrientations(_landscape));
     unawaited(
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky),
     );
+    unawaited(
+      Navigator.of(
+        context,
+        rootNavigator: true,
+      ).push(route).whenComplete(() => _onFullscreenClosed(route)),
+    );
   }
 
   void _exitFullscreen() {
-    final entry = _fullscreenEntry;
-    if (entry == null) return;
-    _fullscreenEntry = null;
-    entry.remove();
+    final route = _fullscreenRoute;
+    if (route == null) return;
+    if (route.isActive) route.navigator?.removeRoute(route);
+    _onFullscreenClosed(route);
+  }
+
+  void _onFullscreenClosed(Route<void> route) {
+    if (_fullscreenRoute != route) return;
+    _fullscreenRoute = null;
     unawaited(SystemChrome.setPreferredOrientations(_portrait));
     unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge));
     if (mounted) setState(() => _fullscreen = false);
@@ -176,15 +195,7 @@ class _ClassReplayPlayerState extends State<ClassReplayPlayer> {
 
   @override
   Widget build(BuildContext context) {
-    if (_fullscreen) {
-      return PopScope(
-        canPop: false,
-        onPopInvokedWithResult: (didPop, _) {
-          if (!didPop) _exitFullscreen();
-        },
-        child: const ColoredBox(color: Colors.black),
-      );
-    }
+    if (_fullscreen) return const ColoredBox(color: Colors.black);
     if (!_started) {
       return ReplayPoster(
         posterUrl: widget.replay.posterUrl,
