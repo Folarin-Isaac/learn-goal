@@ -5,7 +5,6 @@ import 'package:lengoal/core/router/home_shell.dart';
 import 'package:lengoal/core/router/in_memory_extra_codec.dart';
 import 'package:lengoal/features/auth/auth.dart';
 import 'package:lengoal/features/chats/chats.dart';
-import 'package:lengoal/features/chats/presentation/models/chat_conversation.dart';
 import 'package:lengoal/features/classes/classes.dart';
 import 'package:lengoal/features/classes/presentation/models/class_detail.dart';
 import 'package:lengoal/features/classes/presentation/models/class_material.dart';
@@ -421,7 +420,7 @@ class AppRouter {
         name: RouteNames.chatThread,
         pageBuilder: (context, state) => AppPageTransitions.build(
           state: state,
-          child: ChatThreadPage(conversation: state.extra! as ChatConversation),
+          child: ChatThreadPage(lengoalClass: state.extra! as LengoalClass),
         ),
       ),
       ShellRoute(

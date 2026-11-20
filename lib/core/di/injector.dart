@@ -20,6 +20,12 @@ import 'package:lengoal/features/auth/domain/usecases/reset_password_usecase.dar
 import 'package:lengoal/features/auth/domain/usecases/verify_otp_usecase.dart';
 import 'package:lengoal/features/auth/presentation/bloc/auth/auth_bloc.dart';
 import 'package:lengoal/features/auth/presentation/bloc/change_password/change_password_bloc.dart';
+import 'package:lengoal/features/chats/data/datasources/chat_remote_data_source.dart';
+import 'package:lengoal/features/chats/data/repositories/chat_repository_impl.dart';
+import 'package:lengoal/features/chats/domain/repositories/chat_repository.dart';
+import 'package:lengoal/features/chats/domain/usecases/chat_usecases.dart';
+import 'package:lengoal/features/chats/presentation/bloc/chat_list/chat_list_cubit.dart';
+import 'package:lengoal/features/chats/presentation/bloc/chat_thread/chat_thread_cubit.dart';
 import 'package:lengoal/features/classes/data/datasources/class_discussion_remote_data_source.dart';
 import 'package:lengoal/features/classes/data/datasources/class_remote_data_source.dart';
 import 'package:lengoal/features/classes/data/datasources/class_remote_data_source_impl.dart';
@@ -99,6 +105,7 @@ Future<void> setupInjector({bool enableNetworkLogging = false}) async {
   _initClasses();
   _initPayments();
   _initExplore();
+  _initChats();
 
   // Resolve the stored session before the first frame and before the
   // session syncs start, so the router never sees an "unknown" status
@@ -147,6 +154,38 @@ Stream<ActiveGoalState> _goalStates(ActiveGoalCubit cubit) {
     final subscription = cubit.stream.listen(controller.add);
     controller.onCancel = subscription.cancel;
   });
+}
+
+void _initChats() {
+  getIt
+    ..registerLazySingleton<ChatRemoteDataSource>(
+      () => ChatRemoteDataSourceImpl(getIt()),
+    )
+    ..registerLazySingleton<ChatRepository>(
+      () => ChatRepositoryImpl(remoteDataSource: getIt(), networkInfo: getIt()),
+    )
+    ..registerLazySingleton(() => GetChatMessagesUseCase(getIt()))
+    ..registerLazySingleton(() => GetLatestChatMessageUseCase(getIt()))
+    ..registerLazySingleton(() => GetChatIdentityUseCase(getIt()))
+    ..registerLazySingleton(() => SendChatMessageUseCase(getIt(), getIt()))
+    ..registerLazySingleton(() => EditChatMessageUseCase(getIt()))
+    ..registerLazySingleton(() => DeleteChatMessageUseCase(getIt()))
+    ..registerFactory(
+      () => ChatListCubit(
+        library: classListBlocFor(ClassListSource.subscribed),
+        getLatest: getIt(),
+      ),
+    )
+    ..registerFactoryParam<ChatThreadCubit, String, void>(
+      (classId, _) => ChatThreadCubit(
+        classId: classId,
+        getMessages: getIt(),
+        sendMessage: getIt(),
+        editMessage: getIt(),
+        deleteMessage: getIt(),
+        getIdentity: getIt(),
+      ),
+    );
 }
 
 void _initExplore() {

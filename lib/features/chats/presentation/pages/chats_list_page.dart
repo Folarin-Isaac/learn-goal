@@ -1,8 +1,9 @@
 import 'dart:async';
 
 import 'package:lengoal/core/core.dart';
-import 'package:lengoal/features/chats/presentation/models/chat_conversation.dart';
+import 'package:lengoal/features/chats/presentation/bloc/chat_list/chat_list_cubit.dart';
 import 'package:lengoal/features/chats/presentation/widgets/chat_list_tile.dart';
+import 'package:lengoal/features/classes/domain/entities/lengoal_class.dart';
 
 class ChatsListPage extends StatefulWidget {
   const new({super.key});
@@ -11,149 +12,179 @@ class ChatsListPage extends StatefulWidget {
   State<ChatsListPage> createState() => _ChatsListPageState();
 }
 
-class _ChatsListPageState extends State<ChatsListPage>
-    with SingleTickerProviderStateMixin {
-  late final TabController _tabController = TabController(
-    length: 3,
-    vsync: this,
-  );
+class _ChatsListPageState extends State<ChatsListPage> {
+  final ChatListCubit _cubit = getIt<ChatListCubit>()..start();
+  final TextEditingController _search = TextEditingController();
+  late final Timer _clock;
+  DateTime _now = DateTime.now();
+
+  @override
+  void initState() {
+    super.initState();
+    _clock = Timer.periodic(
+      const Duration(minutes: 1),
+      (_) => setState(() => _now = DateTime.now()),
+    );
+  }
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _clock.cancel();
+    _search.dispose();
+    unawaited(_cubit.close());
     super.dispose();
   }
 
-  void _openThread(ChatConversation conversation) {
-    AppHaptics.selection();
-    unawaited(context.pushNamed(RouteNames.chatThread, extra: conversation));
+  Future<void> _open(LengoalClass lengoalClass) async {
+    await context.pushNamed(RouteNames.chatThread, extra: lengoalClass);
+    _cubit.refreshClass(lengoalClass.id);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.s24,
-                AppSpacing.s24,
-                AppSpacing.s24,
-                0,
-              ),
-              child: Entrance(
-                child: Text(
-                  context.l10n.chatsTitle,
-                  style: context.textTheme.headlineSmall,
-                ),
-              ),
-            ),
-            Entrance(
-              index: 1,
-              child: AppTabBar(
-                controller: _tabController,
-                labels: [
-                  context.l10n.chatsGroupMessagesTab,
-                  context.l10n.chatsDirectMessagesTab,
-                  context.l10n.chatsRequestsTab,
-                ],
-              ),
-            ),
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                physics: const NeverScrollableScrollPhysics(),
-                children: [
-                  _ChatList(conversations: mockGroupChats, onTap: _openThread),
-                  _ChatList(conversations: mockDirectChats, onTap: _openThread),
-                  _ChatList(
-                    conversations: mockChatRequests,
-                    onTap: _openThread,
+    return RouteVisibilityListener(
+      routeName: RouteNames.chats,
+      onVisible: _cubit.refreshIfStale,
+      child: BlocProvider.value(
+        value: _cubit,
+        child: Scaffold(
+          body: SafeArea(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.s24,
+                    AppSpacing.s24,
+                    AppSpacing.s24,
+                    AppSpacing.s16,
                   ),
-                ],
-              ),
+                  child: Entrance(
+                    child: Text(
+                      context.l10n.chatsTitle,
+                      style: context.textTheme.headlineSmall,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.s24,
+                  ),
+                  child: Entrance(
+                    index: 1,
+                    child: TextField(
+                      autofillHints: null,
+                      controller: _search,
+                      onChanged: _cubit.search,
+                      textInputAction: TextInputAction.search,
+                      decoration: InputDecoration(
+                        hintText: context.l10n.chatsSearchHint,
+                        prefixIcon: Padding(
+                          padding: const EdgeInsets.all(14),
+                          child: Assets.icons.searchIcon.svg(
+                            width: 20,
+                            height: 20,
+                          ),
+                        ),
+                        suffixIcon: ValueListenableBuilder<TextEditingValue>(
+                          valueListenable: _search,
+                          builder: (context, value, _) => value.text.isEmpty
+                              ? const SizedBox.shrink()
+                              : IconButton(
+                                  tooltip: context.l10n.commonCancel,
+                                  icon: const Icon(Icons.close_rounded),
+                                  onPressed: () {
+                                    _search.clear();
+                                    _cubit.search('');
+                                  },
+                                ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const Gap(AppSpacing.s16),
+                Expanded(
+                  child: BlocBuilder<ChatListCubit, ChatListState>(
+                    builder: _body,
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
+
+  Widget _body(BuildContext context, ChatListState state) {
+    switch (state.status) {
+      case ChatListStatus.loading:
+        return const _ChatListSkeleton();
+      case ChatListStatus.failure:
+        return ErrorView(
+          message: state.errorMessage ?? context.l10n.errorGeneric,
+          retryLabel: context.l10n.commonRetry,
+          onRetry: () => unawaited(_cubit.refresh()),
+        );
+      case ChatListStatus.loaded:
+        final visible = state.visible;
+        return RefreshIndicator(
+          onRefresh: _cubit.refresh,
+          child: ListView.separated(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.s24,
+              0,
+              AppSpacing.s24,
+              AppSpacing.s24,
+            ),
+            itemCount: visible.isEmpty ? 1 : visible.length,
+            separatorBuilder: (context, index) => const Gap(AppSpacing.s8),
+            itemBuilder: (context, index) {
+              if (visible.isEmpty) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.s48),
+                  child: Text(
+                    state.hasClasses
+                        ? context.l10n.chatsNoMatches
+                        : context.l10n.chatsEmptyList,
+                    textAlign: TextAlign.center,
+                    style: context.textTheme.bodyMedium?.copyWith(
+                      color: context.colors.onSurfaceVariant,
+                    ),
+                  ),
+                );
+              }
+              final preview = visible[index];
+              return Entrance(
+                index: index + 2,
+                child: ChatListTile(
+                  preview: preview,
+                  now: _now,
+                  onTap: () => unawaited(_open(preview.lengoalClass)),
+                ),
+              );
+            },
+          ),
+        );
+    }
+  }
 }
 
-class _ChatList extends StatefulWidget {
-  const new({required this.conversations, required this.onTap});
-
-  final List<ChatConversation> conversations;
-  final ValueChanged<ChatConversation> onTap;
-
-  @override
-  State<_ChatList> createState() => _ChatListState();
-}
-
-class _ChatListState extends State<_ChatList>
-    with AutomaticKeepAliveClientMixin {
-  final _searchController = TextEditingController();
-  String _query = '';
-
-  @override
-  bool get wantKeepAlive => true;
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  List<ChatConversation> get _filtered {
-    if (_query.isEmpty) return widget.conversations;
-    final query = _query.toLowerCase();
-    return widget.conversations
-        .where((c) => c.name.toLowerCase().contains(query))
-        .toList();
-  }
+class _ChatListSkeleton extends StatelessWidget {
+  const new();
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
-    final conversations = _filtered;
-    return ListView(
-      padding: const EdgeInsets.all(AppSpacing.s24),
-      children: [
-        TextField(
-          autofillHints: null,
-          controller: _searchController,
-          onChanged: (value) => setState(() => _query = value),
-          decoration: InputDecoration(
-            hintText: context.l10n.chatsSearchHint,
-            prefixIcon: Padding(
-              padding: const EdgeInsets.all(14),
-              child: Assets.icons.searchIcon.svg(width: 20, height: 20),
-            ),
-          ),
-        ),
-        const Gap(AppSpacing.s16),
-        if (conversations.isEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: AppSpacing.s24),
-            child: Center(
-              child: Text(
-                context.l10n.dashboardNoResults,
-                style: context.textTheme.bodyMedium,
-              ),
-            ),
-          )
-        else
-          for (var i = 0; i < conversations.length; i++)
-            Entrance(
-              index: i + 2,
-              child: ChatListTile(
-                conversation: conversations[i],
-                onTap: () => widget.onTap(conversations[i]),
-              ),
-            ),
-      ],
+    return Shimmer(
+      child: ListView.separated(
+        physics: const NeverScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s24),
+        itemCount: 5,
+        separatorBuilder: (context, index) => const Gap(AppSpacing.s8),
+        itemBuilder: (context, index) => const SkeletonBox(height: 76),
+      ),
     );
   }
 }

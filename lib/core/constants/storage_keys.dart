@@ -14,6 +14,11 @@ class StorageKeys {
   // then lasts only until the app is next launched.
   static const String keepSignedIn = 'keep_signed_in';
 
+  // The app user id from login. The token's claims carry email and name
+  // but the id claim name isn't documented, so it's kept separately
+  // (class chat sends it as senderAppUserId).
+  static const String userId = 'user_id';
+
   // The goal picked in the dashboard switcher, restored on next launch.
   static const String activeGoalId = 'active_goal_id';
 }

@@ -1,88 +1,95 @@
 import 'package:lengoal/core/core.dart';
-import 'package:lengoal/features/chats/presentation/models/chat_conversation.dart';
+import 'package:lengoal/features/chats/presentation/bloc/chat_list/chat_list_cubit.dart';
+import 'package:lengoal/features/chats/presentation/models/chat_time.dart';
 
 class ChatListTile extends StatelessWidget {
-  const new({required this.conversation, required this.onTap, super.key});
+  const new({
+    required this.preview,
+    required this.now,
+    required this.onTap,
+    super.key,
+  });
 
-  final ChatConversation conversation;
+  final ChatPreview preview;
+  final DateTime now;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final preview = conversation.lastSenderName == null
-        ? conversation.preview
-        : '${conversation.lastSenderName} : ${conversation.preview}';
+    final l10n = context.l10n;
+    final latest = preview.latest;
+    final accent = context.colors.primary;
+    final String previewText;
+    if (!preview.isLoaded) {
+      previewText = '';
+    } else if (latest == null) {
+      previewText = l10n.chatsNoMessagesPreview;
+    } else if (latest.text.trim().isNotEmpty) {
+      previewText = latest.text.trim();
+    } else {
+      previewText = l10n.chatsAttachmentPreview;
+    }
 
     return Pressable(
-      child: InkWell(
-        borderRadius: BorderRadius.circular(AppSpacing.r12),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: AppSpacing.s8),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CircleAvatar(
-                radius: 24,
-                backgroundColor: conversation.avatarColor,
-                foregroundColor: Colors.white,
-                child: Text(
-                  conversation.avatarInitial,
-                  style: const TextStyle(fontWeight: FontWeight.w700),
-                ),
-              ),
-              const Gap(AppSpacing.s16),
-              Expanded(
-                child: Column(
+      child: Material(
+        color: accent.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(AppSpacing.r8),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(AppSpacing.r8),
+          onTap: () {
+            AppHaptics.selection();
+            onTap();
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.s16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      conversation.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: context.textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const Gap(AppSpacing.s4),
-                    Text(
-                      preview,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: context.textTheme.bodyMedium?.copyWith(
-                        color: context.colors.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Gap(AppSpacing.s8),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  if (conversation.unreadCount > 0)
-                    CircleAvatar(
-                      radius: 10,
-                      backgroundColor: context.colors.primary,
+                    Expanded(
                       child: Text(
-                        '${conversation.unreadCount}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
+                        preview.lengoalClass.cohortName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: context.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
-                  const Gap(AppSpacing.s4),
+                    if (latest != null) ...[
+                      const Gap(AppSpacing.s8),
+                      Flexible(
+                        child: Text(
+                          ChatTime.relative(context, latest.createdOn, now),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.end,
+                          style: context.textTheme.bodySmall?.copyWith(
+                            color: accent,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                const Gap(AppSpacing.s4),
+                if (!preview.isLoaded)
+                  const Shimmer(child: SkeletonBox(width: 140))
+                else
                   Text(
-                    conversation.timestamp,
-                    style: context.textTheme.bodySmall?.copyWith(
-                      color: context.colors.onSurfaceVariant,
+                    previewText,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: context.textTheme.bodyMedium?.copyWith(
+                      color: latest == null
+                          ? context.colors.onSurfaceVariant
+                          : accent,
                     ),
                   ),
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

@@ -73,12 +73,32 @@ class AuthRepositoryImpl implements AuthRepository {
     final token = await _secureStorage.read(StorageKeys.accessToken);
     if (token == null || token.isEmpty) return null;
     final claims = JwtDecoder.decodePayload(token);
+    final storedId = await _secureStorage.read(StorageKeys.userId);
     return UserModel(
-      id: '',
+      id: storedId ?? _idFromClaims(claims),
       email: claims['Email'] as String? ?? '',
       firstName: claims['FirstName'] as String? ?? '',
       lastName: claims['LastName'] as String? ?? '',
     );
+  }
+
+  // Sessions from before the id was stored at login: look for it under the
+  // usual ASP.NET claim names.
+  static const List<String> _idClaims = [
+    'UserId',
+    'userId',
+    'AppUserId',
+    'nameid',
+    'sub',
+    'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier',
+  ];
+
+  static String _idFromClaims(Map<String, dynamic> claims) {
+    for (final key in _idClaims) {
+      final value = claims[key];
+      if (value is String && value.isNotEmpty) return value;
+    }
+    return '';
   }
 
   @override
@@ -95,6 +115,7 @@ class AuthRepositoryImpl implements AuthRepository {
           await _remoteDataSource.login(email: email, password: password);
       await _secureStorage.write(StorageKeys.accessToken, accessToken);
       await _secureStorage.write(StorageKeys.refreshToken, refreshToken);
+      await _secureStorage.write(StorageKeys.userId, user.id);
       await _secureStorage.write(
         StorageKeys.keepSignedIn,
         keepSignedIn.toString(),
@@ -210,6 +231,7 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<void> _clearSession() async {
     await _secureStorage.delete(StorageKeys.accessToken);
     await _secureStorage.delete(StorageKeys.refreshToken);
+    await _secureStorage.delete(StorageKeys.userId);
     await _secureStorage.delete(StorageKeys.needsGoalSetup);
     await _secureStorage.delete(StorageKeys.keepSignedIn);
     _needsGoalSetup = false;

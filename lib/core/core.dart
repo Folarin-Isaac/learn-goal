@@ -28,5 +28,6 @@ export 'package:lengoal/core/widgets/loading_indicator.dart';
 export 'package:lengoal/core/widgets/numeric_keypad.dart';
 export 'package:lengoal/core/widgets/otp_input.dart';
 export 'package:lengoal/core/widgets/password_strength_bar.dart';
+export 'package:lengoal/core/widgets/route_visibility_listener.dart';
 export 'package:lengoal/gen/assets.gen.dart';
 export 'package:lengoal/l10n/l10n.dart';

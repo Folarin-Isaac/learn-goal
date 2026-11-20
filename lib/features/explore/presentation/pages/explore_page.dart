@@ -19,56 +19,26 @@ class ExplorePage extends StatefulWidget {
 
 class _ExplorePageState extends State<ExplorePage> {
   final ExploreCubit _cubit = getIt<ExploreCubit>();
-  late final AppLifecycleListener _lifecycle;
-  GoRouterDelegate? _delegate;
-  bool _visible = true;
 
   @override
   void initState() {
     super.initState();
-    _lifecycle = AppLifecycleListener(onResume: _refreshIfVisible);
     unawaited(_cubit.load());
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final delegate = GoRouter.of(context).routerDelegate;
-    if (identical(delegate, _delegate)) return;
-    _delegate?.removeListener(_onRouteChanged);
-    _delegate = delegate..addListener(_onRouteChanged);
-    _visible = _isOnExplore;
-  }
-
-  bool get _isOnExplore {
-    final delegate = _delegate;
-    if (delegate == null || delegate.currentConfiguration.isEmpty) {
-      return false;
-    }
-    return delegate.state.name == RouteNames.explore;
-  }
-
-  void _onRouteChanged() {
-    final visible = _isOnExplore;
-    if (visible && !_visible) unawaited(_cubit.refreshIfStale());
-    _visible = visible;
-  }
-
-  void _refreshIfVisible() {
-    if (_isOnExplore) unawaited(_cubit.refreshIfStale());
-  }
-
-  @override
   void dispose() {
-    _delegate?.removeListener(_onRouteChanged);
-    _lifecycle.dispose();
     unawaited(_cubit.close());
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider.value(value: _cubit, child: const _ExploreView());
+    return RouteVisibilityListener(
+      routeName: RouteNames.explore,
+      onVisible: () => unawaited(_cubit.refreshIfStale()),
+      child: BlocProvider.value(value: _cubit, child: const _ExploreView()),
+    );
   }
 }
 
