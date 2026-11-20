@@ -68,10 +68,14 @@ class ChatMessage extends Equatable {
 // counts, since sessions from before the id was stored may only have the
 // email.
 class ChatIdentity extends Equatable {
-  const new({required this.userId, required this.email});
+  const new({required this.userId, required this.email, this.name = ''});
 
   final String userId;
   final String email;
+
+  // From the sign-in token; used to show "You" when a reply quotes the
+  // learner's own message.
+  final String name;
 
   bool owns(ChatMessage message) {
     final sender = message.sender;
@@ -85,5 +89,5 @@ class ChatIdentity extends Equatable {
   }
 
   @override
-  List<Object?> get props => [userId, email];
+  List<Object?> get props => [userId, email, name];
 }

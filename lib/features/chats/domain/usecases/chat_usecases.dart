@@ -38,7 +38,12 @@ class GetChatIdentityUseCase {
 
   Future<ChatIdentity> call() async {
     final user = await _authRepository.getCurrentUser();
-    return ChatIdentity(userId: user?.id ?? '', email: user?.email ?? '');
+    final name = '${user?.firstName ?? ''} ${user?.lastName ?? ''}'.trim();
+    return ChatIdentity(
+      userId: user?.id ?? '',
+      email: user?.email ?? '',
+      name: name,
+    );
   }
 }
 

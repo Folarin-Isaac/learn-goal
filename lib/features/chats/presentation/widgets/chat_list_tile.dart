@@ -1,6 +1,7 @@
 import 'package:lengoal/core/core.dart';
 import 'package:lengoal/features/chats/presentation/bloc/chat_list/chat_list_cubit.dart';
 import 'package:lengoal/features/chats/presentation/models/chat_time.dart';
+import 'package:lengoal/features/chats/presentation/widgets/chat_message_text.dart';
 
 class ChatListTile extends StatelessWidget {
   const new({
@@ -25,7 +26,9 @@ class ChatListTile extends StatelessWidget {
       previewText = '';
     } else if (latest == null) {
       previewText = l10n.chatsNoMessagesPreview;
-    } else if (latest.text.trim().isNotEmpty) {
+    } else if (ChatMessageText.withoutMention(latest.text).trim().isNotEmpty) {
+      previewText = ChatMessageText.withoutMention(latest.text).trim();
+    } else if (latest.text.trim().isNotEmpty && !latest.hasMedia) {
       previewText = latest.text.trim();
     } else {
       previewText = l10n.chatsAttachmentPreview;

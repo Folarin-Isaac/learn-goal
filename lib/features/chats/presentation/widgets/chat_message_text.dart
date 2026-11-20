@@ -8,7 +8,7 @@ enum ChatQuoteKind {
   image('📷'),
   file('📄');
 
-  const ChatQuoteKind(this.mark);
+  new(this.mark);
 
   final String mark;
 
@@ -32,7 +32,7 @@ class ChatReplyQuote {
   static const int maxSnippet = 80;
 
   static final RegExp _pattern = RegExp(
-    '^@([^:\\n·]{1,60}) · (💬|📷|📄) ([^:\\n]{1,120}):[ ]?',
+    r'^@([^:\n·]{1,60}) · (💬|📷|📄) ([^:\n]{1,120}):[ ]?',
   );
 
   static ChatReplyQuote? parse(String text) {
@@ -48,26 +48,47 @@ class ChatReplyQuote {
     );
   }
 
+  static String _clean(String label) => label
+      .replaceAll(RegExp(r'[:\n]'), ' ')
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .trim();
+
   static String compose({
     required String name,
     required ChatQuoteKind kind,
     required String label,
     required String body,
   }) {
-    var safeLabel = label.replaceAll(RegExp(r'[:\n]'), ' ');
-    safeLabel = safeLabel.replaceAll(RegExp(r'\s+'), ' ').trim();
+    var safeLabel = _clean(label);
     if (safeLabel.length > maxSnippet) {
       safeLabel = '${safeLabel.substring(0, maxSnippet).trimRight()}…';
     }
     return '@$name · ${kind.mark} $safeLabel: $body';
   }
+
+  bool labelMatches(String original) {
+    final cleaned = _clean(original);
+    if (label.endsWith('…')) {
+      final prefix = label.substring(0, label.length - 1).trimRight();
+      return prefix.isNotEmpty && cleaned.startsWith(prefix);
+    }
+    return cleaned == label;
+  }
 }
 
 class ChatMessageText extends StatefulWidget {
-  const new({required this.text, required this.color, super.key});
+  const new({
+    required this.text,
+    required this.color,
+    super.key,
+    this.quoteName,
+    this.onQuoteTap,
+  });
 
   final String text;
   final Color color;
+  final String Function(String name)? quoteName;
+  final VoidCallback? onQuoteTap;
 
   static final RegExp mentionPattern = RegExp(r'^@([^:\n]{1,60}):');
   static final RegExp _linkPattern = RegExp(
@@ -204,11 +225,14 @@ class _ChatMessageTextState extends State<ChatMessageText> {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        ChatQuoteCard(
-          name: quote.name,
-          label: quote.label,
-          kind: quote.kind,
-          color: widget.color,
+        GestureDetector(
+          onTap: widget.onQuoteTap,
+          child: ChatQuoteCard(
+            name: widget.quoteName?.call(quote.name) ?? quote.name,
+            label: quote.label,
+            kind: quote.kind,
+            color: widget.color,
+          ),
         ),
         if (hasBody) ...[const Gap(AppSpacing.s8), text],
       ],

@@ -24,6 +24,8 @@ class ChatMessageBubble extends StatelessWidget {
     this.onLongPress,
     this.onTap,
     this.onOpenMedia,
+    this.quoteName,
+    this.onQuoteTap,
   });
 
   final String text;
@@ -41,6 +43,8 @@ class ChatMessageBubble extends StatelessWidget {
   final VoidCallback? onLongPress;
   final VoidCallback? onTap;
   final VoidCallback? onOpenMedia;
+  final String Function(String name)? quoteName;
+  final VoidCallback? onQuoteTap;
 
   static const double avatarSize = 28;
 
@@ -87,6 +91,8 @@ class ChatMessageBubble extends StatelessWidget {
               localImagePath: localImagePath,
               isMine: isMine,
               onOpenMedia: onOpenMedia,
+              quoteName: quoteName,
+              onQuoteTap: onQuoteTap,
             ),
           ),
         ),
@@ -148,6 +154,8 @@ class _BubbleContent extends StatelessWidget {
     required this.isMine,
     required this.onOpenMedia,
     this.localImagePath,
+    this.quoteName,
+    this.onQuoteTap,
   });
 
   final String text;
@@ -156,6 +164,8 @@ class _BubbleContent extends StatelessWidget {
   final String? localImagePath;
   final bool isMine;
   final VoidCallback? onOpenMedia;
+  final String Function(String name)? quoteName;
+  final VoidCallback? onQuoteTap;
 
   static const double _imageSize = 200;
 
@@ -196,7 +206,13 @@ class _BubbleContent extends StatelessWidget {
           ),
           if (hasText) const Gap(AppSpacing.s8),
         ],
-        if (hasText) ChatMessageText(text: text, color: foreground),
+        if (hasText)
+          ChatMessageText(
+            text: text,
+            color: foreground,
+            quoteName: quoteName,
+            onQuoteTap: onQuoteTap,
+          ),
       ],
     );
   }

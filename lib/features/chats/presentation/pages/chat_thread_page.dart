@@ -14,6 +14,7 @@ import 'package:lengoal/features/chats/presentation/widgets/chat_composer.dart';
 import 'package:lengoal/features/chats/presentation/widgets/chat_day_separator.dart';
 import 'package:lengoal/features/chats/presentation/widgets/chat_message_bubble.dart';
 import 'package:lengoal/features/chats/presentation/widgets/chat_message_text.dart';
+import 'package:lengoal/features/chats/presentation/widgets/chat_swipe_to_reply.dart';
 import 'package:lengoal/features/classes/domain/entities/lengoal_class.dart';
 import 'package:lengoal/features/classes/presentation/models/class_detail.dart';
 import 'package:lengoal/features/classes/presentation/models/class_material.dart';
@@ -58,6 +59,9 @@ class _ChatThreadViewState extends State<_ChatThreadView> {
   bool _hasNewBelow = false;
   String _draftBeforeEdit = '';
   ChatMessage? _replyTo;
+  final Map<String, GlobalKey> _messageKeys = {};
+  String? _highlightId;
+  Timer? _highlightTimer;
 
   static const double _loadOlderThreshold = 400;
   static const double _jumpThreshold = 400;
@@ -93,6 +97,7 @@ class _ChatThreadViewState extends State<_ChatThreadView> {
   void dispose() {
     _lifecycle.dispose();
     _clock.cancel();
+    _highlightTimer?.cancel();
     _composer.removeListener(_saveDraft);
     if (_cubit.state.editing != null) {
       _drafts.save(_classId, _draftBeforeEdit);
@@ -204,6 +209,90 @@ class _ChatThreadViewState extends State<_ChatThreadView> {
       ..text = message.text
       ..selection = TextSelection.collapsed(offset: message.text.length);
     _focus.requestFocus();
+  }
+
+  ChatMessage? _quotedMessage(
+    ChatThreadState state,
+    String text,
+    DateTime sentAt, {
+    String? excludeId,
+  }) {
+    final quote = ChatReplyQuote.parse(text);
+    if (quote == null) return null;
+    final name = quote.name.toLowerCase();
+    for (final m in state.messages.reversed) {
+      if (m.id == excludeId || m.createdOn.isAfter(sentAt)) continue;
+      if ((m.sender?.name.trim().toLowerCase() ?? '') != name) continue;
+      final matches = switch (quote.kind) {
+        ChatQuoteKind.text => quote.labelMatches(_snippet(m)),
+        ChatQuoteKind.image => _isImage(m) && _snippet(m).isEmpty,
+        ChatQuoteKind.file =>
+          m.hasMedia &&
+              !_isImage(m) &&
+              quote.labelMatches(chatAttachmentName(m.mediaUrl) ?? ''),
+      };
+      if (matches) return m;
+    }
+    return null;
+  }
+
+  String Function(String name) _quoteNameFor(
+    ChatThreadState state,
+    ChatMessage? original,
+  ) {
+    final you = context.l10n.chatsYou;
+    if (original != null) {
+      final isMine = state.identity.owns(original);
+      return (name) => isMine ? you : name;
+    }
+    final mine = <String>{
+      state.identity.name.trim().toLowerCase(),
+      for (final m in state.messages)
+        if (state.identity.owns(m)) ?m.sender?.name.trim().toLowerCase(),
+    }..remove('');
+    return (name) => mine.contains(name.trim().toLowerCase()) ? you : name;
+  }
+
+  GlobalKey _keyFor(String messageId) =>
+      _messageKeys.putIfAbsent(messageId, GlobalKey.new);
+
+  Future<void> _jumpToMessage(String messageId) async {
+    AppHaptics.selection();
+    for (var attempt = 0; attempt < 8; attempt++) {
+      if (!mounted) return;
+      final target = _messageKeys[messageId]?.currentContext;
+      if (target != null && target.mounted) {
+        await Scrollable.ensureVisible(
+          target,
+          duration: AppMotion.slow,
+          curve: Curves.easeOutCubic,
+          alignment: 0.5,
+        );
+        _flash(messageId);
+        return;
+      }
+      if (!mounted || !_scroll.hasClients) return;
+      final entries = _entries(_cubit.state).reversed.toList();
+      final index = entries.indexWhere(
+        (e) => e is _MessageEntry && e.message.id == messageId,
+      );
+      if (index < 0) return;
+      final position = _scroll.position;
+      final estimate = position.maxScrollExtent * index / entries.length;
+      _scroll.jumpTo(
+        estimate.clamp(position.minScrollExtent, position.maxScrollExtent),
+      );
+      await WidgetsBinding.instance.endOfFrame;
+    }
+  }
+
+  void _flash(String messageId) {
+    if (!mounted) return;
+    _highlightTimer?.cancel();
+    setState(() => _highlightId = messageId);
+    _highlightTimer = Timer(const Duration(milliseconds: 1400), () {
+      if (mounted) setState(() => _highlightId = null);
+    });
   }
 
   bool _canReply(ChatMessage message) =>
@@ -364,7 +453,7 @@ class _ChatThreadViewState extends State<_ChatThreadView> {
   Future<void> _showActions(ChatMessage message, {required bool isMine}) async {
     final l10n = context.l10n;
     final hasText = message.text.trim().isNotEmpty;
-    final canReply = message.sender?.name.trim().isNotEmpty ?? false;
+    final canReply = _canReply(message);
     AppHaptics.selection();
     final action = await showModalBottomSheet<_Action>(
       context: context,
@@ -539,9 +628,11 @@ class _ChatThreadViewState extends State<_ChatThreadView> {
           child: Align(
             alignment: Alignment.centerLeft,
             child: ChatQuoteCard(
-              name: context.l10n.chatsReplyingTo(
-                message.sender?.name.trim() ?? '',
-              ),
+              name: state.identity.owns(message)
+                  ? context.l10n.chatsYou
+                  : context.l10n.chatsReplyingTo(
+                      message.sender?.name.trim() ?? '',
+                    ),
               label: _quoteLabel(message),
               kind: kind,
               color: context.colors.primary,
@@ -755,10 +846,24 @@ class _ChatThreadViewState extends State<_ChatThreadView> {
         highlight: true,
       ),
       _MessageEntry(:final message, :final showHeader) => Padding(
+        key: _keyFor(message.id),
         padding: EdgeInsets.only(
           top: showHeader ? AppSpacing.s16 : AppSpacing.s4,
         ),
-        child: _messageBubble(context, state, message, showHeader),
+        child: AnimatedContainer(
+          duration: AppMotion.slow,
+          decoration: BoxDecoration(
+            color: _highlightId == message.id
+                ? context.colors.primary.withValues(alpha: 0.15)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(AppSpacing.r8),
+          ),
+          child: ChatSwipeToReply(
+            enabled: _canReply(message) && state.deletingId != message.id,
+            onReply: () => _reply(message),
+            child: _messageBubble(context, state, message, showHeader),
+          ),
+        ),
       ),
       _PendingEntry(:final message, :final showHeader) => Padding(
         padding: EdgeInsets.only(
@@ -770,6 +875,10 @@ class _ChatThreadViewState extends State<_ChatThreadView> {
           isMine: true,
           showHeader: showHeader,
           localImagePath: message.localPath,
+          quoteName: _quoteNameFor(
+            state,
+            _quotedMessage(state, message.text, message.createdOn),
+          ),
           isImage:
               message.localPath != null &&
               materialFileTypeFor(message.localPath!) == MaterialFileType.image,
@@ -792,6 +901,12 @@ class _ChatThreadViewState extends State<_ChatThreadView> {
   ) {
     final isMine = state.identity.owns(message);
     final url = message.mediaUrl;
+    final original = _quotedMessage(
+      state,
+      message.text,
+      message.createdOn,
+      excludeId: message.id,
+    );
     return ChatMessageBubble(
       text: message.text,
       timeLabel: ChatTime.clock(context, message.createdOn, _now),
@@ -811,6 +926,10 @@ class _ChatThreadViewState extends State<_ChatThreadView> {
       onLongPress: state.deletingId == message.id
           ? null
           : () => unawaited(_showActions(message, isMine: isMine)),
+      quoteName: _quoteNameFor(state, original),
+      onQuoteTap: original == null
+          ? null
+          : () => unawaited(_jumpToMessage(original.id)),
     );
   }
 }
