@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lengoal/features/chats/domain/entities/chat_message.dart';
 import 'package:lengoal/features/chats/domain/usecases/chat_usecases.dart';
 import 'package:lengoal/features/chats/presentation/bloc/chat_read/chat_read_store.dart';
+import 'package:lengoal/features/chats/presentation/bloc/chat_thread/chat_thread_cache.dart';
 import 'package:lengoal/features/profile/domain/usecases/upload_file_usecase.dart';
 
 part 'chat_thread_state.dart';
@@ -23,6 +24,7 @@ class ChatThreadCubit extends Cubit<ChatThreadState> {
     required this._deleteMessage,
     required this._readStore,
     required this._uploadFile,
+    required this._cache,
     this.pollEvery = const Duration(seconds: 5),
     DateTime Function()? clock,
   }) : _now = clock ?? DateTime.now,
@@ -36,6 +38,7 @@ class ChatThreadCubit extends Cubit<ChatThreadState> {
   final DeleteChatMessageUseCase _deleteMessage;
   final ChatReadStore _readStore;
   final UploadFileUseCase _uploadFile;
+  final ChatThreadCache _cache;
   final DateTime Function() _now;
 
   static const int _pageSize = GetChatMessagesUseCase.pageSize;
@@ -47,22 +50,43 @@ class ChatThreadCubit extends Cubit<ChatThreadState> {
   // old text or the deleted message, so polls wait them out.
   int _mutations = 0;
 
+  // A chat opened earlier this session shows its cached messages at once;
+  // the fresh page is then merged in exactly like a poll, and a failed
+  // fetch leaves the cached messages up instead of an error screen.
   Future<void> load() async {
+    final identity = await _readStore.identity();
+    final seenBefore = await _readStore.lastSeen(classId);
+    if (isClosed) return;
+    final cached = _cache.get(classId);
+    if (cached != null) {
+      emit(
+        state.copyWith(
+          status: ChatThreadStatus.loaded,
+          identity: identity,
+          messages: cached.messages,
+          hasOlder: cached.hasOlder,
+          unreadAfter: () => seenBefore,
+          errorMessage: () => null,
+        ),
+      );
+      _markSeen();
+      resumePolling();
+      await refresh();
+      return;
+    }
     emit(
       state.copyWith(
         status: ChatThreadStatus.loading,
+        identity: identity,
         errorMessage: () => null,
       ),
     );
-    final identity = await _readStore.identity();
-    final seenBefore = await _readStore.lastSeen(classId);
     final result = await _getMessages(classId);
     if (isClosed) return;
     result.match(
       (failure) => emit(
         state.copyWith(
           status: ChatThreadStatus.failure,
-          identity: identity,
           errorMessage: () => failure.message,
         ),
       ),
@@ -70,7 +94,6 @@ class ChatThreadCubit extends Cubit<ChatThreadState> {
         emit(
           state.copyWith(
             status: ChatThreadStatus.loaded,
-            identity: identity,
             messages: messages,
             hasOlder: messages.length >= _pageSize,
             unreadAfter: () => seenBefore,
@@ -80,6 +103,18 @@ class ChatThreadCubit extends Cubit<ChatThreadState> {
         resumePolling();
       },
     );
+  }
+
+  @override
+  void onChange(Change<ChatThreadState> change) {
+    super.onChange(change);
+    final next = change.nextState;
+    if (next.status != ChatThreadStatus.loaded) return;
+    if (identical(next.messages, change.currentState.messages) &&
+        next.hasOlder == change.currentState.hasOlder) {
+      return;
+    }
+    _cache.put(classId, messages: next.messages, hasOlder: next.hasOlder);
   }
 
   // Everything loaded is on screen, so it counts as seen.
@@ -231,12 +266,17 @@ class ChatThreadCubit extends Cubit<ChatThreadState> {
       sent,
     ) {
       final known = state.messages.any((m) => m.id == sent.id);
+      final localPath = message.localPath;
+      final sentUrl = sent.mediaUrl ?? message.mediaUrl;
       emit(
         state.copyWith(
           pending: state.pending
               .where((p) => p.clientMessageId != message.clientMessageId)
               .toList(),
           messages: known ? null : [...state.messages, sent],
+          localMedia: localPath != null && sentUrl != null
+              ? {...state.localMedia, sentUrl: localPath}
+              : null,
         ),
       );
       _markSeen();

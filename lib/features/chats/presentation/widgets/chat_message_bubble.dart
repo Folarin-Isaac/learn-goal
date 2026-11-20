@@ -157,7 +157,7 @@ class _BubbleContent extends StatelessWidget {
   final bool isMine;
   final VoidCallback? onOpenMedia;
 
-  static const double _imageHeight = 180;
+  static const double _imageSize = 200;
 
   @override
   Widget build(BuildContext context) {
@@ -165,39 +165,31 @@ class _BubbleContent extends StatelessWidget {
     final url = mediaUrl;
     final local = localImagePath;
     final hasText = text.trim().isNotEmpty;
+    final hasAttachment = url != null || local != null;
     final chip = _AttachmentChip(
       color: foreground,
-      name: chatAttachmentName(local ?? url),
+      name: chatAttachmentName(url ?? local),
     );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (local != null) ...[
-          if (isImage)
-            ClipRRect(
-              borderRadius: BorderRadius.circular(AppSpacing.r4),
-              child: Image.file(
-                File(local),
-                height: _imageHeight,
-                fit: BoxFit.cover,
-                errorBuilder: (context, _, _) => chip,
-              ),
-            )
-          else
-            chip,
-          if (hasText) const Gap(AppSpacing.s8),
-        ] else if (url != null) ...[
+        if (hasAttachment) ...[
           GestureDetector(
-            onTap: onOpenMedia,
+            onTap: url == null ? null : onOpenMedia,
             child: isImage
                 ? ClipRRect(
                     borderRadius: BorderRadius.circular(AppSpacing.r4),
-                    child: CachedNetworkImage(
-                      imageUrl: url,
-                      height: _imageHeight,
-                      fit: BoxFit.cover,
-                      errorWidget: (context, _, _) => chip,
+                    child: SizedBox.square(
+                      dimension: _imageSize,
+                      child: local != null
+                          ? Image.file(
+                              File(local),
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, _, _) =>
+                                  _networkOrChip(url, foreground, chip),
+                            )
+                          : _networkOrChip(url, foreground, chip),
                     ),
                   )
                 : chip,
@@ -206,6 +198,18 @@ class _BubbleContent extends StatelessWidget {
         ],
         if (hasText) ChatMessageText(text: text, color: foreground),
       ],
+    );
+  }
+
+  Widget _networkOrChip(String? url, Color foreground, Widget chip) {
+    if (url == null) return Center(child: chip);
+    final placeholder = ColoredBox(color: foreground.withValues(alpha: 0.08));
+    return CachedNetworkImage(
+      imageUrl: url,
+      fit: BoxFit.cover,
+      fadeInDuration: AppMotion.fast,
+      placeholder: (context, _) => placeholder,
+      errorWidget: (context, _, _) => Center(child: chip),
     );
   }
 }

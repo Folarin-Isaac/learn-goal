@@ -28,6 +28,7 @@ import 'package:lengoal/features/chats/domain/usecases/chat_usecases.dart';
 import 'package:lengoal/features/chats/presentation/bloc/chat_draft/chat_draft_store.dart';
 import 'package:lengoal/features/chats/presentation/bloc/chat_list/chat_list_cubit.dart';
 import 'package:lengoal/features/chats/presentation/bloc/chat_read/chat_read_store.dart';
+import 'package:lengoal/features/chats/presentation/bloc/chat_thread/chat_thread_cache.dart';
 import 'package:lengoal/features/chats/presentation/bloc/chat_thread/chat_thread_cubit.dart';
 import 'package:lengoal/features/classes/data/datasources/class_discussion_remote_data_source.dart';
 import 'package:lengoal/features/classes/data/datasources/class_remote_data_source.dart';
@@ -176,13 +177,15 @@ void _initChats() {
     ..registerLazySingleton(() => EditChatMessageUseCase(getIt()))
     ..registerLazySingleton(() => DeleteChatMessageUseCase(getIt()))
     ..registerLazySingleton(() => ChatReadStore(getIt(), getIt()))
-    ..registerLazySingleton(ChatDraftStore.new)
+    ..registerLazySingleton(() => ChatDraftStore(getIt(), getIt()))
+    ..registerLazySingleton(ChatThreadCache.new)
     ..registerFactory(
       () => ChatListCubit(
         library: classListBlocFor(ClassListSource.subscribed),
         getLatest: getIt(),
         readStore: getIt(),
         draftStore: getIt(),
+        threadCache: getIt(),
       ),
     )
     ..registerFactoryParam<ChatThreadCubit, String, void>(
@@ -194,6 +197,7 @@ void _initChats() {
         deleteMessage: getIt(),
         readStore: getIt(),
         uploadFile: getIt(),
+        cache: getIt(),
       ),
     );
 }

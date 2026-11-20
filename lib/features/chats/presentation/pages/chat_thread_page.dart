@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
@@ -55,6 +57,7 @@ class _ChatThreadViewState extends State<_ChatThreadView> {
   bool _showJump = false;
   bool _hasNewBelow = false;
   String _draftBeforeEdit = '';
+  ChatMessage? _replyTo;
 
   static const double _loadOlderThreshold = 400;
   static const double _jumpThreshold = 400;
@@ -71,6 +74,7 @@ class _ChatThreadViewState extends State<_ChatThreadView> {
     _composer
       ..text = _drafts.of(_classId)
       ..addListener(_saveDraft);
+    unawaited(_restoreSavedDraft());
     _scroll.addListener(_onScroll);
     _lifecycle = AppLifecycleListener(
       onPause: _cubit.pausePolling,
@@ -97,6 +101,17 @@ class _ChatThreadViewState extends State<_ChatThreadView> {
     _focus.dispose();
     _scroll.dispose();
     super.dispose();
+  }
+
+  Future<void> _restoreSavedDraft() async {
+    await _drafts.ready();
+    if (!mounted || _composer.text.isNotEmpty) return;
+    if (_cubit.state.editing != null) return;
+    final saved = _drafts.of(_classId);
+    if (saved.isEmpty) return;
+    _composer
+      ..text = saved
+      ..selection = TextSelection.collapsed(offset: saved.length);
   }
 
   void _saveDraft() {
@@ -138,9 +153,34 @@ class _ChatThreadViewState extends State<_ChatThreadView> {
       if (await cubit.saveEdit(text)) _restoreDraftAfterEdit();
       return;
     }
+    final replyTo = _replyTo;
+    final outgoing = replyTo == null
+        ? text
+        : ChatReplyQuote.compose(
+            name: replyTo.sender?.name.trim() ?? '',
+            kind: _quoteKind(replyTo),
+            label: _quoteLabel(replyTo),
+            body: text.trim(),
+          );
     _composer.clear();
+    if (replyTo != null) setState(() => _replyTo = null);
     _scrollToLatestAfterFrame();
-    await cubit.send(text);
+    await cubit.send(outgoing);
+  }
+
+  bool _isImage(ChatMessage message) {
+    final url = message.mediaUrl;
+    return url != null && materialFileTypeFor(url) == MaterialFileType.image;
+  }
+
+  String _attachmentLabel(ChatMessage message) => _isImage(message)
+      ? context.l10n.chatsPhoto
+      : chatAttachmentName(message.mediaUrl) ??
+            context.l10n.chatsAttachmentPreview;
+
+  void _cancelReply() {
+    AppHaptics.selection();
+    setState(() => _replyTo = null);
   }
 
   void _restoreDraftAfterEdit() {
@@ -156,6 +196,7 @@ class _ChatThreadViewState extends State<_ChatThreadView> {
   }
 
   void _startEdit(ChatMessage message) {
+    if (_replyTo != null) setState(() => _replyTo = null);
     final cubit = context.read<ChatThreadCubit>();
     if (cubit.state.editing == null) _draftBeforeEdit = _composer.text;
     cubit.startEditing(message);
@@ -165,18 +206,31 @@ class _ChatThreadViewState extends State<_ChatThreadView> {
     _focus.requestFocus();
   }
 
+  bool _canReply(ChatMessage message) =>
+      (message.sender?.name.trim().isNotEmpty ?? false) &&
+      (message.hasMedia || _snippet(message).isNotEmpty);
+
   void _reply(ChatMessage message) {
-    final name = message.sender?.name.trim() ?? '';
-    if (name.isEmpty) return;
-    final body = ChatMessageText.withoutMention(_composer.text);
-    final prefix = '@$name: ';
-    _composer
-      ..text = '$prefix$body'
-      ..selection = TextSelection.collapsed(
-        offset: prefix.length + body.length,
-      );
+    if (!_canReply(message)) return;
+    if (_cubit.state.editing != null) _cancelEdit();
+    setState(() => _replyTo = message);
     _focus.requestFocus();
   }
+
+  String _snippet(ChatMessage message) =>
+      ChatMessageText.withoutMention(message.text).trim();
+
+  ChatQuoteKind _quoteKind(ChatMessage message) {
+    if (_snippet(message).isNotEmpty || !message.hasMedia) {
+      return ChatQuoteKind.text;
+    }
+    return _isImage(message) ? ChatQuoteKind.image : ChatQuoteKind.file;
+  }
+
+  String _quoteLabel(ChatMessage message) =>
+      _quoteKind(message) == ChatQuoteKind.text
+      ? _snippet(message)
+      : _attachmentLabel(message);
 
   Future<void> _copy(ChatMessage message) async {
     await Clipboard.setData(ClipboardData(text: message.text));
@@ -452,6 +506,9 @@ class _ChatThreadViewState extends State<_ChatThreadView> {
                         onCancelEdit: _cancelEdit,
                         onSubmit: () => unawaited(_submit()),
                         onAttach: () => unawaited(_pickAttachment()),
+                        banner: _replyTo == null
+                            ? null
+                            : _replyBanner(context, state, _replyTo!),
                       ),
                     ),
                 ],
@@ -460,6 +517,45 @@ class _ChatThreadViewState extends State<_ChatThreadView> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _replyBanner(
+    BuildContext context,
+    ChatThreadState state,
+    ChatMessage message,
+  ) {
+    final url = message.mediaUrl;
+    final kind = _quoteKind(message);
+    final local = url == null ? null : state.localMedia[url];
+    final thumbnail = kind != ChatQuoteKind.image || url == null
+        ? null
+        : local != null
+        ? Image.file(File(local), fit: BoxFit.cover)
+        : CachedNetworkImage(imageUrl: url, fit: BoxFit.cover);
+    return Row(
+      children: [
+        Expanded(
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: ChatQuoteCard(
+              name: context.l10n.chatsReplyingTo(
+                message.sender?.name.trim() ?? '',
+              ),
+              label: _quoteLabel(message),
+              kind: kind,
+              color: context.colors.primary,
+              thumbnail: thumbnail,
+            ),
+          ),
+        ),
+        IconButton(
+          visualDensity: VisualDensity.compact,
+          tooltip: context.l10n.commonCancel,
+          onPressed: _cancelReply,
+          icon: const Icon(Icons.close_rounded, size: 18),
+        ),
+      ],
     );
   }
 
@@ -704,6 +800,7 @@ class _ChatThreadViewState extends State<_ChatThreadView> {
       senderName: message.sender?.name,
       photoUrl: message.sender?.photoUrl,
       mediaUrl: url,
+      localImagePath: url == null ? null : state.localMedia[url],
       isImage:
           url != null && materialFileTypeFor(url) == MaterialFileType.image,
       onOpenMedia: url == null

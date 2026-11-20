@@ -6,6 +6,7 @@ import 'package:lengoal/features/chats/domain/entities/chat_message.dart';
 import 'package:lengoal/features/chats/domain/usecases/chat_usecases.dart';
 import 'package:lengoal/features/chats/presentation/bloc/chat_draft/chat_draft_store.dart';
 import 'package:lengoal/features/chats/presentation/bloc/chat_read/chat_read_store.dart';
+import 'package:lengoal/features/chats/presentation/bloc/chat_thread/chat_thread_cache.dart';
 import 'package:lengoal/features/classes/domain/entities/lengoal_class.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_list/class_list_bloc.dart';
 
@@ -25,6 +26,7 @@ class ChatListCubit extends Cubit<ChatListState> {
     required this._getLatest,
     required this._readStore,
     required this._draftStore,
+    required this._threadCache,
     this.backgroundEvery = const Duration(minutes: 2),
     DateTime Function()? clock,
   }) : _now = clock ?? DateTime.now,
@@ -34,6 +36,7 @@ class ChatListCubit extends Cubit<ChatListState> {
   final GetLatestChatMessageUseCase _getLatest;
   final ChatReadStore _readStore;
   final ChatDraftStore _draftStore;
+  final ChatThreadCache _threadCache;
   final Duration backgroundEvery;
   final DateTime Function() _now;
 
@@ -51,6 +54,7 @@ class ChatListCubit extends Cubit<ChatListState> {
     if (_subscription != null) return;
     _readStore.unread.addListener(_onUnread);
     _draftStore.drafts.addListener(_onDrafts);
+    unawaited(_draftStore.ready());
     _onUnread();
     _onDrafts();
     _subscription = _library.stream.listen(_onLibrary);
@@ -174,14 +178,16 @@ class ChatListCubit extends Cubit<ChatListState> {
     await _readStore.track(classId, message);
   }
 
-  // The Chats tab only goes away with the home shell (sign-out), so drafts
-  // go with it rather than carrying over to the next account.
+  // The Chats tab only goes away with the home shell (sign-out), so this
+  // user's drafts and cached chats go with it rather than carrying over to
+  // the next account.
   @override
   Future<void> close() async {
     pauseBackgroundRefresh();
     _readStore.unread.removeListener(_onUnread);
     _draftStore.drafts.removeListener(_onDrafts);
-    _draftStore.clear();
+    _threadCache.clear();
+    await _draftStore.clear();
     await _subscription?.cancel();
     await super.close();
   }

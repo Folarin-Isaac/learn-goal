@@ -3,6 +3,66 @@ import 'dart:async';
 import 'package:flutter/gestures.dart';
 import 'package:lengoal/core/core.dart';
 
+enum ChatQuoteKind {
+  text('💬'),
+  image('📷'),
+  file('📄');
+
+  const ChatQuoteKind(this.mark);
+
+  final String mark;
+
+  static ChatQuoteKind? fromMark(String mark) =>
+      values.where((k) => k.mark == mark).firstOrNull;
+}
+
+class ChatReplyQuote {
+  const new({
+    required this.name,
+    required this.kind,
+    required this.label,
+    required this.body,
+  });
+
+  final String name;
+  final ChatQuoteKind kind;
+  final String label;
+  final String body;
+
+  static const int maxSnippet = 80;
+
+  static final RegExp _pattern = RegExp(
+    '^@([^:\\n·]{1,60}) · (💬|📷|📄) ([^:\\n]{1,120}):[ ]?',
+  );
+
+  static ChatReplyQuote? parse(String text) {
+    final match = _pattern.firstMatch(text);
+    if (match == null) return null;
+    final kind = ChatQuoteKind.fromMark(match.group(2)!);
+    if (kind == null) return null;
+    return ChatReplyQuote(
+      name: match.group(1)!.trim(),
+      kind: kind,
+      label: match.group(3)!.trim(),
+      body: text.substring(match.end),
+    );
+  }
+
+  static String compose({
+    required String name,
+    required ChatQuoteKind kind,
+    required String label,
+    required String body,
+  }) {
+    var safeLabel = label.replaceAll(RegExp(r'[:\n]'), ' ');
+    safeLabel = safeLabel.replaceAll(RegExp(r'\s+'), ' ').trim();
+    if (safeLabel.length > maxSnippet) {
+      safeLabel = '${safeLabel.substring(0, maxSnippet).trimRight()}…';
+    }
+    return '@$name · ${kind.mark} $safeLabel: $body';
+  }
+}
+
 class ChatMessageText extends StatefulWidget {
   const new({required this.text, required this.color, super.key});
 
@@ -15,8 +75,11 @@ class ChatMessageText extends StatefulWidget {
     caseSensitive: false,
   );
 
-  static String withoutMention(String text) =>
-      text.replaceFirst(mentionPattern, '').trimLeft();
+  static String withoutMention(String text) {
+    final quote = ChatReplyQuote.parse(text);
+    if (quote != null) return quote.body.trimLeft();
+    return text.replaceFirst(mentionPattern, '').trimLeft();
+  }
 
   @override
   State<ChatMessageText> createState() => _ChatMessageTextState();
@@ -31,6 +94,7 @@ class _Segment {
 }
 
 class _ChatMessageTextState extends State<ChatMessageText> {
+  ChatReplyQuote? _quote;
   List<_Segment> _segments = const [];
   final List<TapGestureRecognizer> _recognizers = [];
 
@@ -62,11 +126,15 @@ class _ChatMessageTextState extends State<ChatMessageText> {
   void _parse() {
     _disposeRecognizers();
     final segments = <_Segment>[];
-    var rest = widget.text;
-    final mention = ChatMessageText.mentionPattern.firstMatch(rest);
-    if (mention != null) {
-      segments.add(_Segment(mention.group(0)!, bold: true));
-      rest = rest.substring(mention.end);
+    final quote = ChatReplyQuote.parse(widget.text);
+    _quote = quote;
+    var rest = quote?.body ?? widget.text;
+    if (quote == null) {
+      final mention = ChatMessageText.mentionPattern.firstMatch(rest);
+      if (mention != null) {
+        segments.add(_Segment(mention.group(0)!, bold: true));
+        rest = rest.substring(mention.end);
+      }
     }
     var index = 0;
     for (final match in ChatMessageText._linkPattern.allMatches(rest)) {
@@ -105,7 +173,7 @@ class _ChatMessageTextState extends State<ChatMessageText> {
   Widget build(BuildContext context) {
     final base = context.textTheme.bodyMedium?.copyWith(color: widget.color);
     _disposeRecognizers();
-    return Text.rich(
+    final text = Text.rich(
       TextSpan(
         style: base,
         children: [
@@ -126,6 +194,112 @@ class _ChatMessageTextState extends State<ChatMessageText> {
                     ? const TextStyle(fontWeight: FontWeight.w700)
                     : null,
               ),
+        ],
+      ),
+    );
+    final quote = _quote;
+    if (quote == null) return text;
+    final hasBody = _segments.any((s) => s.text.trim().isNotEmpty);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ChatQuoteCard(
+          name: quote.name,
+          label: quote.label,
+          kind: quote.kind,
+          color: widget.color,
+        ),
+        if (hasBody) ...[const Gap(AppSpacing.s8), text],
+      ],
+    );
+  }
+}
+
+class ChatQuoteCard extends StatelessWidget {
+  const new({
+    required this.name,
+    required this.label,
+    required this.kind,
+    required this.color,
+    super.key,
+    this.thumbnail,
+  });
+
+  final String name;
+  final String label;
+  final ChatQuoteKind kind;
+  final Color color;
+  final Widget? thumbnail;
+
+  @override
+  Widget build(BuildContext context) {
+    final small = context.textTheme.bodySmall;
+    return Container(
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(AppSpacing.r4),
+        border: Border(left: BorderSide(color: color, width: 3)),
+      ),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.s8,
+        AppSpacing.s4,
+        AppSpacing.s8,
+        AppSpacing.s4,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (thumbnail != null) ...[
+            ClipRRect(
+              borderRadius: BorderRadius.circular(AppSpacing.r4),
+              child: SizedBox.square(dimension: 36, child: thumbnail),
+            ),
+            const Gap(AppSpacing.s8),
+          ],
+          Flexible(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: small?.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (kind != ChatQuoteKind.text) ...[
+                      Icon(
+                        kind == ChatQuoteKind.image
+                            ? Icons.photo_outlined
+                            : Icons.insert_drive_file_outlined,
+                        size: 14,
+                        color: color.withValues(alpha: 0.85),
+                      ),
+                      const Gap(AppSpacing.s4),
+                    ],
+                    Flexible(
+                      child: Text(
+                        label,
+                        maxLines: kind == ChatQuoteKind.text ? 2 : 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: small?.copyWith(
+                          color: color.withValues(alpha: 0.85),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );

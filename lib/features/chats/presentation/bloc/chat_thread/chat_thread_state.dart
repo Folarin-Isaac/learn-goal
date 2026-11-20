@@ -75,6 +75,7 @@ class ChatThreadState extends Equatable {
     this.isSavingEdit = false,
     this.deletingId,
     this.unreadAfter,
+    this.localMedia = const {},
     this.errorMessage,
     this.effect,
     this.effectCount = 0,
@@ -102,6 +103,11 @@ class ChatThreadState extends Equatable {
   // What the learner had seen before opening the chat this time; others'
   // messages after it get a "New messages" line above them.
   final DateTime? unreadAfter;
+
+  // mediaUrl → the file on this device it was uploaded from, so the
+  // learner's own just-sent photos keep showing the local copy instead of
+  // being downloaded again (which also stops the bubble flickering).
+  final Map<String, String> localMedia;
   final String? errorMessage;
 
   // One-off snackbar for the page; effectCount bumps on every emission so
@@ -124,6 +130,7 @@ class ChatThreadState extends Equatable {
     bool? isSavingEdit,
     String? Function()? deletingId,
     DateTime? Function()? unreadAfter,
+    Map<String, String>? localMedia,
     String? Function()? errorMessage,
   }) {
     return ChatThreadState(
@@ -139,6 +146,7 @@ class ChatThreadState extends Equatable {
       isSavingEdit: isSavingEdit ?? this.isSavingEdit,
       deletingId: deletingId == null ? this.deletingId : deletingId(),
       unreadAfter: unreadAfter == null ? this.unreadAfter : unreadAfter(),
+      localMedia: localMedia ?? this.localMedia,
       errorMessage: errorMessage == null ? this.errorMessage : errorMessage(),
       effect: effect,
       effectCount: effectCount,
@@ -158,6 +166,7 @@ class ChatThreadState extends Equatable {
     isSavingEdit: isSavingEdit,
     deletingId: deletingId,
     unreadAfter: unreadAfter,
+    localMedia: localMedia,
     errorMessage: errorMessage,
     effect: effect,
     effectCount: effectCount + 1,
@@ -177,6 +186,7 @@ class ChatThreadState extends Equatable {
     isSavingEdit,
     deletingId,
     unreadAfter,
+    localMedia,
     errorMessage,
     effect,
     effectCount,

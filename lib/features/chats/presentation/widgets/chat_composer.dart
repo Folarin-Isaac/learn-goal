@@ -10,6 +10,7 @@ class ChatComposer extends StatelessWidget {
     this.isEditing = false,
     this.isBusy = false,
     this.onCancelEdit,
+    this.banner,
   });
 
   final TextEditingController controller;
@@ -19,14 +20,21 @@ class ChatComposer extends StatelessWidget {
   final bool isEditing;
   final bool isBusy;
   final VoidCallback? onCancelEdit;
+  final Widget? banner;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final top = banner;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (top != null && !isEditing)
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.s8),
+            child: top,
+          ),
         if (isEditing)
           Padding(
             padding: const EdgeInsets.only(bottom: AppSpacing.s8),
