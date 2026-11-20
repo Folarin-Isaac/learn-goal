@@ -18,7 +18,8 @@ class ChatListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final latest = preview.latest;
-    final accent = context.colors.primary;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final accent = isDark ? AppColors.accentBlueSoft : context.colors.primary;
     final String previewText;
     if (!preview.isLoaded) {
       previewText = '';
@@ -32,7 +33,7 @@ class ChatListTile extends StatelessWidget {
 
     return Pressable(
       child: Material(
-        color: accent.withValues(alpha: 0.08),
+        color: context.colors.primary.withValues(alpha: isDark ? 0.18 : 0.08),
         borderRadius: BorderRadius.circular(AppSpacing.r8),
         child: InkWell(
           borderRadius: BorderRadius.circular(AppSpacing.r8),
@@ -45,34 +46,38 @@ class ChatListTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        preview.lengoalClass.cohortName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: context.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                    if (latest != null) ...[
-                      const Gap(AppSpacing.s8),
-                      Flexible(
+                LayoutBuilder(
+                  builder: (context, constraints) => Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
                         child: Text(
-                          ChatTime.relative(context, latest.createdOn, now),
+                          preview.lengoalClass.cohortName,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.end,
-                          style: context.textTheme.bodySmall?.copyWith(
-                            color: accent,
+                          style: context.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
+                      if (latest != null) ...[
+                        const Gap(AppSpacing.s8),
+                        ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxWidth: constraints.maxWidth * 0.4,
+                          ),
+                          child: Text(
+                            ChatTime.relative(context, latest.createdOn, now),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: context.textTheme.bodySmall?.copyWith(
+                              color: accent,
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
                 const Gap(AppSpacing.s4),
                 if (!preview.isLoaded)
