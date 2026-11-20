@@ -685,7 +685,7 @@
 
     "chatsTitle": "Chats",
     "@chatsTitle": {"description": "Heading on the chats list page"},
-    "chatsSearchHint": "Search",
+    "chatsSearchHint": "Search enrolled classes",
     "@chatsSearchHint": {"description": "Placeholder for the chats search field (filters class chats by name)"},
     "chatsEmptyList": "Enroll in a class to chat with your classmates and educator.",
     "@chatsEmptyList": {"description": "Chats list empty state when the learner has no classes"},
