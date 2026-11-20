@@ -5,6 +5,8 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lengoal/features/chats/domain/entities/chat_message.dart';
 import 'package:lengoal/features/chats/domain/usecases/chat_usecases.dart';
+import 'package:lengoal/features/chats/presentation/bloc/chat_read/chat_read_store.dart';
+import 'package:lengoal/features/profile/domain/usecases/upload_file_usecase.dart';
 
 part 'chat_thread_state.dart';
 
@@ -19,7 +21,8 @@ class ChatThreadCubit extends Cubit<ChatThreadState> {
     required this._sendMessage,
     required this._editMessage,
     required this._deleteMessage,
-    required this._getIdentity,
+    required this._readStore,
+    required this._uploadFile,
     this.pollEvery = const Duration(seconds: 5),
     DateTime Function()? clock,
   }) : _now = clock ?? DateTime.now,
@@ -31,7 +34,8 @@ class ChatThreadCubit extends Cubit<ChatThreadState> {
   final SendChatMessageUseCase _sendMessage;
   final EditChatMessageUseCase _editMessage;
   final DeleteChatMessageUseCase _deleteMessage;
-  final GetChatIdentityUseCase _getIdentity;
+  final ChatReadStore _readStore;
+  final UploadFileUseCase _uploadFile;
   final DateTime Function() _now;
 
   static const int _pageSize = GetChatMessagesUseCase.pageSize;
@@ -50,7 +54,8 @@ class ChatThreadCubit extends Cubit<ChatThreadState> {
         errorMessage: () => null,
       ),
     );
-    final identity = await _getIdentity();
+    final identity = await _readStore.identity();
+    final seenBefore = await _readStore.lastSeen(classId);
     final result = await _getMessages(classId);
     if (isClosed) return;
     result.match(
@@ -68,11 +73,19 @@ class ChatThreadCubit extends Cubit<ChatThreadState> {
             identity: identity,
             messages: messages,
             hasOlder: messages.length >= _pageSize,
+            unreadAfter: () => seenBefore,
           ),
         );
+        _markSeen();
         resumePolling();
       },
     );
+  }
+
+  // Everything loaded is on screen, so it counts as seen.
+  void _markSeen() {
+    if (state.messages.isEmpty) return;
+    unawaited(_readStore.markSeen(classId, state.messages.last.createdOn));
   }
 
   void resumePolling() {
@@ -94,7 +107,9 @@ class ChatThreadCubit extends Cubit<ChatThreadState> {
     _polling = false;
     if (isClosed || _mutations > 0) return;
     final fresh = result.getRight().toNullable();
-    if (fresh != null) emit(_merge(fresh));
+    if (fresh == null) return;
+    emit(_merge(fresh));
+    _markSeen();
   }
 
   // The fresh page is the newest [_pageSize] messages. Anything known that
@@ -160,10 +175,23 @@ class ChatThreadCubit extends Cubit<ChatThreadState> {
     await _deliver(message);
   }
 
+  // Same as the web: the file goes to FileManagement/UploadFile first, then
+  // a message with that URL as mediaUrl and empty text.
+  Future<void> sendAttachment(String localPath) async {
+    final message = PendingChatMessage(
+      clientMessageId: _newClientMessageId(),
+      text: '',
+      createdOn: _now().toUtc(),
+      localPath: localPath,
+    );
+    emit(state.copyWith(pending: [...state.pending, message]));
+    await _deliver(message);
+  }
+
   Future<void> retry(String clientMessageId) async {
     final message = _pendingById(clientMessageId);
     if (message == null || !message.failed) return;
-    final again = message.asFailed(failed: false);
+    final again = message.copyWith(failed: false);
     _replacePending(again);
     await _deliver(again);
   }
@@ -178,14 +206,28 @@ class ChatThreadCubit extends Cubit<ChatThreadState> {
     );
   }
 
-  Future<void> _deliver(PendingChatMessage message) async {
+  Future<void> _deliver(PendingChatMessage pending) async {
+    var message = pending;
+    final localPath = message.localPath;
+    if (localPath != null && message.mediaUrl == null) {
+      final upload = await _uploadFile(filePath: localPath);
+      if (isClosed) return;
+      final url = upload.getRight().toNullable();
+      if (url == null) {
+        _replacePending(message.copyWith(failed: true));
+        return;
+      }
+      message = message.copyWith(mediaUrl: url);
+      _replacePending(message);
+    }
     final result = await _sendMessage(
       classId: classId,
       clientMessageId: message.clientMessageId,
       text: message.text,
+      mediaUrl: message.mediaUrl,
     );
     if (isClosed) return;
-    result.match((_) => _replacePending(message.asFailed(failed: true)), (
+    result.match((_) => _replacePending(message.copyWith(failed: true)), (
       sent,
     ) {
       final known = state.messages.any((m) => m.id == sent.id);
@@ -197,6 +239,7 @@ class ChatThreadCubit extends Cubit<ChatThreadState> {
           messages: known ? null : [...state.messages, sent],
         ),
       );
+      _markSeen();
     });
   }
 

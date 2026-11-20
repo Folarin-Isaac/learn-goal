@@ -1,7 +1,8 @@
-import 'dart:async';
+import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:lengoal/core/core.dart';
+import 'package:lengoal/features/chats/presentation/widgets/chat_message_text.dart';
 
 enum ChatBubbleStatus { sent, sending, failed }
 
@@ -14,11 +15,15 @@ class ChatMessageBubble extends StatelessWidget {
     this.senderName,
     this.photoUrl,
     this.mediaUrl,
+    this.isImage = false,
+    this.localImagePath,
+    this.showHeader = true,
     this.isEdited = false,
     this.status = ChatBubbleStatus.sent,
     this.isBusy = false,
     this.onLongPress,
     this.onTap,
+    this.onOpenMedia,
   });
 
   final String text;
@@ -27,13 +32,17 @@ class ChatMessageBubble extends StatelessWidget {
   final String? senderName;
   final String? photoUrl;
   final String? mediaUrl;
+  final bool isImage;
+  final String? localImagePath;
+  final bool showHeader;
   final bool isEdited;
   final ChatBubbleStatus status;
   final bool isBusy;
   final VoidCallback? onLongPress;
   final VoidCallback? onTap;
+  final VoidCallback? onOpenMedia;
 
-  static const double _avatarSize = 28;
+  static const double avatarSize = 28;
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +83,10 @@ class ChatMessageBubble extends StatelessWidget {
             child: _BubbleContent(
               text: text,
               mediaUrl: mediaUrl,
+              isImage: isImage,
+              localImagePath: localImagePath,
               isMine: isMine,
+              onOpenMedia: onOpenMedia,
             ),
           ),
         ),
@@ -86,8 +98,7 @@ class ChatMessageBubble extends StatelessWidget {
           ? CrossAxisAlignment.end
           : CrossAxisAlignment.start,
       children: [
-        meta,
-        const Gap(AppSpacing.s4),
+        if (showHeader) ...[meta, const Gap(AppSpacing.s4)],
         Opacity(
           opacity: status == ChatBubbleStatus.sending || isBusy ? 0.6 : 1,
           child: bubble,
@@ -114,11 +125,14 @@ class ChatMessageBubble extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _SenderAvatar(
-          name: senderName ?? '',
-          photoUrl: photoUrl,
-          size: _avatarSize,
-        ),
+        if (showHeader)
+          _SenderAvatar(
+            name: senderName ?? '',
+            photoUrl: photoUrl,
+            size: avatarSize,
+          )
+        else
+          const SizedBox(width: avatarSize),
         const Gap(AppSpacing.s8),
         Flexible(child: column),
       ],
@@ -127,80 +141,101 @@ class ChatMessageBubble extends StatelessWidget {
 }
 
 class _BubbleContent extends StatelessWidget {
-  const new({required this.text, required this.mediaUrl, required this.isMine});
+  const new({
+    required this.text,
+    required this.mediaUrl,
+    required this.isImage,
+    required this.isMine,
+    required this.onOpenMedia,
+    this.localImagePath,
+  });
 
   final String text;
   final String? mediaUrl;
+  final bool isImage;
+  final String? localImagePath;
   final bool isMine;
+  final VoidCallback? onOpenMedia;
 
-  static const Set<String> _imageExtensions = {
-    'jpg',
-    'jpeg',
-    'png',
-    'gif',
-    'webp',
-  };
-
-  bool get _isImage {
-    final url = mediaUrl;
-    if (url == null) return false;
-    final path = Uri.tryParse(url)?.path.toLowerCase() ?? '';
-    final dot = path.lastIndexOf('.');
-    return dot != -1 && _imageExtensions.contains(path.substring(dot + 1));
-  }
+  static const double _imageHeight = 180;
 
   @override
   Widget build(BuildContext context) {
     final foreground = isMine ? Colors.white : context.colors.onSurface;
     final url = mediaUrl;
+    final local = localImagePath;
     final hasText = text.trim().isNotEmpty;
+    final chip = _AttachmentChip(
+      color: foreground,
+      name: chatAttachmentName(local ?? url),
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (url != null) ...[
+        if (local != null) ...[
+          if (isImage)
+            ClipRRect(
+              borderRadius: BorderRadius.circular(AppSpacing.r4),
+              child: Image.file(
+                File(local),
+                height: _imageHeight,
+                fit: BoxFit.cover,
+                errorBuilder: (context, _, _) => chip,
+              ),
+            )
+          else
+            chip,
+          if (hasText) const Gap(AppSpacing.s8),
+        ] else if (url != null) ...[
           GestureDetector(
-            onTap: () => unawaited(openExternalUrl(url)),
-            child: _isImage
+            onTap: onOpenMedia,
+            child: isImage
                 ? ClipRRect(
                     borderRadius: BorderRadius.circular(AppSpacing.r4),
                     child: CachedNetworkImage(
                       imageUrl: url,
-                      height: 180,
+                      height: _imageHeight,
                       fit: BoxFit.cover,
-                      errorWidget: (context, _, _) =>
-                          _AttachmentChip(color: foreground),
+                      errorWidget: (context, _, _) => chip,
                     ),
                   )
-                : _AttachmentChip(color: foreground),
+                : chip,
           ),
           if (hasText) const Gap(AppSpacing.s8),
         ],
-        if (hasText)
-          Text(
-            text,
-            style: context.textTheme.bodyMedium?.copyWith(color: foreground),
-          ),
+        if (hasText) ChatMessageText(text: text, color: foreground),
       ],
     );
   }
 }
 
+String? chatAttachmentName(String? pathOrUrl) {
+  if (pathOrUrl == null || pathOrUrl.isEmpty) return null;
+  final last = pathOrUrl.split(RegExp(r'[\\/]')).last.split('?').first;
+  if (last.isEmpty) return null;
+  final malformed = RegExp('%(?![0-9a-fA-F]{2})').hasMatch(last);
+  return malformed ? last : Uri.decodeComponent(last);
+}
+
 class _AttachmentChip extends StatelessWidget {
-  const new({required this.color});
+  const new({required this.color, this.name});
 
   final Color color;
+  final String? name;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Icons.attach_file_rounded, size: 18, color: color),
+        Icon(Icons.insert_drive_file_outlined, size: 18, color: color),
         const Gap(AppSpacing.s4),
         Flexible(
           child: Text(
-            context.l10n.chatsAttachmentPreview,
+            name ?? context.l10n.chatsAttachmentPreview,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: context.textTheme.bodyMedium?.copyWith(
               color: color,
               decoration: TextDecoration.underline,

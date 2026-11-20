@@ -7,6 +7,8 @@ class ChatPreview extends Equatable {
     required this.lengoalClass,
     required this.latest,
     required this.isLoaded,
+    this.isUnread = false,
+    this.draft = '',
   });
 
   final LengoalClass lengoalClass;
@@ -14,9 +16,15 @@ class ChatPreview extends Equatable {
   // null when the chat is empty (or its preview couldn't be loaded).
   final ChatMessage? latest;
   final bool isLoaded;
+  final bool isUnread;
+
+  // Unsent text typed in this chat earlier in the session.
+  final String draft;
+
+  bool get hasDraft => draft.trim().isNotEmpty;
 
   @override
-  List<Object?> get props => [lengoalClass, latest, isLoaded];
+  List<Object?> get props => [lengoalClass, latest, isLoaded, isUnread, draft];
 }
 
 class ChatListState extends Equatable {
@@ -24,6 +32,8 @@ class ChatListState extends Equatable {
     this.status = ChatListStatus.loading,
     this.classes = const [],
     this.latest = const {},
+    this.unread = const {},
+    this.drafts = const {},
     this.query = '',
     this.errorMessage,
   });
@@ -36,6 +46,8 @@ class ChatListState extends Equatable {
   // classId → newest message; a key with a null value is an empty chat,
   // a missing key a preview not loaded yet.
   final Map<String, ChatMessage?> latest;
+  final Set<String> unread;
+  final Map<String, String> drafts;
   final String query;
   final String? errorMessage;
 
@@ -52,6 +64,8 @@ class ChatListState extends Equatable {
             lengoalClass: c,
             latest: latest[c.id],
             isLoaded: latest.containsKey(c.id),
+            isUnread: unread.contains(c.id),
+            draft: drafts[c.id] ?? '',
           ),
     ];
     final order = {for (var i = 0; i < classes.length; i++) classes[i].id: i};
@@ -70,6 +84,8 @@ class ChatListState extends Equatable {
     ChatListStatus? status,
     List<LengoalClass>? classes,
     Map<String, ChatMessage?>? latest,
+    Set<String>? unread,
+    Map<String, String>? drafts,
     String? query,
     String? Function()? errorMessage,
   }) {
@@ -77,11 +93,21 @@ class ChatListState extends Equatable {
       status: status ?? this.status,
       classes: classes ?? this.classes,
       latest: latest ?? this.latest,
+      unread: unread ?? this.unread,
+      drafts: drafts ?? this.drafts,
       query: query ?? this.query,
       errorMessage: errorMessage == null ? this.errorMessage : errorMessage(),
     );
   }
 
   @override
-  List<Object?> get props => [status, classes, latest, query, errorMessage];
+  List<Object?> get props => [
+    status,
+    classes,
+    latest,
+    unread,
+    drafts,
+    query,
+    errorMessage,
+  ];
 }

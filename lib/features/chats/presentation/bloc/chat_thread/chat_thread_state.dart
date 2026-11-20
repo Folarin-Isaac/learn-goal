@@ -9,6 +9,8 @@ class PendingChatMessage extends Equatable {
     required this.text,
     required this.createdOn,
     this.failed = false,
+    this.localPath,
+    this.mediaUrl,
   });
 
   final String clientMessageId;
@@ -16,15 +18,33 @@ class PendingChatMessage extends Equatable {
   final DateTime createdOn;
   final bool failed;
 
-  PendingChatMessage asFailed({required bool failed}) => PendingChatMessage(
-    clientMessageId: clientMessageId,
-    text: text,
-    createdOn: createdOn,
-    failed: failed,
-  );
+  // An attachment picked on this device: shown from [localPath] until the
+  // server confirms the message. [mediaUrl] is set once the upload worked,
+  // so a retry after a failed send doesn't upload the file again.
+  final String? localPath;
+  final String? mediaUrl;
+
+  bool get isAttachment => localPath != null;
+
+  PendingChatMessage copyWith({bool? failed, String? mediaUrl}) =>
+      PendingChatMessage(
+        clientMessageId: clientMessageId,
+        text: text,
+        createdOn: createdOn,
+        failed: failed ?? this.failed,
+        localPath: localPath,
+        mediaUrl: mediaUrl ?? this.mediaUrl,
+      );
 
   @override
-  List<Object?> get props => [clientMessageId, text, createdOn, failed];
+  List<Object?> get props => [
+    clientMessageId,
+    text,
+    createdOn,
+    failed,
+    localPath,
+    mediaUrl,
+  ];
 }
 
 enum ChatThreadEffectKind { error, deleted }
@@ -54,6 +74,7 @@ class ChatThreadState extends Equatable {
     this.editing,
     this.isSavingEdit = false,
     this.deletingId,
+    this.unreadAfter,
     this.errorMessage,
     this.effect,
     this.effectCount = 0,
@@ -77,6 +98,10 @@ class ChatThreadState extends Equatable {
   final ChatMessage? editing;
   final bool isSavingEdit;
   final String? deletingId;
+
+  // What the learner had seen before opening the chat this time; others'
+  // messages after it get a "New messages" line above them.
+  final DateTime? unreadAfter;
   final String? errorMessage;
 
   // One-off snackbar for the page; effectCount bumps on every emission so
@@ -98,6 +123,7 @@ class ChatThreadState extends Equatable {
     ChatMessage? Function()? editing,
     bool? isSavingEdit,
     String? Function()? deletingId,
+    DateTime? Function()? unreadAfter,
     String? Function()? errorMessage,
   }) {
     return ChatThreadState(
@@ -112,6 +138,7 @@ class ChatThreadState extends Equatable {
       editing: editing == null ? this.editing : editing(),
       isSavingEdit: isSavingEdit ?? this.isSavingEdit,
       deletingId: deletingId == null ? this.deletingId : deletingId(),
+      unreadAfter: unreadAfter == null ? this.unreadAfter : unreadAfter(),
       errorMessage: errorMessage == null ? this.errorMessage : errorMessage(),
       effect: effect,
       effectCount: effectCount,
@@ -130,6 +157,7 @@ class ChatThreadState extends Equatable {
     editing: editing,
     isSavingEdit: isSavingEdit,
     deletingId: deletingId,
+    unreadAfter: unreadAfter,
     errorMessage: errorMessage,
     effect: effect,
     effectCount: effectCount + 1,
@@ -148,6 +176,7 @@ class ChatThreadState extends Equatable {
     editing,
     isSavingEdit,
     deletingId,
+    unreadAfter,
     errorMessage,
     effect,
     effectCount,

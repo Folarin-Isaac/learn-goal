@@ -11,6 +11,7 @@ import 'package:lengoal/features/classes/presentation/bloc/class_discussion/clas
 import 'package:lengoal/features/classes/presentation/bloc/class_list/class_list_bloc.dart';
 import 'package:lengoal/features/classes/presentation/models/class_detail.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_details/class_about_tab.dart';
+import 'package:lengoal/features/classes/presentation/widgets/class_details/class_chat_button.dart';
 // import 'package:lengoal/features/classes/presentation/widgets/class_details/class_certificate_tab.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_details/class_communications_tab.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_details/class_detail_header.dart';
@@ -190,6 +191,8 @@ class _ClassDetailsView extends StatelessWidget {
                                 style: context.textTheme.headlineSmall,
                               ),
                             ),
+                            if (detail.item.isSubscribed)
+                              ClassChatButton(lengoalClass: detail.source),
                           ],
                         ),
                       ),

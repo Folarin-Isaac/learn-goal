@@ -4,6 +4,8 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lengoal/features/chats/domain/entities/chat_message.dart';
 import 'package:lengoal/features/chats/domain/usecases/chat_usecases.dart';
+import 'package:lengoal/features/chats/presentation/bloc/chat_draft/chat_draft_store.dart';
+import 'package:lengoal/features/chats/presentation/bloc/chat_read/chat_read_store.dart';
 import 'package:lengoal/features/classes/domain/entities/lengoal_class.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_list/class_list_bloc.dart';
 
@@ -14,23 +16,32 @@ part 'chat_list_state.dart';
 // The class list comes from the shared subscribed-classes bloc; the API
 // has no "last message" field, so each preview is the class's newest
 // message, fetched a few at a time and refreshed once older than
-// [freshFor].
+// [freshFor]. The Chats tab lives as long as the home shell, so previews
+// are also re-checked every [backgroundEvery] while the app is in the
+// foreground; that keeps the unread badge on the nav bar current.
 class ChatListCubit extends Cubit<ChatListState> {
   new({
     required this._library,
     required this._getLatest,
+    required this._readStore,
+    required this._draftStore,
+    this.backgroundEvery = const Duration(minutes: 2),
     DateTime Function()? clock,
   }) : _now = clock ?? DateTime.now,
        super(const ChatListState());
 
   final ClassListBloc _library;
   final GetLatestChatMessageUseCase _getLatest;
+  final ChatReadStore _readStore;
+  final ChatDraftStore _draftStore;
+  final Duration backgroundEvery;
   final DateTime Function() _now;
 
   static const Duration freshFor = Duration(seconds: 30);
   static const int _maxConcurrent = 4;
 
   StreamSubscription<ClassListState>? _subscription;
+  Timer? _timer;
   final Map<String, DateTime> _fetchedAt = {};
   final Set<String> _inFlight = {};
   final List<String> _queue = [];
@@ -38,9 +49,32 @@ class ChatListCubit extends Cubit<ChatListState> {
 
   void start() {
     if (_subscription != null) return;
+    _readStore.unread.addListener(_onUnread);
+    _draftStore.drafts.addListener(_onDrafts);
+    _onUnread();
+    _onDrafts();
     _subscription = _library.stream.listen(_onLibrary);
     _library.add(const ClassListRequested());
     _onLibrary(_library.state);
+    resumeBackgroundRefresh();
+  }
+
+  void resumeBackgroundRefresh() {
+    if (_timer != null || isClosed) return;
+    _timer = Timer.periodic(backgroundEvery, (_) => _refreshPreviews());
+  }
+
+  void pauseBackgroundRefresh() {
+    _timer?.cancel();
+    _timer = null;
+  }
+
+  void _onUnread() {
+    if (!isClosed) emit(state.copyWith(unread: _readStore.unread.value));
+  }
+
+  void _onDrafts() {
+    if (!isClosed) emit(state.copyWith(drafts: _draftStore.drafts.value));
   }
 
   void _onLibrary(ClassListState library) {
@@ -60,7 +94,10 @@ class ChatListCubit extends Cubit<ChatListState> {
         errorMessage: () => library.errorMessage,
       ),
     );
-    if (status == ChatListStatus.loaded) _refreshPreviews();
+    if (status == ChatListStatus.loaded) {
+      _readStore.retainOnly(library.classIds);
+      _refreshPreviews();
+    }
   }
 
   void search(String query) => emit(state.copyWith(query: query));
@@ -93,6 +130,7 @@ class ChatListCubit extends Cubit<ChatListState> {
   }
 
   void _refreshPreviews() {
+    if (isClosed || state.status != ChatListStatus.loaded) return;
     for (final c in state.classes) {
       final at = _fetchedAt[c.id];
       if (at != null && _now().difference(at) < freshFor) continue;
@@ -124,20 +162,26 @@ class ChatListCubit extends Cubit<ChatListState> {
   Future<void> _fetch(String classId) async {
     final result = await _getLatest(classId);
     if (isClosed) return;
-    result.match(
-      (_) {
-        if (state.latest.containsKey(classId)) return;
+    final message = result.getRight().toNullable();
+    if (result.isLeft()) {
+      if (!state.latest.containsKey(classId)) {
         emit(state.copyWith(latest: {...state.latest, classId: null}));
-      },
-      (message) {
-        _fetchedAt[classId] = _now();
-        emit(state.copyWith(latest: {...state.latest, classId: message}));
-      },
-    );
+      }
+      return;
+    }
+    _fetchedAt[classId] = _now();
+    emit(state.copyWith(latest: {...state.latest, classId: message}));
+    await _readStore.track(classId, message);
   }
 
+  // The Chats tab only goes away with the home shell (sign-out), so drafts
+  // go with it rather than carrying over to the next account.
   @override
   Future<void> close() async {
+    pauseBackgroundRefresh();
+    _readStore.unread.removeListener(_onUnread);
+    _draftStore.drafts.removeListener(_onDrafts);
+    _draftStore.clear();
     await _subscription?.cancel();
     await super.close();
   }

@@ -16,6 +16,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
   final ChatListCubit _cubit = getIt<ChatListCubit>()..start();
   final TextEditingController _search = TextEditingController();
   late final Timer _clock;
+  late final AppLifecycleListener _lifecycle;
   DateTime _now = DateTime.now();
 
   @override
@@ -25,10 +26,15 @@ class _ChatsListPageState extends State<ChatsListPage> {
       const Duration(minutes: 1),
       (_) => setState(() => _now = DateTime.now()),
     );
+    _lifecycle = AppLifecycleListener(
+      onPause: _cubit.pauseBackgroundRefresh,
+      onResume: _cubit.resumeBackgroundRefresh,
+    );
   }
 
   @override
   void dispose() {
+    _lifecycle.dispose();
     _clock.cancel();
     _search.dispose();
     unawaited(_cubit.close());

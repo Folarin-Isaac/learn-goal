@@ -19,6 +19,16 @@ class ChatTime {
     return DateFormat(pattern, locale).format(local);
   }
 
+  static String clock(BuildContext context, DateTime utc, DateTime now) {
+    final l10n = context.l10n;
+    final local = utc.toLocal();
+    final diff = now.difference(local);
+    if (diff.inMinutes < 1) return l10n.chatsJustNow;
+    if (diff.inMinutes < 60) return l10n.chatsMinutesAgo(diff.inMinutes);
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    return DateFormat.jm(locale).format(local);
+  }
+
   static String day(BuildContext context, DateTime local, DateTime now) {
     final l10n = context.l10n;
     if (isSameDay(local, now)) return l10n.chatsToday;

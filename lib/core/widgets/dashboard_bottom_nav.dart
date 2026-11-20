@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +8,7 @@ import 'package:lengoal/core/theme/app_spacing.dart';
 import 'package:lengoal/core/utils/extensions/context_extensions.dart';
 import 'package:lengoal/core/utils/haptics.dart';
 import 'package:lengoal/core/widgets/app_snackbar.dart';
+import 'package:lengoal/core/widgets/nav_badges.dart';
 import 'package:lengoal/gen/assets.gen.dart';
 import 'package:lengoal/l10n/l10n.dart';
 
@@ -47,6 +49,8 @@ class DashboardBottomNav extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int>? onSelect;
 
+  static const int _chatsIndex = 3;
+
   @override
   Widget build(BuildContext context) {
     final systemInset = MediaQuery.paddingOf(context).bottom;
@@ -71,6 +75,7 @@ class DashboardBottomNav extends StatelessWidget {
               child: _NavTile(
                 item: _items[i],
                 isActive: i == currentIndex,
+                badge: i == _chatsIndex ? NavBadges.chats : null,
                 onTap: i == currentIndex
                     ? null
                     : onSelect != null
@@ -93,11 +98,56 @@ class DashboardBottomNav extends StatelessWidget {
 }
 
 class _NavTile extends StatelessWidget {
-  const new({required this.item, required this.isActive, this.onTap});
+  const new({
+    required this.item,
+    required this.isActive,
+    this.onTap,
+    this.badge,
+  });
 
   final _NavItem item;
   final bool isActive;
   final VoidCallback? onTap;
+  final ValueListenable<int>? badge;
+
+  Widget _withBadge(Widget icon) {
+    final listenable = badge;
+    if (listenable == null) return icon;
+    return ValueListenableBuilder<int>(
+      valueListenable: listenable,
+      builder: (context, count, _) {
+        if (count <= 0) return icon;
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            icon,
+            Positioned(
+              top: -6,
+              right: -10,
+              child: Container(
+                constraints: const BoxConstraints(minWidth: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.errorRed,
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
+                  border: Border.all(color: AppColors.brandPrimary, width: 1.5),
+                ),
+                child: Text(
+                  count > 9 ? '9+' : '$count',
+                  textAlign: TextAlign.center,
+                  style: context.textTheme.labelSmall?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                    height: 1.3,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -126,12 +176,14 @@ class _NavTile extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              item.icon.svg(
-                width: 22,
-                height: 22,
-                colorFilter: ColorFilter.mode(
-                  isActive ? Colors.white : Colors.white70,
-                  BlendMode.srcIn,
+              _withBadge(
+                item.icon.svg(
+                  width: 22,
+                  height: 22,
+                  colorFilter: ColorFilter.mode(
+                    isActive ? Colors.white : Colors.white70,
+                    BlendMode.srcIn,
+                  ),
                 ),
               ),
               const Gap(AppSpacing.s4),

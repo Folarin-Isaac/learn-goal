@@ -6,6 +6,7 @@ export 'package:lengoal/core/di/injector.dart';
 export 'package:lengoal/core/motion/motion.dart';
 export 'package:lengoal/core/router/route_names.dart';
 export 'package:lengoal/core/router/route_paths.dart';
+export 'package:lengoal/core/router/route_stack.dart';
 export 'package:lengoal/core/theme/app_colors.dart';
 export 'package:lengoal/core/theme/app_spacing.dart';
 export 'package:lengoal/core/theme/app_text_styles.dart';

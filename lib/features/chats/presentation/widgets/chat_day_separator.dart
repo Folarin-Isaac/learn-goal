@@ -1,14 +1,21 @@
 import 'package:lengoal/core/core.dart';
 
 class ChatDaySeparator extends StatelessWidget {
-  const new({required this.label, super.key});
+  const new({required this.label, this.highlight = false, super.key});
 
   final String label;
+  final bool highlight;
 
   @override
   Widget build(BuildContext context) {
+    final color = highlight
+        ? context.colors.primary
+        : context.colors.onSurfaceVariant;
     final line = Expanded(
-      child: Divider(height: 1, color: context.colors.outlineVariant),
+      child: Divider(
+        height: 1,
+        color: highlight ? color : context.colors.outlineVariant,
+      ),
     );
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.s16),
@@ -23,7 +30,8 @@ class ChatDaySeparator extends StatelessWidget {
                 label,
                 textAlign: TextAlign.center,
                 style: context.textTheme.bodySmall?.copyWith(
-                  color: context.colors.onSurfaceVariant,
+                  color: color,
+                  fontWeight: highlight ? FontWeight.w600 : null,
                 ),
               ),
             ),

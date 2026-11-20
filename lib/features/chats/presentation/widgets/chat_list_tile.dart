@@ -80,18 +80,61 @@ class ChatListTile extends StatelessWidget {
                   ),
                 ),
                 const Gap(AppSpacing.s4),
-                if (!preview.isLoaded)
-                  const Shimmer(child: SkeletonBox(width: 140))
-                else
-                  Text(
-                    previewText,
+                if (preview.hasDraft)
+                  Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          text: '${l10n.chatsDraft} ',
+                          style: const TextStyle(
+                            color: AppColors.errorRed,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        TextSpan(text: preview.draft.trim()),
+                      ],
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: context.textTheme.bodyMedium?.copyWith(
-                      color: latest == null
-                          ? context.colors.onSurfaceVariant
-                          : accent,
+                      color: context.colors.onSurfaceVariant,
                     ),
+                  )
+                else if (!preview.isLoaded)
+                  const Shimmer(child: SkeletonBox(width: 140))
+                else
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          previewText,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: context.textTheme.bodyMedium?.copyWith(
+                            color: latest == null
+                                ? context.colors.onSurfaceVariant
+                                : accent,
+                            fontWeight: preview.isUnread
+                                ? FontWeight.w700
+                                : null,
+                          ),
+                        ),
+                      ),
+                      if (preview.isUnread) ...[
+                        const Gap(AppSpacing.s8),
+                        Semantics(
+                          label: l10n.chatsUnreadSemantics,
+                          child: Container(
+                            width: 10,
+                            height: 10,
+                            decoration: BoxDecoration(
+                              color: accent,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
               ],
             ),

@@ -5,7 +5,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lengoal/core/core.dart';
 import 'package:lengoal/core/error/failures.dart';
+import 'package:lengoal/core/storage/secure_storage_service.dart';
 import 'package:lengoal/core/theme/app_theme.dart';
+import 'package:lengoal/features/auth/domain/repositories/auth_repository.dart';
+import 'package:lengoal/features/chats/domain/usecases/chat_usecases.dart';
+import 'package:lengoal/features/chats/presentation/bloc/chat_read/chat_read_store.dart';
 import 'package:lengoal/features/classes/domain/entities/class_attendance.dart';
 import 'package:lengoal/features/classes/domain/entities/class_session.dart';
 import 'package:lengoal/features/classes/domain/entities/discussion_post.dart';
@@ -239,6 +243,8 @@ Future<void> _loadFont(String family, String path) async {
   await loader.load();
 }
 
+class _FakeAuthRepository extends Fake implements AuthRepository;
+
 void main() {
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
@@ -263,6 +269,12 @@ void main() {
           setClassSavedUseCase: SetClassSavedUseCase(repository),
         ),
         instanceName: ClassListSource.saved.name,
+      )
+      ..registerLazySingleton(
+        () => ChatReadStore(
+          SecureStorageService(),
+          GetChatIdentityUseCase(_FakeAuthRepository()),
+        ),
       );
   });
 
