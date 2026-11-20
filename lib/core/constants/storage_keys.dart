@@ -19,6 +19,9 @@ class StorageKeys {
   // (class chat sends it as senderAppUserId).
   static const String userId = 'user_id';
 
+  // Appearance choice: 'system', 'light' or 'dark' (ThemeMode.name).
+  static const String themeMode = 'theme_mode';
+
   // The goal picked in the dashboard switcher, restored on next launch.
   static const String activeGoalId = 'active_goal_id';
 }

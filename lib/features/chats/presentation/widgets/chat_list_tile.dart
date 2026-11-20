@@ -18,8 +18,8 @@ class ChatListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final latest = preview.latest;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final accent = isDark ? AppColors.accentBlueSoft : context.colors.primary;
+    final isDark = context.isDarkMode;
+    final accent = context.colors.primary;
     final String previewText;
     if (!preview.isLoaded) {
       previewText = '';
@@ -33,7 +33,7 @@ class ChatListTile extends StatelessWidget {
 
     return Pressable(
       child: Material(
-        color: context.colors.primary.withValues(alpha: isDark ? 0.18 : 0.08),
+        color: context.colors.primary.withValues(alpha: isDark ? 0.12 : 0.08),
         borderRadius: BorderRadius.circular(AppSpacing.r8),
         child: InkWell(
           borderRadius: BorderRadius.circular(AppSpacing.r8),

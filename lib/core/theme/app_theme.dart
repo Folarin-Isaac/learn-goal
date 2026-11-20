@@ -16,8 +16,8 @@ class AppTheme {
           seedColor: AppColors.brandPrimary,
           brightness: brightness,
         ).copyWith(
-          primary: AppColors.brandPrimary,
-          onPrimary: Colors.white,
+          primary: isDark ? AppColors.brandBlueOnDark : AppColors.brandPrimary,
+          onPrimary: isDark ? AppColors.brandPrimary : Colors.white,
           surface: isDark ? null : Colors.white,
         );
 

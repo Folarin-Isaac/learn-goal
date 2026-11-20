@@ -30,6 +30,7 @@ class RouteNames {
   static const String profile = 'profile';
   static const String updateProfile = 'updateProfile';
   static const String support = 'support';
+  static const String appearance = 'appearance';
   static const String subscriptionHistory = 'subscriptionHistory';
   static const String changePassword = 'changePassword';
   static const String practice = 'practice';

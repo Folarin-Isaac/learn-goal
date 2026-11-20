@@ -17,6 +17,9 @@ import 'package:vector_graphics/vector_graphics.dart' as _vg;
 class $AssetsIconsGen {
   const $AssetsIconsGen();
 
+  /// File path: assets/icons/appearance_icon.svg
+  SvgGenImage get appearanceIcon => const SvgGenImage('assets/icons/appearance_icon.svg');
+
   /// File path: assets/icons/back_arrow_icon.svg
   SvgGenImage get backArrowIcon => const SvgGenImage('assets/icons/back_arrow_icon.svg');
 
@@ -168,6 +171,7 @@ class $AssetsIconsGen {
 
   /// List of all assets
   List<SvgGenImage> get values => [
+    appearanceIcon,
     backArrowIcon,
     calendarIcon,
     cameraIcon,

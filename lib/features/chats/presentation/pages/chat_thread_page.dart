@@ -728,7 +728,7 @@ class _JumpButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = label;
     return Material(
-      color: context.colors.primary,
+      color: AppColors.brandPrimary,
       elevation: 3,
       shape: const StadiumBorder(),
       child: InkWell(

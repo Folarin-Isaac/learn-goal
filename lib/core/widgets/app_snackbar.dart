@@ -167,6 +167,9 @@ class _SnackbarCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final style = _styleFor(type);
+    final accent = isDark && type == SnackType.info
+        ? AppColors.brandBlueOnDark
+        : style.accent;
     final cardColor = isDark ? const Color(0xFF1B1E25) : Colors.white;
     final textColor = isDark ? Colors.white : const Color(0xFF1F2937);
 
@@ -208,12 +211,10 @@ class _SnackbarCard extends StatelessWidget {
                       width: 32,
                       height: 32,
                       decoration: BoxDecoration(
-                        color: style.accent.withValues(
-                          alpha: isDark ? 0.18 : 0.12,
-                        ),
+                        color: accent.withValues(alpha: isDark ? 0.18 : 0.12),
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(style.icon, size: 18, color: style.accent),
+                      child: Icon(style.icon, size: 18, color: accent),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -254,7 +255,7 @@ class _SnackbarCard extends StatelessWidget {
                   widthFactor: (1 - progress.value).clamp(0, 1),
                   child: Container(
                     height: 3,
-                    color: style.accent.withValues(alpha: 0.6),
+                    color: accent.withValues(alpha: 0.6),
                   ),
                 ),
               ),

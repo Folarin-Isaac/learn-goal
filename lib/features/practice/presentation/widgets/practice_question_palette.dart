@@ -30,7 +30,7 @@ class PracticeQuestionPalette extends StatelessWidget {
           Text(
             context.l10n.practiceQuestionsHeading,
             style: context.textTheme.titleLarge?.copyWith(
-              color: AppColors.accentBlue,
+              color: context.accentForeground,
             ),
           ),
           const Gap(AppSpacing.s16),

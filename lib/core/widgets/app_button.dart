@@ -26,9 +26,7 @@ class AppButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final foreground =
         foregroundColor ??
-        (isOutlined
-            ? Theme.of(context).colorScheme.onSurface
-            : Theme.of(context).colorScheme.onPrimary);
+        (isOutlined ? Theme.of(context).colorScheme.onSurface : Colors.white);
 
     final child = isLoading
         ? SizedBox(

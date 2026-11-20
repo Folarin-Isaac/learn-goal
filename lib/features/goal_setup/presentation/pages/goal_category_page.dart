@@ -127,7 +127,7 @@ class GoalCategoryPage extends StatelessWidget {
               AppButton(
                 label: context.l10n.goalSetupLater,
                 isOutlined: true,
-                foregroundColor: AppColors.brandPrimary,
+                foregroundColor: context.colors.primary,
                 onPressed: () {
                   AppHaptics.selection();
                   getIt<AuthRepository>().completeGoalSetup();

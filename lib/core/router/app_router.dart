@@ -328,6 +328,14 @@ class AppRouter {
             AppPageTransitions.build(state: state, child: const SupportPage()),
       ),
       GoRoute(
+        path: RoutePaths.appearance,
+        name: RouteNames.appearance,
+        pageBuilder: (context, state) => AppPageTransitions.build(
+          state: state,
+          child: const AppearancePage(),
+        ),
+      ),
+      GoRoute(
         path: RoutePaths.subscriptionHistory,
         name: RouteNames.subscriptionHistory,
         pageBuilder: (context, state) => AppPageTransitions.build(

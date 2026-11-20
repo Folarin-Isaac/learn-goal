@@ -180,13 +180,35 @@ class _ProfilePageState extends State<ProfilePage> {
                           Entrance(
                             index: 6,
                             child: Text(
-                              context.l10n.profileSignOutSection,
+                              context.l10n.profilePreferencesSection,
                               style: context.textTheme.titleMedium,
                             ),
                           ),
                           const Gap(AppSpacing.s16),
                           Entrance(
                             index: 7,
+                            child: _ProfileRow(
+                              icon: Assets.icons.appearanceIcon,
+                              label: context.l10n.profileAppearance,
+                              onTap: () {
+                                AppHaptics.selection();
+                                unawaited(
+                                  context.pushNamed(RouteNames.appearance),
+                                );
+                              },
+                            ),
+                          ),
+                          const Gap(AppSpacing.s24),
+                          Entrance(
+                            index: 8,
+                            child: Text(
+                              context.l10n.profileSignOutSection,
+                              style: context.textTheme.titleMedium,
+                            ),
+                          ),
+                          const Gap(AppSpacing.s16),
+                          Entrance(
+                            index: 9,
                             child: _ProfileRow(
                               icon: Assets.icons.signOutIcon,
                               label: context.l10n.profileSignOut,
@@ -196,7 +218,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                           const Gap(AppSpacing.s24),
                           Entrance(
-                            index: 8,
+                            index: 10,
                             child: Row(
                               children: [
                                 Expanded(
@@ -218,7 +240,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                           const Gap(AppSpacing.s16),
                           Entrance(
-                            index: 9,
+                            index: 11,
                             child: _ProfileRow(
                               icon: Assets.icons.deleteAccountIcon,
                               label: context.l10n.profileDeleteAccount,
@@ -254,7 +276,7 @@ class _ProfileCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.s16),
       decoration: BoxDecoration(
-        color: context.colors.primary,
+        color: AppColors.brandPrimary,
         borderRadius: BorderRadius.circular(AppSpacing.r16),
       ),
       child: Row(

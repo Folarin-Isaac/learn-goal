@@ -84,7 +84,7 @@ class CalendarSessionCard extends StatelessWidget {
                     children: [
                       CircleAvatar(
                         radius: 8,
-                        backgroundColor: context.colors.primary,
+                        backgroundColor: AppColors.brandPrimary,
                         foregroundColor: Colors.white,
                         child: Text(
                           host[0],

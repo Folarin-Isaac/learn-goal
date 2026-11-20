@@ -1,3 +1,4 @@
+export 'presentation/pages/appearance_page.dart';
 export 'presentation/pages/calendar_page.dart';
 export 'presentation/pages/dashboard_page.dart';
 export 'presentation/pages/change_password_page.dart';

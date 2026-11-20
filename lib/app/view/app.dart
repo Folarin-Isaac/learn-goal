@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lengoal/core/di/injector.dart';
 import 'package:lengoal/core/network/connectivity_cubit.dart';
+import 'package:lengoal/core/preferences/theme_mode_cubit.dart';
 import 'package:lengoal/core/router/app_router.dart';
 import 'package:lengoal/core/theme/app_theme.dart';
 import 'package:lengoal/core/widgets/connectivity_banner.dart';
@@ -36,20 +37,24 @@ class App extends StatelessWidget {
         ),
         BlocProvider(lazy: false, create: (_) => getIt<ConnectivityCubit>()),
       ],
-      child: MaterialApp.router(
-        title: 'Lengoal',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.light,
-        darkTheme: AppTheme.dark,
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        routerConfig: AppRouter.router,
-        builder: (context, child) => AnnotatedRegion<SystemUiOverlayStyle>(
-          value: _systemBarsStyle(Theme.of(context).brightness),
-          child: SplashOverlay(
-            child: ContentWidthLimiter(
-              child: ConnectivityBanner(
-                child: child ?? const SizedBox.shrink(),
+      child: BlocBuilder<ThemeModeCubit, ThemeMode>(
+        bloc: getIt<ThemeModeCubit>(),
+        builder: (context, themeMode) => MaterialApp.router(
+          title: 'Lengoal',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.light,
+          darkTheme: AppTheme.dark,
+          themeMode: themeMode,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: AppRouter.router,
+          builder: (context, child) => AnnotatedRegion<SystemUiOverlayStyle>(
+            value: _systemBarsStyle(Theme.of(context).brightness),
+            child: SplashOverlay(
+              child: ContentWidthLimiter(
+                child: ConnectivityBanner(
+                  child: child ?? const SizedBox.shrink(),
+                ),
               ),
             ),
           ),

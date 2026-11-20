@@ -187,7 +187,7 @@ class _TimeCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.s16),
       decoration: BoxDecoration(
-        color: context.colors.primary,
+        color: AppColors.brandPrimary,
         borderRadius: BorderRadius.circular(AppSpacing.r16),
       ),
       child: Column(
@@ -301,7 +301,7 @@ class _OptionTile extends StatelessWidget {
               CircleAvatar(
                 radius: 12,
                 backgroundColor: isSelected
-                    ? context.colors.primary
+                    ? AppColors.brandPrimary
                     : context.colors.surfaceContainerHighest,
                 foregroundColor: isSelected
                     ? Colors.white
@@ -340,7 +340,7 @@ class _QuestionChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final background = isCurrent
-        ? context.colors.primary
+        ? AppColors.brandPrimary
         : isAnswered
         ? context.colors.primary.withValues(alpha: 0.12)
         : Colors.transparent;

@@ -53,7 +53,7 @@ class _CommunityPageState extends State<CommunityPage>
           authorName: name,
           authorTag: '',
           authorInitial: name[0].toUpperCase(),
-          avatarColor: context.colors.primary,
+          avatarColor: AppColors.brandPrimary,
           timestamp: context.l10n.communityJustNow,
           body: text,
           likeCount: 0,

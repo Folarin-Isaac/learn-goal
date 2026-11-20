@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:lengoal/core/constants/app_constants.dart';
-import 'package:lengoal/core/theme/app_colors.dart';
 
 class OtpInput extends StatelessWidget {
   const new({
@@ -75,7 +74,7 @@ class _OtpBox extends StatelessWidget {
           fontWeight: filled ? FontWeight.w700 : FontWeight.w400,
           fontSize: filled ? 24 : 18,
           color: filled
-              ? AppColors.brandPrimary
+              ? Theme.of(context).colorScheme.primary
               : colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
         ),
       ),

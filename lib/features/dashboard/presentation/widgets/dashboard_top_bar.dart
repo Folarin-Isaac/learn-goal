@@ -260,7 +260,7 @@ class _AvatarState extends State<_Avatar> {
       },
       child: CircleAvatar(
         radius: 18,
-        backgroundColor: context.colors.primary,
+        backgroundColor: AppColors.brandPrimary,
         foregroundColor: Colors.white,
         backgroundImage: hasAvatar
             ? CachedNetworkImageProvider(widget.avatarUrl!)

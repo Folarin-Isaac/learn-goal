@@ -17,10 +17,6 @@ class ExploreEducatorCard extends StatelessWidget {
   final int index;
 
   static const int _maxCategories = 2;
-  static const List<Color> _chipColors = [
-    AppColors.successGreen,
-    AppColors.accentBlue,
-  ];
 
   static const List<_BannerTheme> _themes = [
     _BannerTheme(
@@ -93,7 +89,9 @@ class ExploreEducatorCard extends StatelessWidget {
                   Flexible(
                     child: _CategoryChip(
                       label: categories[i],
-                      color: _chipColors[i % _chipColors.length],
+                      color: i.isEven
+                          ? AppColors.successGreen
+                          : context.accentForeground,
                     ),
                   ),
                 ],
@@ -124,7 +122,7 @@ class ExploreEducatorCard extends StatelessWidget {
             label: context.l10n.exploreViewProfile,
             isOutlined: true,
             height: 44,
-            foregroundColor: AppColors.accentBlue,
+            foregroundColor: context.accentForeground,
             onPressed: () => _viewProfile(context),
           ),
         ],

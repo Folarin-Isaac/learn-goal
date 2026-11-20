@@ -158,7 +158,7 @@ class _ExpandableTextState extends State<_ExpandableText> {
                         ? context.l10n.classDiscussionSeeLess
                         : context.l10n.classDiscussionSeeMore,
                     style: context.textTheme.bodySmall?.copyWith(
-                      color: AppColors.accentBlue,
+                      color: context.accentForeground,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -190,7 +190,7 @@ class _RoleTag extends StatelessWidget {
       child: Text(
         label,
         style: context.textTheme.bodySmall?.copyWith(
-          color: AppColors.accentBlue,
+          color: context.accentForeground,
           fontWeight: FontWeight.w600,
         ),
       ),

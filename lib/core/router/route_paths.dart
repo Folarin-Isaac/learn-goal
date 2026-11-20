@@ -30,6 +30,7 @@ class RoutePaths {
   static const String profile = '/profile';
   static const String updateProfile = '/profile/update';
   static const String support = '/profile/support';
+  static const String appearance = '/profile/appearance';
   static const String subscriptionHistory = '/profile/subscription-history';
   static const String changePassword = '/profile/change-password';
   static const String practice = '/practice';

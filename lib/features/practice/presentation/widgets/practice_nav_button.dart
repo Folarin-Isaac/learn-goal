@@ -29,14 +29,16 @@ class PracticeNavButton extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppSpacing.r8),
             border: Border.all(
-              color: isEnabled ? AppColors.accentBlue : AppColors.borderGray200,
+              color: isEnabled
+                  ? context.accentForeground
+                  : AppColors.borderGray200,
             ),
           ),
           child: icon.svg(
             width: 20,
             height: 20,
             colorFilter: ColorFilter.mode(
-              isEnabled ? AppColors.accentBlue : AppColors.borderGray200,
+              isEnabled ? context.accentForeground : AppColors.borderGray200,
               BlendMode.srcIn,
             ),
           ),

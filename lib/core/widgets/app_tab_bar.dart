@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lengoal/core/theme/app_colors.dart';
 import 'package:lengoal/core/theme/app_spacing.dart';
 import 'package:lengoal/core/theme/app_text_styles.dart';
+import 'package:lengoal/core/utils/extensions/context_extensions.dart';
 
 class AppTabBar extends StatelessWidget implements PreferredSizeWidget {
   const new({
@@ -27,10 +28,10 @@ class AppTabBar extends StatelessWidget implements PreferredSizeWidget {
       isScrollable: isScrollable,
       tabAlignment: isScrollable ? TabAlignment.start : TabAlignment.fill,
       indicatorSize: TabBarIndicatorSize.tab,
-      indicatorColor: AppColors.accentBlue,
+      indicatorColor: context.accentForeground,
       dividerColor: AppColors.borderGray200,
       dividerHeight: AppSpacing.s1,
-      labelColor: AppColors.accentBlue,
+      labelColor: context.accentForeground,
       unselectedLabelColor: AppColors.borderGray200,
       labelStyle: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600),
       unselectedLabelStyle: AppTextStyles.body.copyWith(

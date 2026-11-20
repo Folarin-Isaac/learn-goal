@@ -62,8 +62,8 @@ class _DayTile extends StatelessWidget {
               height: isSelected ? AppSpacing.s24 : AppSpacing.s8,
               decoration: BoxDecoration(
                 color: isSelected
-                    ? AppColors.brandPrimary
-                    : AppColors.brandPrimary.withValues(alpha: 0.35),
+                    ? context.colors.primary
+                    : context.colors.primary.withValues(alpha: 0.35),
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(AppSpacing.r8),
                   topRight: Radius.circular(AppSpacing.r8),
@@ -108,7 +108,7 @@ class _DayTile extends StatelessWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: day.hasSessions
-                          ? AppColors.brandPrimary
+                          ? context.colors.primary
                           : Colors.transparent,
                     ),
                   ),

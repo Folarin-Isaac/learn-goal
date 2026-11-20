@@ -47,7 +47,7 @@ class _CommunityPostDetailPageState extends State<CommunityPostDetailPage> {
           authorName: name,
           authorTag: '',
           authorInitial: name[0].toUpperCase(),
-          avatarColor: context.colors.primary,
+          avatarColor: AppColors.brandPrimary,
           timestamp: context.l10n.communityJustNow,
           body: text,
           likeCount: 0,
@@ -128,7 +128,7 @@ class _CommunityPostDetailPageState extends State<CommunityPostDetailPage> {
                         avatarInitial: (user?.firstName.isNotEmpty ?? false)
                             ? user!.firstName[0].toUpperCase()
                             : '?',
-                        avatarColor: context.colors.primary,
+                        avatarColor: AppColors.brandPrimary,
                         onSubmit: () => _submitReply(user),
                       ),
                       const Gap(AppSpacing.s24),

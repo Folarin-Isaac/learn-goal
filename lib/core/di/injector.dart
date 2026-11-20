@@ -5,6 +5,7 @@ import 'package:lengoal/core/env/env.dart';
 import 'package:lengoal/core/network/api_client.dart';
 import 'package:lengoal/core/network/connectivity_cubit.dart';
 import 'package:lengoal/core/network/network_info.dart';
+import 'package:lengoal/core/preferences/theme_mode_cubit.dart';
 import 'package:lengoal/core/storage/secure_storage_service.dart';
 import 'package:lengoal/features/auth/data/datasources/auth_remote_data_source.dart';
 import 'package:lengoal/features/auth/data/datasources/auth_remote_datasource_impl.dart';
@@ -93,6 +94,7 @@ Future<void> setupInjector({bool enableNetworkLogging = false}) async {
     ..registerLazySingleton(Connectivity.new)
     ..registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(getIt()))
     ..registerFactory(() => ConnectivityCubit(getIt()))
+    ..registerLazySingleton(() => ThemeModeCubit(getIt()))
     ..registerLazySingleton(
       () => ApiClient(
         getIt(),
@@ -113,6 +115,7 @@ Future<void> setupInjector({bool enableNetworkLogging = false}) async {
   // session syncs start, so the router never sees an "unknown" status
   // and a not-kept session is ended exactly once, at launch.
   await getIt<AuthRepository>().checkAuthStatus();
+  await getIt<ThemeModeCubit>().load();
 
   getIt<ProfileSessionSync>().start();
   getIt<ClassListSessionSync>().start();

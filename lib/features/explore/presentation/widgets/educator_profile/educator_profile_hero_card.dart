@@ -14,7 +14,7 @@ class EducatorProfileHeroCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final accent = profile.bgColorKey == null
-        ? AppColors.accentBlue
+        ? context.accentForeground
         : classThumbnailColor(profile.bgColorKey);
     final experience = [
       if (profile.yearsOfExperience > 0)
@@ -101,7 +101,7 @@ class EducatorProfileHeroCard extends StatelessWidget {
                   for (final badge in profile.badges)
                     _Chip(
                       label: badge,
-                      color: AppColors.accentBlue,
+                      color: context.accentForeground,
                       icon: Icons.verified_rounded,
                     ),
                 ],

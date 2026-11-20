@@ -71,7 +71,7 @@ class ChatMessageBubble extends StatelessWidget {
       ),
       child: Material(
         color: isMine
-            ? context.colors.primary
+            ? AppColors.brandPrimary
             : context.colors.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(AppSpacing.r8),
         child: InkWell(
@@ -260,7 +260,7 @@ class _SenderAvatar extends StatelessWidget {
     final initial = name.trim().isEmpty ? '?' : name.trim()[0].toUpperCase();
     final fallback = CircleAvatar(
       radius: size / 2,
-      backgroundColor: context.colors.primary,
+      backgroundColor: AppColors.brandPrimary,
       foregroundColor: Colors.white,
       child: Text(
         initial,

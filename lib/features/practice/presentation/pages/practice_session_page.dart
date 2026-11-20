@@ -154,7 +154,7 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
                   AppButton(
                     label: context.l10n.practiceSaveAndContinueLater,
                     isOutlined: true,
-                    foregroundColor: AppColors.brandPrimary,
+                    foregroundColor: context.colors.primary,
                     onPressed: () {
                       AppHaptics.selection();
                       context.pop();

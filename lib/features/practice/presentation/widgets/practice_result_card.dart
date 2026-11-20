@@ -60,9 +60,9 @@ class PracticeResultCard extends StatelessWidget {
               child: Text(
                 context.l10n.practiceReview,
                 style: context.textTheme.bodyLarge?.copyWith(
-                  color: AppColors.accentBlue,
+                  color: context.accentForeground,
                   decoration: TextDecoration.underline,
-                  decorationColor: AppColors.accentBlue,
+                  decorationColor: context.accentForeground,
                 ),
               ),
             ),

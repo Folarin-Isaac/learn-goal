@@ -142,7 +142,7 @@ class _ScoreHero extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.s16),
       decoration: BoxDecoration(
-        color: context.colors.primary,
+        color: AppColors.brandPrimary,
         borderRadius: BorderRadius.circular(AppSpacing.r16),
       ),
       child: Row(
@@ -165,7 +165,7 @@ class _ScoreHero extends StatelessWidget {
             child: Text(
               '$scorePercent%',
               style: context.textTheme.titleLarge?.copyWith(
-                color: context.colors.primary,
+                color: AppColors.brandPrimary,
                 fontWeight: FontWeight.w700,
               ),
             ),

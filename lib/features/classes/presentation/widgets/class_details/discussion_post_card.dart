@@ -88,7 +88,7 @@ class _DiscussionPostCardState extends State<DiscussionPostCard> {
                             ? l10n.classDiscussionHideReplies
                             : l10n.classDiscussionViewReplies,
                         style: muted?.copyWith(
-                          color: AppColors.accentBlue,
+                          color: context.accentForeground,
                           fontWeight: FontWeight.w600,
                         ),
                       ),

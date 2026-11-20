@@ -100,8 +100,8 @@ class _SaveButton extends StatelessWidget {
     return OutlinedButton(
       style: OutlinedButton.styleFrom(
         minimumSize: const Size.fromHeight(44),
-        foregroundColor: AppColors.accentBlue,
-        side: const BorderSide(color: AppColors.accentBlue),
+        foregroundColor: context.accentForeground,
+        side: BorderSide(color: context.accentForeground),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppSpacing.r8),
         ),

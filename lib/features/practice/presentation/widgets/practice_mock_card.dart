@@ -72,15 +72,15 @@ class PracticeMockCard extends StatelessWidget {
                       Text(
                         context.l10n.practiceStartMock,
                         style: context.textTheme.bodyLarge?.copyWith(
-                          color: AppColors.accentBlue,
+                          color: context.accentForeground,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                       const Gap(AppSpacing.s8),
-                      const Icon(
+                      Icon(
                         Icons.chevron_right_rounded,
                         size: 20,
-                        color: AppColors.accentBlue,
+                        color: context.accentForeground,
                       ),
                     ],
                   ),

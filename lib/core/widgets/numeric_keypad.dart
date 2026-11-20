@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:lengoal/core/theme/app_colors.dart';
 import 'package:lengoal/gen/assets.gen.dart';
 
 class NumericKeypad extends StatelessWidget {
@@ -37,8 +36,8 @@ class NumericKeypad extends StatelessWidget {
               child: Assets.icons.keypadBackspaceIcon.svg(
                 width: 28,
                 height: 28,
-                colorFilter: const ColorFilter.mode(
-                  AppColors.brandPrimary,
+                colorFilter: ColorFilter.mode(
+                  Theme.of(context).colorScheme.primary,
                   BlendMode.srcIn,
                 ),
               ),
@@ -91,7 +90,7 @@ class _NumericKey extends StatelessWidget {
                 Text(
                   label!,
                   style: Theme.of(context).textTheme.headlineSmall
-                      ?.copyWith(color: AppColors.brandPrimary),
+                      ?.copyWith(color: Theme.of(context).colorScheme.primary),
                 ),
           ),
         ),

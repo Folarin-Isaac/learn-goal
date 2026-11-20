@@ -134,7 +134,7 @@ class PracticeMockIntroPage extends StatelessWidget {
                           AppButton(
                             label: context.l10n.commonCancel,
                             isOutlined: true,
-                            foregroundColor: AppColors.brandPrimary,
+                            foregroundColor: context.colors.primary,
                             onPressed: () {
                               AppHaptics.selection();
                               context.pop();

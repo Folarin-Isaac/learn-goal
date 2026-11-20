@@ -79,7 +79,7 @@ class ClassQuizCard extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 10,
-                  backgroundColor: context.colors.primary,
+                  backgroundColor: AppColors.brandPrimary,
                   foregroundColor: Colors.white,
                   child: Text(
                     quiz.instructorName[0],
