@@ -767,6 +767,8 @@
     "@chatsPhoto": {"description": "Label for an image attachment in a reply quote"},
     "chatsReplyingTo": "Replying to {name}",
     "@chatsReplyingTo": {"description": "Reply bar above the message box when replying to a photo or file", "placeholders": {"name": {"type": "String"}}},
+    "chatsMentionAllSubtitle": "Mention everyone in this chat",
+    "@chatsMentionAllSubtitle": {"description": "Subtitle of the 'all' row in the @ mention list"},
     "chatsChooseFile": "Choose a file",
     "@chatsChooseFile": {"description": "Attachment menu option for documents (PDF, Word, Excel, PowerPoint, text)"},
     "chatsFileTooLarge": "That file is too large. Choose one under 25 MB.",

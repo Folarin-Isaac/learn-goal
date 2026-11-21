@@ -1,5 +1,60 @@
 import 'package:lengoal/core/core.dart';
 
+class ChatComposerController extends TextEditingController {
+  RegExp? _mentions;
+  Color? _mentionColor;
+
+  void setMentionStyle(RegExp? mentions, Color color) {
+    _mentions = mentions;
+    _mentionColor = color;
+  }
+
+  static final RegExp _space = RegExp(r'\s');
+
+  @override
+  TextSpan buildTextSpan({
+    required BuildContext context,
+    required bool withComposing,
+    TextStyle? style,
+  }) {
+    final pattern = _mentions;
+    if (pattern == null || !text.contains('@')) {
+      return super.buildTextSpan(
+        context: context,
+        style: style,
+        withComposing: withComposing,
+      );
+    }
+    final highlight = TextStyle(
+      color: _mentionColor,
+      fontWeight: FontWeight.w700,
+    );
+    final children = <TextSpan>[];
+    var index = 0;
+    for (final match in pattern.allMatches(text)) {
+      final startsWord =
+          match.start == 0 || _space.hasMatch(text[match.start - 1]);
+      if (!startsWord) continue;
+      if (match.start > index) {
+        children.add(TextSpan(text: text.substring(index, match.start)));
+      }
+      children.add(TextSpan(text: match.group(0), style: highlight));
+      index = match.end;
+    }
+    if (children.isEmpty) {
+      return super.buildTextSpan(
+        context: context,
+        style: style,
+        withComposing: withComposing,
+      );
+    }
+    if (index < text.length) {
+      children.add(TextSpan(text: text.substring(index)));
+    }
+    return TextSpan(style: style, children: children);
+  }
+}
+
 class ChatComposer extends StatelessWidget {
   const new({
     required this.controller,

@@ -83,12 +83,16 @@ class ChatMessageText extends StatefulWidget {
     super.key,
     this.quoteName,
     this.onQuoteTap,
+    this.mentions,
+    this.mentionColor,
   });
 
   final String text;
   final Color color;
   final String Function(String name)? quoteName;
   final VoidCallback? onQuoteTap;
+  final RegExp? mentions;
+  final Color? mentionColor;
 
   static final RegExp mentionPattern = RegExp(r'^@([^:\n]{1,60}):');
   static final RegExp _linkPattern = RegExp(
@@ -107,17 +111,20 @@ class ChatMessageText extends StatefulWidget {
 }
 
 class _Segment {
-  const new(this.text, {this.url, this.bold = false});
+  const new(this.text, {this.url, this.bold = false, this.mention = false});
 
   final String text;
   final String? url;
   final bool bold;
+  final bool mention;
 }
 
 class _ChatMessageTextState extends State<ChatMessageText> {
   ChatReplyQuote? _quote;
   List<_Segment> _segments = const [];
   final List<TapGestureRecognizer> _recognizers = [];
+
+  static final RegExp _space = RegExp(r'\s');
 
   @override
   void initState() {
@@ -128,7 +135,10 @@ class _ChatMessageTextState extends State<ChatMessageText> {
   @override
   void didUpdateWidget(ChatMessageText oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.text != widget.text) _parse();
+    if (oldWidget.text != widget.text ||
+        oldWidget.mentions?.pattern != widget.mentions?.pattern) {
+      _parse();
+    }
   }
 
   @override
@@ -160,16 +170,36 @@ class _ChatMessageTextState extends State<ChatMessageText> {
     var index = 0;
     for (final match in ChatMessageText._linkPattern.allMatches(rest)) {
       if (match.start > index) {
-        segments.add(_Segment(rest.substring(index, match.start)));
+        _addPlain(segments, rest.substring(index, match.start));
       }
       final raw = _trimTrailingPunctuation(match.group(0)!);
       segments.add(_Segment(raw, url: raw));
       final trailing = match.group(0)!.substring(raw.length);
-      if (trailing.isNotEmpty) segments.add(_Segment(trailing));
+      if (trailing.isNotEmpty) _addPlain(segments, trailing);
       index = match.end;
     }
-    if (index < rest.length) segments.add(_Segment(rest.substring(index)));
+    if (index < rest.length) _addPlain(segments, rest.substring(index));
     _segments = segments;
+  }
+
+  void _addPlain(List<_Segment> segments, String text) {
+    final pattern = widget.mentions;
+    if (pattern == null) {
+      segments.add(_Segment(text));
+      return;
+    }
+    var index = 0;
+    for (final match in pattern.allMatches(text)) {
+      final startsWord =
+          match.start == 0 || _space.hasMatch(text[match.start - 1]);
+      if (!startsWord) continue;
+      if (match.start > index) {
+        segments.add(_Segment(text.substring(index, match.start)));
+      }
+      segments.add(_Segment(match.group(0)!, mention: true));
+      index = match.end;
+    }
+    if (index < text.length) segments.add(_Segment(text.substring(index)));
   }
 
   static String _trimTrailingPunctuation(String url) {
@@ -207,6 +237,14 @@ class _ChatMessageTextState extends State<ChatMessageText> {
                   decorationColor: widget.color,
                 ),
                 recognizer: _recognizerFor(s.url!),
+              )
+            else if (s.mention)
+              TextSpan(
+                text: s.text,
+                style: TextStyle(
+                  color: widget.mentionColor ?? widget.color,
+                  fontWeight: FontWeight.w700,
+                ),
               )
             else
               TextSpan(

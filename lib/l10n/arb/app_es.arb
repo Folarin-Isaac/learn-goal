@@ -363,6 +363,7 @@
     "chatsJumpToLatest": "Ir a lo más reciente",
     "chatsPhoto": "Foto",
     "chatsReplyingTo": "Respondiendo a {name}",
+    "chatsMentionAllSubtitle": "Menciona a todos en este chat",
     "chatsChooseFile": "Elegir un archivo",
     "chatsFileTooLarge": "Ese archivo es demasiado grande. Elige uno de menos de 25 MB.",
     "chatsOpenClassChat": "Abrir chat de la clase",

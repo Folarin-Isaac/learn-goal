@@ -26,10 +26,12 @@ class ChatMessageBubble extends StatelessWidget {
     this.onOpenMedia,
     this.quoteName,
     this.onQuoteTap,
+    this.mentions,
   });
 
   final String text;
   final String timeLabel;
+  final RegExp? mentions;
   final bool isMine;
   final String? senderName;
   final String? photoUrl;
@@ -93,6 +95,7 @@ class ChatMessageBubble extends StatelessWidget {
               onOpenMedia: onOpenMedia,
               quoteName: quoteName,
               onQuoteTap: onQuoteTap,
+              mentions: mentions,
             ),
           ),
         ),
@@ -132,7 +135,7 @@ class ChatMessageBubble extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (showHeader)
-          _SenderAvatar(
+          ChatSenderAvatar(
             name: senderName ?? '',
             photoUrl: photoUrl,
             size: avatarSize,
@@ -156,9 +159,11 @@ class _BubbleContent extends StatelessWidget {
     this.localImagePath,
     this.quoteName,
     this.onQuoteTap,
+    this.mentions,
   });
 
   final String text;
+  final RegExp? mentions;
   final String? mediaUrl;
   final bool isImage;
   final String? localImagePath;
@@ -212,6 +217,8 @@ class _BubbleContent extends StatelessWidget {
             color: foreground,
             quoteName: quoteName,
             onQuoteTap: onQuoteTap,
+            mentions: mentions,
+            mentionColor: isMine ? foreground : context.colors.primary,
           ),
       ],
     );
@@ -268,8 +275,13 @@ class _AttachmentChip extends StatelessWidget {
   }
 }
 
-class _SenderAvatar extends StatelessWidget {
-  const new({required this.name, required this.photoUrl, required this.size});
+class ChatSenderAvatar extends StatelessWidget {
+  const new({
+    required this.name,
+    required this.photoUrl,
+    required this.size,
+    super.key,
+  });
 
   final String name;
   final String? photoUrl;

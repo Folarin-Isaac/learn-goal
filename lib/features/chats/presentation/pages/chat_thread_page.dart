@@ -9,9 +9,11 @@ import 'package:lengoal/core/core.dart';
 import 'package:lengoal/features/chats/domain/entities/chat_message.dart';
 import 'package:lengoal/features/chats/presentation/bloc/chat_draft/chat_draft_store.dart';
 import 'package:lengoal/features/chats/presentation/bloc/chat_thread/chat_thread_cubit.dart';
+import 'package:lengoal/features/chats/presentation/models/chat_mention.dart';
 import 'package:lengoal/features/chats/presentation/models/chat_time.dart';
 import 'package:lengoal/features/chats/presentation/widgets/chat_composer.dart';
 import 'package:lengoal/features/chats/presentation/widgets/chat_day_separator.dart';
+import 'package:lengoal/features/chats/presentation/widgets/chat_mention_picker.dart';
 import 'package:lengoal/features/chats/presentation/widgets/chat_message_bubble.dart';
 import 'package:lengoal/features/chats/presentation/widgets/chat_message_text.dart';
 import 'package:lengoal/features/chats/presentation/widgets/chat_swipe_to_reply.dart';
@@ -49,8 +51,13 @@ class _ChatThreadView extends StatefulWidget {
 class _ChatThreadViewState extends State<_ChatThreadView> {
   final ChatDraftStore _drafts = getIt<ChatDraftStore>();
   final ImagePicker _picker = ImagePicker();
-  final TextEditingController _composer = TextEditingController();
+  final ChatComposerController _composer = ChatComposerController();
   final FocusNode _focus = FocusNode();
+  ChatMentionQuery? _mention;
+  List<ChatMessage>? _membersSource;
+  ChatIdentity? _membersIdentity;
+  List<ChatMember> _membersCache = const [];
+  RegExp? _mentionPatternCache;
   final ScrollController _scroll = ScrollController();
   late final AppLifecycleListener _lifecycle;
   late final Timer _clock;
@@ -77,7 +84,9 @@ class _ChatThreadViewState extends State<_ChatThreadView> {
     super.initState();
     _composer
       ..text = _drafts.of(_classId)
-      ..addListener(_saveDraft);
+      ..addListener(_saveDraft)
+      ..addListener(_updateMention);
+    _focus.addListener(_updateMention);
     unawaited(_restoreSavedDraft());
     _scroll.addListener(_onScroll);
     _lifecycle = AppLifecycleListener(
@@ -98,7 +107,10 @@ class _ChatThreadViewState extends State<_ChatThreadView> {
     _lifecycle.dispose();
     _clock.cancel();
     _highlightTimer?.cancel();
-    _composer.removeListener(_saveDraft);
+    _composer
+      ..removeListener(_saveDraft)
+      ..removeListener(_updateMention);
+    _focus.removeListener(_updateMention);
     if (_cubit.state.editing != null) {
       _drafts.save(_classId, _draftBeforeEdit);
     }
@@ -122,6 +134,75 @@ class _ChatThreadViewState extends State<_ChatThreadView> {
   void _saveDraft() {
     if (_cubit.state.editing != null) return;
     _drafts.save(_classId, _composer.text);
+  }
+
+  void _updateMention() {
+    final next = _focus.hasFocus
+        ? ChatMentionQuery.detect(_composer.value)
+        : null;
+    if (next != _mention) setState(() => _mention = next);
+  }
+
+  void _pickMention(String name) {
+    final mention = _mention;
+    if (mention == null) return;
+    _composer.value = mention.apply(_composer.value, name);
+  }
+
+  List<ChatMember> _members(ChatThreadState state) {
+    if (identical(_membersSource, state.messages) &&
+        _membersIdentity == state.identity) {
+      return _membersCache;
+    }
+    final byName = <String, ChatMember>{};
+    void add(String name, String? photoUrl) {
+      final trimmed = name.trim();
+      if (trimmed.isEmpty) return;
+      final key = trimmed.toLowerCase();
+      final existing = byName[key];
+      if (existing == null || (existing.photoUrl == null && photoUrl != null)) {
+        byName[key] = ChatMember(name: trimmed, photoUrl: photoUrl);
+      }
+    }
+
+    add(widget.lengoalClass.educatorName, widget.lengoalClass.educatorImageUrl);
+    for (final message in state.messages) {
+      final sender = message.sender;
+      if (sender == null || state.identity.owns(message)) continue;
+      add(sender.name, sender.photoUrl);
+    }
+    final me = state.identity.name.trim().toLowerCase();
+    if (me.isNotEmpty) byName.remove(me);
+    final members = byName.values.toList()
+      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    _membersSource = state.messages;
+    _membersIdentity = state.identity;
+    _membersCache = members;
+    _mentionPatternCache = chatMentionPattern([
+      for (final m in members) m.name,
+      state.identity.name,
+    ]);
+    return members;
+  }
+
+  RegExp? _mentionPattern(ChatThreadState state) {
+    _members(state);
+    return _mentionPatternCache;
+  }
+
+  Widget? _mentionPicker(ChatThreadState state) {
+    final mention = _mention;
+    if (mention == null) return null;
+    final members = _members(state)
+        .where((m) => mention.matches(m.name))
+        .toList();
+    final showEveryone = mention.matches(ChatMentionQuery.everyone);
+    if (members.isEmpty && !showEveryone) return null;
+    return ChatMentionPicker(
+      members: members,
+      showEveryone: showEveryone,
+      onPick: _pickMention,
+    );
   }
 
   void _onScroll() {
@@ -573,12 +654,33 @@ class _ChatThreadViewState extends State<_ChatThreadView> {
           child: BlocBuilder<ChatThreadCubit, ChatThreadState>(
             builder: (context, state) {
               final cubit = context.read<ChatThreadCubit>();
+              final loaded = state.status == ChatThreadStatus.loaded;
+              final picker = loaded ? _mentionPicker(state) : null;
+              if (loaded) {
+                _composer.setMentionStyle(
+                  _mentionPattern(state),
+                  context.colors.primary,
+                );
+              }
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _header(context),
                   const Divider(height: 1),
-                  Expanded(child: _body(context, state, cubit)),
+                  Expanded(
+                    child: Stack(
+                      children: [
+                        Positioned.fill(child: _body(context, state, cubit)),
+                        if (picker != null)
+                          Positioned(
+                            left: AppSpacing.s16,
+                            right: AppSpacing.s16,
+                            bottom: AppSpacing.s8,
+                            child: picker,
+                          ),
+                      ],
+                    ),
+                  ),
                   if (state.status == ChatThreadStatus.loaded)
                     Padding(
                       padding: const EdgeInsets.fromLTRB(
@@ -875,6 +977,7 @@ class _ChatThreadViewState extends State<_ChatThreadView> {
           isMine: true,
           showHeader: showHeader,
           localImagePath: message.localPath,
+          mentions: _mentionPattern(state),
           quoteName: _quoteNameFor(
             state,
             _quotedMessage(state, message.text, message.createdOn),
@@ -926,6 +1029,7 @@ class _ChatThreadViewState extends State<_ChatThreadView> {
       onLongPress: state.deletingId == message.id
           ? null
           : () => unawaited(_showActions(message, isMine: isMine)),
+      mentions: _mentionPattern(state),
       quoteName: _quoteNameFor(state, original),
       onQuoteTap: original == null
           ? null
