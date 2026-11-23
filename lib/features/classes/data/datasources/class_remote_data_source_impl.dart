@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:lengoal/core/error/exceptions.dart';
 import 'package:lengoal/core/network/api_client.dart';
+import 'package:lengoal/core/utils/server_date.dart';
 import 'package:lengoal/features/classes/data/class_api_endpoints.dart';
 import 'package:lengoal/features/classes/data/datasources/class_remote_data_source.dart';
 import 'package:lengoal/features/classes/data/models/class_educator_model.dart';
@@ -295,7 +296,7 @@ class ClassRemoteDataSourceImpl implements ClassRemoteDataSource {
             ? null
             : ClassApiEndpoints.replayPoster(streamId),
         topic: _nonEmpty(data['topic']),
-        startDate: DateTime.tryParse(data['startDate'] as String? ?? ''),
+        startDate: parseServerDate(data['startDate'] as String?),
       );
     } on DioException catch (e) {
       throw _mapException(e);

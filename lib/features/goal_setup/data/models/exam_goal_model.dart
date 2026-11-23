@@ -1,3 +1,4 @@
+import 'package:lengoal/core/utils/server_date.dart';
 import 'package:lengoal/features/goal_setup/domain/entities/exam_goal.dart';
 
 class ExamGoalModel extends ExamGoal {
@@ -14,7 +15,6 @@ class ExamGoalModel extends ExamGoal {
   });
 
   factory fromJson(Map<String, dynamic> json) {
-    final rawDate = json['examTargetDate'] as String?;
     return ExamGoalModel(
       id: json['id'] as String,
       categoryId: json['categoryId'] as String? ?? '',
@@ -22,7 +22,7 @@ class ExamGoalModel extends ExamGoal {
           json['goalName'] as String? ?? json['examBody'] as String? ?? '',
       examBody: json['examBody'] as String?,
       description: json['description'] as String?,
-      examTargetDate: rawDate == null ? null : DateTime.tryParse(rawDate),
+      examTargetDate: parseServerDate(json['examTargetDate'] as String?),
       goalsHaveLevel: json['goalsHaveLevel'] as bool? ?? false,
       goalsHaveSubject: json['goalsHaveSubject'] as bool? ?? false,
       numberOfLevels: json['numberOfLevels'] as int? ?? 0,

@@ -1,3 +1,4 @@
+import 'package:lengoal/core/utils/server_date.dart';
 import 'package:lengoal/features/goal_setup/domain/entities/learning_goal.dart';
 
 class LearningGoalModel extends LearningGoal {
@@ -17,7 +18,7 @@ class LearningGoalModel extends LearningGoal {
       examId: json['examId'] as String,
       stageId: json['stageId'] as String,
       topicIds: (json['topicIds'] as List<dynamic>).cast<String>(),
-      targetDate: DateTime.parse(json['targetDate'] as String),
+      targetDate: parseServerDate(json['targetDate'] as String)!,
     );
   }
 }

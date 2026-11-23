@@ -1,3 +1,4 @@
+import 'package:lengoal/core/utils/server_date.dart';
 import 'package:lengoal/features/payments/domain/entities/payment_record.dart';
 
 class PaymentRecordModel extends PaymentRecord {
@@ -22,7 +23,7 @@ class PaymentRecordModel extends PaymentRecord {
       status: json['paymentStatus'] as int? ?? 0,
       educatorName: json['educatorName'] as String?,
       educatorImageUrl: json['educatorImageUrl'] as String?,
-      paymentDate: DateTime.tryParse(json['paymentDate'] as String? ?? ''),
+      paymentDate: parseServerDate(json['paymentDate'] as String?),
       reference: json['transactionReference'] as String?,
     );
   }

@@ -1,3 +1,4 @@
+import 'package:lengoal/core/utils/server_date.dart';
 import 'package:lengoal/features/chats/domain/entities/chat_message.dart';
 
 // ClassChatMessageDto. `chatId` is the class id.
@@ -30,12 +31,8 @@ class ChatMessageModel {
   // POST answers "2026-11-20T09:37:38.94Z" but GET drops the Z
   // ("2026-11-20T09:37:38.94"); both are UTC, and Dart would read the
   // second as local time.
-  static DateTime parseUtc(String? raw) {
-    if (raw == null || raw.isEmpty) return DateTime.now().toUtc();
-    final hasZone = RegExp(r'(Z|[+-]\d{2}:?\d{2})$').hasMatch(raw);
-    final parsed = DateTime.tryParse(hasZone ? raw : '${raw}Z');
-    return (parsed ?? DateTime.now()).toUtc();
-  }
+  static DateTime parseUtc(String? raw) =>
+      (parseServerDate(raw) ?? DateTime.now()).toUtc();
 
   static String? _nonEmpty(Object? value) {
     if (value is! String) return null;

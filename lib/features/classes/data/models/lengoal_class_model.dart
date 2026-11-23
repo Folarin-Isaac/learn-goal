@@ -1,3 +1,4 @@
+import 'package:lengoal/core/utils/server_date.dart';
 import 'package:lengoal/features/classes/data/models/class_session_model.dart';
 import 'package:lengoal/features/classes/domain/entities/class_material_file.dart';
 import 'package:lengoal/features/classes/domain/entities/lengoal_class.dart';
@@ -54,8 +55,8 @@ class LengoalClassModel extends LengoalClass {
       useEducatorAsCoverImage:
           json['useEducatorAsCoverImage'] as bool? ?? false,
       bgColorKey: json['bgColorKey'] as String?,
-      startDate: DateTime.tryParse(json['startDate'] as String? ?? ''),
-      endDate: DateTime.tryParse(json['endDate'] as String? ?? ''),
+      startDate: parseServerDate(json['startDate'] as String?),
+      endDate: parseServerDate(json['endDate'] as String?),
       discountPrice: isDiscounted
           ? (json['discountPrice'] as num?)?.toDouble()
           : null,
@@ -102,8 +103,8 @@ class LengoalClassModel extends LengoalClass {
       useEducatorAsCoverImage:
           json['useEducatorAsCoverImage'] as bool? ?? false,
       bgColorKey: json['bgColorKey'] as String?,
-      startDate: DateTime.tryParse(json['classStartDate'] as String? ?? ''),
-      endDate: DateTime.tryParse(json['classEndDate'] as String? ?? ''),
+      startDate: parseServerDate(json['classStartDate'] as String?),
+      endDate: parseServerDate(json['classEndDate'] as String?),
       discountPrice: isDiscounted
           ? (discount?['discountPrice'] as num?)?.toDouble()
           : null,
