@@ -49,28 +49,30 @@ class LiveReactionPicker extends StatelessWidget {
       onTap: () => Navigator.of(context).pop(true),
     );
     return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.s16,
-          0,
-          AppSpacing.s16,
-          AppSpacing.s16,
-        ),
-        child: Wrap(
-          alignment: WrapAlignment.center,
-          spacing: AppSpacing.s8,
-          runSpacing: AppSpacing.s8,
-          children: [
-            for (final reaction in LiveReaction.values) ...[
-              _EmojiButton(
-                emoji: reaction.emoji,
-                label: labelFor(context, reaction),
-                selected: false,
-                onTap: () => onReact(reaction),
-              ),
-              if (reaction == LiveReaction.love) hand,
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.s16,
+            0,
+            AppSpacing.s16,
+            AppSpacing.s16,
+          ),
+          child: Wrap(
+            alignment: WrapAlignment.center,
+            spacing: AppSpacing.s8,
+            runSpacing: AppSpacing.s8,
+            children: [
+              for (final reaction in LiveReaction.values) ...[
+                _EmojiButton(
+                  emoji: reaction.emoji,
+                  label: labelFor(context, reaction),
+                  selected: false,
+                  onTap: () => onReact(reaction),
+                ),
+                if (reaction == LiveReaction.love) hand,
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

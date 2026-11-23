@@ -15,9 +15,14 @@ class LivePeopleSheet extends StatefulWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: _panel,
-      builder: (_) => FractionallySizedBox(
-        heightFactor: 0.85,
-        child: LivePeopleSheet(controller: controller),
+      builder: (sheetContext) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
+        ),
+        child: FractionallySizedBox(
+          heightFactor: 0.85,
+          child: LivePeopleSheet(controller: controller),
+        ),
       ),
     );
   }
@@ -71,161 +76,181 @@ class _LivePeopleSheetState extends State<LivePeopleSheet> {
     );
     return SafeArea(
       top: false,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.s16,
-              AppSpacing.s16,
-              AppSpacing.s8,
-              AppSpacing.s8,
-            ),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.people_alt_outlined,
-                  size: 18,
-                  color: Colors.white,
-                ),
-                const Gap(AppSpacing.s8),
-                Text(
-                  l10n.liveClassParticipants,
-                  style: context.textTheme.titleSmall?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final compact = constraints.maxHeight < _compactHeight;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (!compact) ...[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.s16,
+                    AppSpacing.s16,
+                    AppSpacing.s8,
+                    AppSpacing.s8,
                   ),
-                ),
-                const Gap(AppSpacing.s8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.s8,
-                    vertical: 1,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white10,
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
-                  ),
-                  child: Text(
-                    '${people.length}',
-                    style: context.textTheme.labelSmall?.copyWith(
-                      color: Colors.white54,
-                    ),
-                  ),
-                ),
-                const Spacer(),
-                IconButton(
-                  tooltip: l10n.liveClassClose,
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.close, color: Colors.white54),
-                ),
-              ],
-            ),
-          ),
-          const Divider(height: 1, color: Colors.white12),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.s16,
-              AppSpacing.s8,
-              AppSpacing.s16,
-              AppSpacing.s8,
-            ),
-            child: TextField(
-              autofillHints: null,
-              onChanged: (value) => setState(() => _query = value),
-              style: context.textTheme.bodyMedium?.copyWith(
-                color: Colors.white,
-              ),
-              decoration: InputDecoration(
-                isDense: true,
-                hintText: l10n.liveClassSearchParticipants,
-                hintStyle: context.textTheme.bodyMedium?.copyWith(
-                  color: Colors.white38,
-                ),
-                filled: true,
-                fillColor: Colors.white.withValues(alpha: 0.06),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.s16,
-                  vertical: 10,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppSpacing.r8),
-                  borderSide: const BorderSide(color: Colors.white12),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppSpacing.r8),
-                  borderSide: const BorderSide(color: Colors.white12),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppSpacing.r8),
-                  borderSide: const BorderSide(color: Colors.white30),
-                ),
-              ),
-            ),
-          ),
-          if (hands > 0)
-            Container(
-              margin: const EdgeInsets.fromLTRB(
-                AppSpacing.s16,
-                AppSpacing.s4,
-                AppSpacing.s16,
-                AppSpacing.s8,
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: LivePeopleSheet._amber.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(AppSpacing.r12),
-                border: Border.all(
-                  color: LivePeopleSheet._amber.withValues(alpha: 0.35),
-                ),
-              ),
-              child: Row(
-                children: [
-                  const Text('✋', style: TextStyle(fontSize: 18)),
-                  const Gap(AppSpacing.s8),
-                  Text(
-                    l10n.liveClassHandsRaised(hands),
-                    style: context.textTheme.labelMedium?.copyWith(
-                      color: LivePeopleSheet._amberText,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          Expanded(
-            child: groups.isEmpty
-                ? Padding(
-                    padding: const EdgeInsets.only(top: AppSpacing.s32),
-                    child: Text(
-                      l10n.liveClassNoParticipants,
-                      textAlign: TextAlign.center,
-                      style: context.textTheme.bodyMedium?.copyWith(
-                        color: Colors.white30,
-                      ),
-                    ),
-                  )
-                : ListView(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.s16),
+                  child: Row(
                     children: [
-                      for (final group in groups) ...[
-                        _SectionLabel(
-                          _sectionLabel(
-                            context,
-                            group,
-                            anyPresentingOrSpeaking,
+                      const Icon(
+                        Icons.people_alt_outlined,
+                        size: 18,
+                        color: Colors.white,
+                      ),
+                      const Gap(AppSpacing.s8),
+                      Text(
+                        l10n.liveClassParticipants,
+                        style: context.textTheme.titleSmall?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const Gap(AppSpacing.s8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.s8,
+                          vertical: 1,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white10,
+                          borderRadius: BorderRadius.circular(
+                            AppSpacing.radiusPill,
                           ),
                         ),
-                        for (final person in group.people)
-                          _PersonRow(person: person),
-                      ],
+                        child: Text(
+                          '${people.length}',
+                          style: context.textTheme.labelSmall?.copyWith(
+                            color: Colors.white54,
+                          ),
+                        ),
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        tooltip: l10n.liveClassClose,
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(Icons.close, color: Colors.white54),
+                      ),
                     ],
                   ),
-          ),
-        ],
+                ),
+                const Divider(height: 1, color: Colors.white12),
+              ],
+              Padding(
+                key: _searchKey,
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.s16,
+                  AppSpacing.s8,
+                  AppSpacing.s16,
+                  AppSpacing.s8,
+                ),
+                child: TextField(
+                  autofillHints: null,
+                  onChanged: (value) => setState(() => _query = value),
+                  style: context.textTheme.bodyMedium?.copyWith(
+                    color: Colors.white,
+                  ),
+                  decoration: InputDecoration(
+                    isDense: true,
+                    hintText: l10n.liveClassSearchParticipants,
+                    hintStyle: context.textTheme.bodyMedium?.copyWith(
+                      color: Colors.white38,
+                    ),
+                    filled: true,
+                    fillColor: Colors.white.withValues(alpha: 0.06),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.s16,
+                      vertical: 10,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppSpacing.r8),
+                      borderSide: const BorderSide(color: Colors.white12),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppSpacing.r8),
+                      borderSide: const BorderSide(color: Colors.white12),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppSpacing.r8),
+                      borderSide: const BorderSide(color: Colors.white30),
+                    ),
+                  ),
+                ),
+              ),
+              if (hands > 0 && !compact)
+                Container(
+                  margin: const EdgeInsets.fromLTRB(
+                    AppSpacing.s16,
+                    AppSpacing.s4,
+                    AppSpacing.s16,
+                    AppSpacing.s8,
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: LivePeopleSheet._amber.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(AppSpacing.r12),
+                    border: Border.all(
+                      color: LivePeopleSheet._amber.withValues(alpha: 0.35),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const Text('✋', style: TextStyle(fontSize: 18)),
+                      const Gap(AppSpacing.s8),
+                      Text(
+                        l10n.liveClassHandsRaised(hands),
+                        style: context.textTheme.labelMedium?.copyWith(
+                          color: LivePeopleSheet._amberText,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              Expanded(
+                child: groups.isEmpty
+                    ? ListView(
+                        padding: EdgeInsets.only(
+                          top: compact ? AppSpacing.s8 : AppSpacing.s32,
+                        ),
+                        children: [
+                          Text(
+                            l10n.liveClassNoParticipants,
+                            textAlign: TextAlign.center,
+                            style: context.textTheme.bodyMedium?.copyWith(
+                              color: Colors.white30,
+                            ),
+                          ),
+                        ],
+                      )
+                    : ListView(
+                        padding: const EdgeInsets.only(bottom: AppSpacing.s16),
+                        children: [
+                          for (final group in groups) ...[
+                            _SectionLabel(
+                              _sectionLabel(
+                                context,
+                                group,
+                                anyPresentingOrSpeaking,
+                              ),
+                            ),
+                            for (final person in group.people)
+                              _PersonRow(person: person),
+                          ],
+                        ],
+                      ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
+
+  static const double _compactHeight = 260;
+  static const Key _searchKey = ValueKey('live-people-search');
 
   String _sectionLabel(
     BuildContext context,

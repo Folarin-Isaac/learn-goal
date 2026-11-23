@@ -99,129 +99,158 @@ class _LiveChatSheetState extends State<LiveChatSheet> {
     final l10n = context.l10n;
     return SafeArea(
       top: false,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.s16,
-              AppSpacing.s8,
-              AppSpacing.s8,
-              AppSpacing.s8,
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    l10n.liveClassMessages,
-                    style: context.textTheme.titleSmall?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                    ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final compact = constraints.maxHeight < _compactHeight;
+          return Column(
+            mainAxisAlignment: compact
+                ? MainAxisAlignment.end
+                : MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (!compact) ...[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.s16,
+                    AppSpacing.s8,
+                    AppSpacing.s8,
+                    AppSpacing.s8,
                   ),
-                ),
-                IconButton(
-                  tooltip: l10n.liveClassClose,
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.close, color: Colors.white54),
-                ),
-              ],
-            ),
-          ),
-          const Divider(height: 1, color: Colors.white12),
-          Expanded(
-            child: ListenableBuilder(
-              listenable: _controller,
-              builder: (context, _) {
-                final messages = _controller.chatMessages;
-                return ListView.builder(
-                  controller: _scroll,
-                  reverse: true,
-                  padding: const EdgeInsets.all(AppSpacing.s16),
-                  itemCount: messages.length,
-                  itemBuilder: (context, i) {
-                    final index = messages.length - 1 - i;
-                    final meta = chatEntryMeta(messages, index);
-                    return _Entry(
-                      message: messages[index],
-                      hideName: meta.hideName,
-                      hideTime: meta.hideTime,
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.s16,
-              AppSpacing.s8,
-              AppSpacing.s16,
-              AppSpacing.s16,
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    autofillHints: null,
-                    controller: _input,
-                    enabled: _controller.canSignal,
-                    textInputAction: TextInputAction.send,
-                    inputFormatters: [
-                      LengthLimitingTextInputFormatter(_maxLength),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          l10n.liveClassMessages,
+                          style: context.textTheme.titleSmall?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        tooltip: l10n.liveClassClose,
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(Icons.close, color: Colors.white54),
+                      ),
                     ],
-                    textCapitalization: TextCapitalization.sentences,
-                    onSubmitted: (_) => unawaited(_send()),
-                    style: context.textTheme.bodyMedium?.copyWith(
-                      color: Colors.white,
-                    ),
-                    decoration: InputDecoration(
-                      isDense: true,
-                      hintText: l10n.liveClassChatHint,
-                      hintStyle: context.textTheme.bodyMedium?.copyWith(
-                        color: Colors.white38,
-                      ),
-                      filled: true,
-                      fillColor: Colors.white.withValues(alpha: 0.06),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.s16,
-                        vertical: 12,
-                      ),
-                      border: _border(Colors.white12),
-                      enabledBorder: _border(Colors.white12),
-                      disabledBorder: _border(Colors.white10),
-                      focusedBorder: _border(Colors.white30),
-                    ),
                   ),
                 ),
-                const Gap(AppSpacing.s8),
-                ValueListenableBuilder<TextEditingValue>(
-                  valueListenable: _input,
-                  builder: (context, value, _) {
-                    final enabled =
-                        value.text.trim().isNotEmpty &&
-                        !_sending &&
-                        _controller.canSignal;
-                    return TextButton(
-                      onPressed: enabled ? () => unawaited(_send()) : null,
-                      style: TextButton.styleFrom(
-                        minimumSize: const Size(0, 44),
-                        backgroundColor: Colors.white12,
-                        foregroundColor: Colors.white,
-                        disabledForegroundColor: Colors.white30,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.s16,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppSpacing.r8),
-                        ),
-                      ),
-                      child: Text(l10n.liveClassSend),
-                    );
-                  },
+                const Divider(height: 1, color: Colors.white12),
+                Expanded(
+                  child: ListenableBuilder(
+                    listenable: _controller,
+                    builder: (context, _) {
+                      final messages = _controller.chatMessages;
+                      return ListView.builder(
+                        controller: _scroll,
+                        reverse: true,
+                        padding: const EdgeInsets.all(AppSpacing.s16),
+                        itemCount: messages.length,
+                        itemBuilder: (context, i) {
+                          final index = messages.length - 1 - i;
+                          final meta = chatEntryMeta(messages, index);
+                          return _Entry(
+                            message: messages[index],
+                            hideName: meta.hideName,
+                            hideTime: meta.hideTime,
+                          );
+                        },
+                      );
+                    },
+                  ),
                 ),
               ],
+              _inputRow(context, compact: compact),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  static const double _compactHeight = 220;
+  static const Key _inputKey = ValueKey('live-chat-input');
+
+  Widget _inputRow(BuildContext context, {required bool compact}) {
+    final l10n = context.l10n;
+    return Padding(
+      key: _inputKey,
+      padding: compact
+          ? const EdgeInsets.all(AppSpacing.s8)
+          : const EdgeInsets.fromLTRB(
+              AppSpacing.s16,
+              AppSpacing.s8,
+              AppSpacing.s16,
+              AppSpacing.s16,
             ),
+      child: Row(
+        children: [
+          if (compact) ...[
+            IconButton(
+              tooltip: l10n.liveClassClose,
+              visualDensity: VisualDensity.compact,
+              onPressed: () => Navigator.of(context).pop(),
+              icon: const Icon(Icons.close, color: Colors.white54),
+            ),
+            const Gap(AppSpacing.s4),
+          ],
+          Expanded(
+            key: const ValueKey('live-chat-field'),
+            child: TextField(
+              autofillHints: null,
+              controller: _input,
+              enabled: _controller.canSignal,
+              textInputAction: TextInputAction.send,
+              inputFormatters: [LengthLimitingTextInputFormatter(_maxLength)],
+              textCapitalization: TextCapitalization.sentences,
+              onSubmitted: (_) => unawaited(_send()),
+              style: context.textTheme.bodyMedium?.copyWith(
+                color: Colors.white,
+              ),
+              decoration: InputDecoration(
+                isDense: true,
+                hintText: l10n.liveClassChatHint,
+                hintStyle: context.textTheme.bodyMedium?.copyWith(
+                  color: Colors.white38,
+                ),
+                filled: true,
+                fillColor: Colors.white.withValues(alpha: 0.06),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.s16,
+                  vertical: 12,
+                ),
+                border: _border(Colors.white12),
+                enabledBorder: _border(Colors.white12),
+                disabledBorder: _border(Colors.white10),
+                focusedBorder: _border(Colors.white30),
+              ),
+            ),
+          ),
+          const Gap(AppSpacing.s8),
+          ValueListenableBuilder<TextEditingValue>(
+            valueListenable: _input,
+            builder: (context, value, _) {
+              final enabled =
+                  value.text.trim().isNotEmpty &&
+                  !_sending &&
+                  _controller.canSignal;
+              return TextButton(
+                onPressed: enabled ? () => unawaited(_send()) : null,
+                style: TextButton.styleFrom(
+                  minimumSize: const Size(0, 44),
+                  backgroundColor: Colors.white12,
+                  foregroundColor: Colors.white,
+                  disabledForegroundColor: Colors.white30,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.s16,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppSpacing.r8),
+                  ),
+                ),
+                child: Text(l10n.liveClassSend),
+              );
+            },
           ),
         ],
       ),
