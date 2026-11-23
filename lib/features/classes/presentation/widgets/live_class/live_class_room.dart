@@ -9,6 +9,7 @@ import 'package:lengoal/features/classes/presentation/widgets/live_class/live_ch
 import 'package:lengoal/features/classes/presentation/widgets/live_class/live_people_sheet.dart';
 import 'package:lengoal/features/classes/presentation/widgets/live_class/live_reaction_picker.dart';
 import 'package:lengoal/features/classes/presentation/widgets/live_class/live_room_controls.dart';
+import 'package:lengoal/features/classes/presentation/widgets/live_class/live_room_immersive_stage.dart';
 import 'package:lengoal/features/classes/presentation/widgets/live_class/live_room_moments_layer.dart';
 import 'package:lengoal/features/classes/presentation/widgets/live_class/live_room_participant_view.dart';
 import 'package:lengoal/features/classes/presentation/widgets/live_class/live_room_top_bar.dart';
@@ -146,19 +147,37 @@ class _LiveClassRoomState extends State<LiveClassRoom> {
       },
       child: Scaffold(
         backgroundColor: Colors.black,
-        body: SafeArea(
-          child: ListenableBuilder(
-            listenable: Listenable.merge([_controller, _controller.room]),
-            builder: (context, _) {
-              final controller = _controller;
-              return Column(
-                children: [
-                  LiveRoomTopBar(
-                    topic: widget.session.topic,
-                    isRecording: controller.isRecording,
-                    participantCount: controller.participantCount,
-                    onLeave: _confirmLeave,
+        body: ListenableBuilder(
+          listenable: Listenable.merge([_controller, _controller.room]),
+          builder: (context, _) {
+            final controller = _controller;
+            final immersive = _immersiveTile(context, controller);
+            if (immersive != null) {
+              return ListenableBuilder(
+                listenable: Listenable.merge(controller.participants),
+                builder: (context, _) => LiveRoomImmersiveStage(
+                  video: LiveRoomParticipantView(
+                    tile: _immersiveTile(context, controller) ?? immersive,
+                    isLocal: false,
+                    isEducator: true,
+                    large: true,
+                    bare: true,
                   ),
+                  moments: LiveRoomMomentsLayer(moments: controller.moments),
+                  topBar: _topBar(controller),
+                  banner:
+                      controller.connection == LiveRoomConnection.reconnecting
+                      ? const _ReconnectingBanner()
+                      : null,
+                  controls: _controls(context, controller),
+                  onExit: () => setState(() => _expanded = false),
+                ),
+              );
+            }
+            return SafeArea(
+              child: Column(
+                children: [
+                  _topBar(controller),
                   if (controller.connection == LiveRoomConnection.reconnecting)
                     const _ReconnectingBanner(),
                   Expanded(
@@ -192,32 +211,53 @@ class _LiveClassRoomState extends State<LiveClassRoom> {
                       ],
                     ),
                   ),
-                  if (controller.connection != LiveRoomConnection.connecting)
-                    LiveRoomControls(
-                      raisedHands: controller.raisedHandCount,
-                      onPeople: () =>
-                          unawaited(LivePeopleSheet.show(context, controller)),
-                      unreadChat: controller.unreadChatCount,
-                      onChat: () =>
-                          unawaited(LiveChatSheet.show(context, controller)),
-                      showDevices: controller.canPublish,
-                      showSignals: controller.canSignal,
-                      micOn: controller.isMicOn,
-                      cameraOn: controller.isCameraOn,
-                      handRaised: controller.isMyHandRaised,
-                      busy: controller.busy,
-                      onMic: _toggleMic,
-                      onCamera: _toggleCamera,
-                      onFlipCamera: () => unawaited(controller.flipCamera()),
-                      onHand: () => unawaited(controller.toggleHand()),
-                      onReact: () => unawaited(_pickReaction()),
-                    ),
+                  ?_controls(context, controller),
                 ],
-              );
-            },
-          ),
+              ),
+            );
+          },
         ),
       ),
+    );
+  }
+
+  LiveRoomTile? _immersiveTile(
+    BuildContext context,
+    LiveRoomController controller,
+  ) {
+    if (!_expanded) return null;
+    if (MediaQuery.orientationOf(context) != Orientation.landscape) {
+      return null;
+    }
+    final stage = controller.stage;
+    return stage != null && stage.isScreenShare ? stage : null;
+  }
+
+  Widget _topBar(LiveRoomController controller) => LiveRoomTopBar(
+    topic: widget.session.topic,
+    isRecording: controller.isRecording,
+    participantCount: controller.participantCount,
+    onLeave: _confirmLeave,
+  );
+
+  Widget? _controls(BuildContext context, LiveRoomController controller) {
+    if (controller.connection == LiveRoomConnection.connecting) return null;
+    return LiveRoomControls(
+      raisedHands: controller.raisedHandCount,
+      onPeople: () => unawaited(LivePeopleSheet.show(context, controller)),
+      unreadChat: controller.unreadChatCount,
+      onChat: () => unawaited(LiveChatSheet.show(context, controller)),
+      showDevices: controller.canPublish,
+      showSignals: controller.canSignal,
+      micOn: controller.isMicOn,
+      cameraOn: controller.isCameraOn,
+      handRaised: controller.isMyHandRaised,
+      busy: controller.busy,
+      onMic: _toggleMic,
+      onCamera: _toggleCamera,
+      onFlipCamera: () => unawaited(controller.flipCamera()),
+      onHand: () => unawaited(controller.toggleHand()),
+      onReact: () => unawaited(_pickReaction()),
     );
   }
 }

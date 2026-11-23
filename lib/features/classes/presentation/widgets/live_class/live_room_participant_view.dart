@@ -11,6 +11,7 @@ class LiveRoomParticipantView extends StatelessWidget {
     this.handRaised = false,
     this.expanded = false,
     this.onToggleExpand,
+    this.bare = false,
     super.key,
   });
 
@@ -21,6 +22,7 @@ class LiveRoomParticipantView extends StatelessWidget {
   final bool handRaised;
   final bool expanded;
   final VoidCallback? onToggleExpand;
+  final bool bare;
 
   @override
   Widget build(BuildContext context) {
@@ -30,18 +32,20 @@ class LiveRoomParticipantView extends StatelessWidget {
     final highlight = participant.isSpeaking && !tile.isScreenShare;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 150),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1F1F1F),
-        borderRadius: BorderRadius.circular(AppSpacing.r12),
-        border: Border.all(
-          color: handRaised && !tile.isScreenShare
-              ? const Color(0xFFF59E0B)
-              : highlight
-              ? AppColors.brandGreen
-              : Colors.transparent,
-          width: 2,
-        ),
-      ),
+      decoration: bare
+          ? const BoxDecoration(color: Colors.black)
+          : BoxDecoration(
+              color: const Color(0xFF1F1F1F),
+              borderRadius: BorderRadius.circular(AppSpacing.r12),
+              border: Border.all(
+                color: handRaised && !tile.isScreenShare
+                    ? const Color(0xFFF59E0B)
+                    : highlight
+                    ? AppColors.brandGreen
+                    : Colors.transparent,
+                width: 2,
+              ),
+            ),
       clipBehavior: Clip.antiAlias,
       child: Stack(
         fit: StackFit.expand,
@@ -63,20 +67,21 @@ class LiveRoomParticipantView extends StatelessWidget {
             Center(
               child: _Initials(name: name, size: large ? 96 : 48),
             ),
-          Positioned(
-            left: AppSpacing.s8,
-            bottom: AppSpacing.s8,
-            right: onToggleExpand == null ? AppSpacing.s8 : 52,
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: _NameTag(
-                name: name,
-                muted: !tile.isScreenShare && participant.isMuted,
-                isEducator: isEducator,
-                isScreenShare: tile.isScreenShare,
+          if (!bare)
+            Positioned(
+              left: AppSpacing.s8,
+              bottom: AppSpacing.s8,
+              right: onToggleExpand == null ? AppSpacing.s8 : 52,
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: _NameTag(
+                  name: name,
+                  muted: !tile.isScreenShare && participant.isMuted,
+                  isEducator: isEducator,
+                  isScreenShare: tile.isScreenShare,
+                ),
               ),
             ),
-          ),
           if (handRaised && !tile.isScreenShare)
             Positioned(
               top: AppSpacing.s8,

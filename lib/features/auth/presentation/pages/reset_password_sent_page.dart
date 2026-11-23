@@ -16,12 +16,16 @@ class ResetPasswordSentPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Gap(AppSpacing.s24),
-              const Align(
+              Align(
                 alignment: Alignment.centerLeft,
-                child: AppBackButton(),
+                child: Column(
+                  children: [
+                    const AppBackButton(),
+                    const Gap(AppSpacing.s24),
+                    Assets.images.envelopeIllustration.image(width: 72, height: 72),
+                  ],
+                ),
               ),
-              const Gap(AppSpacing.s24),
-              Assets.images.envelopeIllustration.image(width: 72, height: 72),
               const Gap(AppSpacing.s24),
               Text(
                 context.l10n.resetPasswordSentTitle,
