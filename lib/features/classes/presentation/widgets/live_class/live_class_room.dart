@@ -207,7 +207,7 @@ class _Stage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (controller.connection == LiveRoomConnection.connecting) {
-      return _Waiting(
+      return LiveRoomWaiting(
         message: context.l10n.liveClassConnecting,
         showSpinner: true,
       );
@@ -215,7 +215,7 @@ class _Stage extends StatelessWidget {
     final stage = controller.stage;
     final filmstrip = controller.filmstrip(stage);
     final main = stage == null
-        ? _Waiting(message: context.l10n.liveClassWaitingForEducator)
+        ? LiveRoomWaiting(message: context.l10n.liveClassWaitingForEducator)
         : LiveRoomParticipantView(
             tile: stage,
             isLocal: false,
@@ -291,39 +291,45 @@ class _Filmstrip extends StatelessWidget {
   }
 }
 
-class _Waiting extends StatelessWidget {
-  const new({required this.message, this.showSpinner = false});
+class LiveRoomWaiting extends StatelessWidget {
+  const new({required this.message, this.showSpinner = false, super.key});
 
   final String message;
   final bool showSpinner;
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.s24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (showSpinner)
-              const SizedBox.square(
-                dimension: 32,
-                child: CircularProgressIndicator(
-                  strokeWidth: 3,
-                  color: Colors.white,
+    return LayoutBuilder(
+      builder: (context, constraints) => Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(AppSpacing.s16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (showSpinner)
+                const SizedBox.square(
+                  dimension: 32,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 3,
+                    color: Colors.white,
+                  ),
+                )
+              else
+                Icon(
+                  Icons.person,
+                  size: (constraints.maxHeight * 0.4).clamp(40, 96),
+                  color: Colors.white24,
                 ),
-              )
-            else
-              const Icon(Icons.person, size: 96, color: Colors.white24),
-            const Gap(AppSpacing.s16),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: context.textTheme.bodyMedium?.copyWith(
-                color: Colors.white70,
+              const Gap(AppSpacing.s16),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: context.textTheme.bodyMedium?.copyWith(
+                  color: Colors.white70,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

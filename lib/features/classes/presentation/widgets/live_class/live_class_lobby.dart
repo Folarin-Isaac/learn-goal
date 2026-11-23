@@ -209,42 +209,52 @@ class _PreviewCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final camera = this.camera;
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(AppSpacing.r16),
-      child: AspectRatio(
-        aspectRatio: 16 / 9,
-        child: ColoredBox(
-          color: const Color(0xFF1F1F1F),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              if (camera != null)
-                VideoTrackRenderer(
-                  camera,
-                  key: ObjectKey(camera),
-                  fit: VideoViewFit.cover,
-                )
-              else
-                const Center(
-                  child: Icon(Icons.person, size: 88, color: Colors.white24),
-                ),
-              Positioned(
-                left: AppSpacing.s8,
-                bottom: AppSpacing.s8,
-                child: Container(
-                  padding: const EdgeInsets.all(AppSpacing.s4),
-                  decoration: const BoxDecoration(
-                    color: Colors.black54,
-                    shape: BoxShape.circle,
+    final maxHeight = MediaQuery.sizeOf(context).height * 0.45;
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: maxHeight),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(AppSpacing.r16),
+          child: AspectRatio(
+            aspectRatio: 16 / 9,
+            child: ColoredBox(
+              color: const Color(0xFF1F1F1F),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  if (camera != null)
+                    VideoTrackRenderer(
+                      camera,
+                      key: ObjectKey(camera),
+                      fit: VideoViewFit.cover,
+                    )
+                  else
+                    const Center(
+                      child: Icon(
+                        Icons.person,
+                        size: 88,
+                        color: Colors.white24,
+                      ),
+                    ),
+                  Positioned(
+                    left: AppSpacing.s8,
+                    bottom: AppSpacing.s8,
+                    child: Container(
+                      padding: const EdgeInsets.all(AppSpacing.s4),
+                      decoration: const BoxDecoration(
+                        color: Colors.black54,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        micOn ? Icons.mic : Icons.mic_off,
+                        size: 16,
+                        color: micOn ? Colors.white : AppColors.errorBorder,
+                      ),
+                    ),
                   ),
-                  child: Icon(
-                    micOn ? Icons.mic : Icons.mic_off,
-                    size: 16,
-                    color: micOn ? Colors.white : AppColors.errorBorder,
-                  ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
