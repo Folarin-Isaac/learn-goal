@@ -1,4 +1,4 @@
- import 'dart:convert';
+import 'dart:convert';
 
 // Hand raises and emoji reactions travel as JSON data messages on the
 // LiveKit room (reliable, no topic). The shapes below copy the web app's

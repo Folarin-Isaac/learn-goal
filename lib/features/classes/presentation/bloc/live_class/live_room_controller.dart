@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:lengoal/core/utils/logger.dart';
 import 'package:lengoal/features/classes/domain/entities/live_class_access.dart';
+import 'package:lengoal/features/classes/presentation/bloc/live_class/live_room_people.dart';
 import 'package:lengoal/features/classes/presentation/bloc/live_class/live_room_signals.dart';
 import 'package:livekit_client/livekit_client.dart';
 
@@ -96,6 +97,22 @@ class LiveRoomController extends ChangeNotifier {
 
   bool isHandRaised(Participant participant) =>
       _raisedHands.containsKey(participant.identity);
+
+  int get raisedHandCount => _raisedHands.length;
+
+  // Everyone in the room for the People list, in the web's order.
+  List<LivePerson> get people {
+    final local = room.localParticipant;
+    return sortPeople([
+      for (final participant in participants)
+        LivePerson.from(
+          participant,
+          isLocal: identical(participant, local),
+          isHost: _isEducator(participant),
+          isHandRaised: isHandRaised(participant),
+        ),
+    ]);
+  }
 
   String get _myName {
     final local = room.localParticipant;

@@ -5,6 +5,7 @@ import 'package:lengoal/features/classes/domain/entities/live_class_access.dart'
 import 'package:lengoal/features/classes/presentation/bloc/live_class/live_class_cubit.dart';
 import 'package:lengoal/features/classes/presentation/bloc/live_class/live_room_controller.dart';
 import 'package:lengoal/features/classes/presentation/models/live_class_session.dart';
+import 'package:lengoal/features/classes/presentation/widgets/live_class/live_people_sheet.dart';
 import 'package:lengoal/features/classes/presentation/widgets/live_class/live_reaction_picker.dart';
 import 'package:lengoal/features/classes/presentation/widgets/live_class/live_room_controls.dart';
 import 'package:lengoal/features/classes/presentation/widgets/live_class/live_room_moments_layer.dart';
@@ -91,9 +92,17 @@ class _LiveClassRoomState extends State<LiveClassRoom> {
   }
 
   Future<void> _pickReaction() async {
-    final reaction = await LiveReactionPicker.show(context);
-    if (reaction == null || !mounted) return;
-    await _controller.react(reaction);
+    final choice = await LiveReactionPicker.show(
+      context,
+      handRaised: _controller.isMyHandRaised,
+    );
+    if (choice == null || !mounted) return;
+    switch (choice) {
+      case LiveTrayReaction(:final reaction):
+        await _controller.react(reaction);
+      case LiveTrayHand():
+        await _controller.toggleHand();
+    }
   }
 
   @override
@@ -149,9 +158,11 @@ class _LiveClassRoomState extends State<LiveClassRoom> {
                       ],
                     ),
                   ),
-                  if (controller.connection != LiveRoomConnection.connecting &&
-                      (controller.canPublish || controller.canSignal))
+                  if (controller.connection != LiveRoomConnection.connecting)
                     LiveRoomControls(
+                      raisedHands: controller.raisedHandCount,
+                      onPeople: () =>
+                          unawaited(LivePeopleSheet.show(context, controller)),
                       showDevices: controller.canPublish,
                       showSignals: controller.canSignal,
                       micOn: controller.isMicOn,

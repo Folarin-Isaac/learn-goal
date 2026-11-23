@@ -13,8 +13,13 @@ class LiveRoomControls extends StatelessWidget {
     required this.onFlipCamera,
     required this.onHand,
     required this.onReact,
+    required this.raisedHands,
+    required this.onPeople,
     super.key,
   });
+
+  final int raisedHands;
+  final VoidCallback onPeople;
 
   final bool showDevices;
   final bool showSignals;
@@ -70,6 +75,41 @@ class LiveRoomControls extends StatelessWidget {
           onTap: onReact,
         ),
       ],
+      Stack(
+        clipBehavior: Clip.none,
+        children: [
+          _RoundButton(
+            icon: Icons.people_alt_outlined,
+            label: l10n.liveClassPeople,
+            active: false,
+            onTap: onPeople,
+          ),
+          if (raisedHands > 0)
+            Positioned(
+              top: -4,
+              right: -6,
+              child: IgnorePointer(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 1,
+                  ),
+                  decoration: BoxDecoration(
+                    color: handColor,
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
+                  ),
+                  child: Text(
+                    '✋ $raisedHands',
+                    style: context.textTheme.labelSmall?.copyWith(
+                      color: Colors.black87,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
     ];
     return Padding(
       padding: const EdgeInsets.symmetric(
