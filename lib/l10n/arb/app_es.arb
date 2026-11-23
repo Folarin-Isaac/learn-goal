@@ -488,6 +488,8 @@
     "liveClassReplacedBody": "Esta clase ahora está abierta en tu otro dispositivo. Vuelve a unirte para continuar en este teléfono.",
     "liveClassRemovedTitle": "Te retiraron de esta clase",
     "liveClassRemovedBody": "El educador te retiró de esta sesión.",
+    "liveClassFullScreen": "Pantalla completa",
+    "liveClassExitFullScreen": "Salir de pantalla completa",
     "liveClassChat": "Chat",
     "liveClassMessages": "Mensajes",
     "liveClassChatHint": "Escribe un mensaje...",

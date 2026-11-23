@@ -35,6 +35,7 @@ class LiveClassRoom extends StatefulWidget {
 class _LiveClassRoomState extends State<LiveClassRoom> {
   late final LiveRoomController _controller;
   bool _handledClose = false;
+  bool _expanded = false;
 
   @override
   void initState() {
@@ -130,7 +131,12 @@ class _LiveClassRoomState extends State<LiveClassRoom> {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) unawaited(_confirmLeave());
+        if (didPop) return;
+        if (_expanded) {
+          setState(() => _expanded = false);
+          return;
+        }
+        unawaited(_confirmLeave());
       },
       child: Scaffold(
         backgroundColor: Colors.black,
@@ -157,8 +163,14 @@ class _LiveClassRoomState extends State<LiveClassRoom> {
                             listenable: Listenable.merge(
                               controller.participants,
                             ),
-                            builder: (context, _) =>
-                                _Stage(controller: controller),
+                            builder: (context, _) => _Stage(
+                              controller: controller,
+                              expanded: _expanded,
+                              onToggleExpand: () {
+                                AppHaptics.selection();
+                                setState(() => _expanded = !_expanded);
+                              },
+                            ),
                           ),
                         ),
                         Positioned.fill(
@@ -200,9 +212,15 @@ class _LiveClassRoomState extends State<LiveClassRoom> {
 }
 
 class _Stage extends StatelessWidget {
-  const new({required this.controller});
+  const new({
+    required this.controller,
+    required this.expanded,
+    required this.onToggleExpand,
+  });
 
   final LiveRoomController controller;
+  final bool expanded;
+  final VoidCallback onToggleExpand;
 
   @override
   Widget build(BuildContext context) {
@@ -222,6 +240,10 @@ class _Stage extends StatelessWidget {
             isEducator: controller.isEducator(stage.participant),
             handRaised: controller.isHandRaised(stage.participant),
             large: true,
+            expanded: expanded,
+            onToggleExpand: filmstrip.isEmpty && !expanded
+                ? null
+                : onToggleExpand,
           );
     final landscape =
         MediaQuery.orientationOf(context) == Orientation.landscape;
@@ -231,7 +253,9 @@ class _Stage extends StatelessWidget {
       axis: landscape ? Axis.vertical : Axis.horizontal,
     );
     const pad = EdgeInsets.all(AppSpacing.s8);
-    if (filmstrip.isEmpty) return Padding(padding: pad, child: main);
+    if (filmstrip.isEmpty || (expanded && stage != null)) {
+      return Padding(padding: pad, child: main);
+    }
     if (landscape) {
       return Padding(
         padding: pad,

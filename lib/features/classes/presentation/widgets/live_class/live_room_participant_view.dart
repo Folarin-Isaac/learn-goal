@@ -9,6 +9,8 @@ class LiveRoomParticipantView extends StatelessWidget {
     required this.isEducator,
     this.large = false,
     this.handRaised = false,
+    this.expanded = false,
+    this.onToggleExpand,
     super.key,
   });
 
@@ -17,6 +19,8 @@ class LiveRoomParticipantView extends StatelessWidget {
   final bool isEducator;
   final bool large;
   final bool handRaised;
+  final bool expanded;
+  final VoidCallback? onToggleExpand;
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +61,7 @@ class LiveRoomParticipantView extends StatelessWidget {
           Positioned(
             left: AppSpacing.s8,
             bottom: AppSpacing.s8,
-            right: AppSpacing.s8,
+            right: onToggleExpand == null ? AppSpacing.s8 : 60,
             child: Align(
               alignment: Alignment.centerLeft,
               child: _NameTag(
@@ -79,6 +83,34 @@ class LiveRoomParticipantView extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 child: Text('✋', style: TextStyle(fontSize: large ? 20 : 14)),
+              ),
+            ),
+          if (onToggleExpand != null)
+            Positioned(
+              right: AppSpacing.s8,
+              bottom: AppSpacing.s4,
+              child: Tooltip(
+                message: expanded
+                    ? context.l10n.liveClassExitFullScreen
+                    : context.l10n.liveClassFullScreen,
+                child: Material(
+                  color: Colors.white,
+                  shape: const CircleBorder(),
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: onToggleExpand,
+                    child: SizedBox.square(
+                      dimension: 44,
+                      child: Icon(
+                        expanded ? Icons.fullscreen_exit : Icons.fullscreen,
+                        color: Colors.black87,
+                        semanticLabel: expanded
+                            ? context.l10n.liveClassExitFullScreen
+                            : context.l10n.liveClassFullScreen,
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
         ],
