@@ -107,35 +107,60 @@ class LiveRoomControls extends StatelessWidget {
       ),
     ];
     return LayoutBuilder(
-      builder: (context, constraints) => SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.s16,
-          12,
-          AppSpacing.s16,
-          AppSpacing.s16,
-        ),
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            minWidth: (constraints.maxWidth - AppSpacing.s32).clamp(
-              0,
-              double.infinity,
-            ),
+      builder: (context, constraints) => _ControlSize(
+        size: _fitSize(constraints.maxWidth, buttons.length),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.s16,
+            12,
+            AppSpacing.s16,
+            AppSpacing.s16,
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              for (var i = 0; i < buttons.length; i++) ...[
-                if (i > 0) const Gap(12),
-                buttons[i],
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minWidth: (constraints.maxWidth - AppSpacing.s32).clamp(
+                0,
+                double.infinity,
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (var i = 0; i < buttons.length; i++) ...[
+                  if (i > 0) const Gap(_gap),
+                  buttons[i],
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),
     );
   }
+
+  static const double _gap = 12;
+  static const double _maxSize = 52;
+  static const double _minSize = 44;
+
+  static double _fitSize(double width, int count) {
+    if (count == 0 || !width.isFinite) return _maxSize;
+    final available = width - AppSpacing.s32 - _gap * (count - 1);
+    return (available / count).clamp(_minSize, _maxSize);
+  }
+}
+
+class _ControlSize extends InheritedWidget {
+  const new({required this.size, required super.child});
+
+  final double size;
+
+  static double of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<_ControlSize>()?.size ?? 52;
+
+  @override
+  bool updateShouldNotify(_ControlSize oldWidget) => size != oldWidget.size;
 }
 
 class _Badged extends StatelessWidget {
@@ -222,7 +247,7 @@ class _RoundButton extends StatelessWidget {
                     onTap!();
                   },
             child: SizedBox.square(
-              dimension: 52,
+              dimension: _ControlSize.of(context),
               child: Icon(icon, color: active ? Colors.black87 : Colors.white),
             ),
           ),

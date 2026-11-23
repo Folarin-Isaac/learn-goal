@@ -45,9 +45,12 @@ class LiveClassPage extends StatelessWidget {
               joinWithMic: state.micOn,
               joinWithCamera: state.cameraOn,
             ),
-            LiveClassPhase.ended => LiveClassClosedView.ended(session: session),
-            LiveClassPhase.dropped => LiveClassClosedView.dropped(
+            LiveClassPhase.ended ||
+            LiveClassPhase.dropped ||
+            LiveClassPhase.replaced ||
+            LiveClassPhase.removed => LiveClassClosedView(
               session: session,
+              phase: state.phase,
             ),
             _ => LiveClassLobby(
               session: session,

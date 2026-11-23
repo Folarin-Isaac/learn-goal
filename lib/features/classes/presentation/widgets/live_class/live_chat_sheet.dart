@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:lengoal/core/core.dart';
 import 'package:lengoal/features/classes/presentation/bloc/live_class/live_room_chat.dart';
@@ -43,6 +44,8 @@ class _LiveChatSheetState extends State<LiveChatSheet> {
   final ScrollController _scroll = ScrollController();
   int _shown = 0;
   bool _sending = false;
+
+  static const int _maxLength = 2000;
 
   LiveRoomController get _controller => widget.controller;
 
@@ -164,6 +167,9 @@ class _LiveChatSheetState extends State<LiveChatSheet> {
                     controller: _input,
                     enabled: _controller.canSignal,
                     textInputAction: TextInputAction.send,
+                    inputFormatters: [
+                      LengthLimitingTextInputFormatter(_maxLength),
+                    ],
                     textCapitalization: TextCapitalization.sentences,
                     onSubmitted: (_) => unawaited(_send()),
                     style: context.textTheme.bodyMedium?.copyWith(

@@ -5,10 +5,22 @@ import 'package:lengoal/features/classes/domain/entities/live_class_status.dart'
 import 'package:lengoal/features/classes/domain/usecases/get_live_class_status_usecase.dart';
 import 'package:lengoal/features/classes/domain/usecases/join_live_class_usecase.dart';
 
-// lobby → joining → inRoom, then ended (the educator closed the room) or
-// dropped (connection lost for good, offered a rejoin). Leaving on
-// purpose just pops the page, so it has no phase.
-enum LiveClassPhase { lobby, joining, inRoom, ended, dropped }
+// lobby → joining → inRoom, then one of:
+//   ended    — the educator closed the room
+//   dropped  — connection lost for good (offers a rejoin)
+//   replaced — the same account joined elsewhere (offers a rejoin, which
+//              moves the session back to this device)
+//   removed  — the educator removed this learner (no rejoin)
+// Leaving on purpose just pops the page, so it has no phase.
+enum LiveClassPhase {
+  lobby,
+  joining,
+  inRoom,
+  ended,
+  dropped,
+  replaced,
+  removed,
+}
 
 class LiveClassState extends Equatable {
   const new({
@@ -104,9 +116,10 @@ class LiveClassCubit extends Cubit<LiveClassState> {
 
   Future<void> join() async {
     if (state.phase == LiveClassPhase.joining) return;
-    final retryPhase = state.phase == LiveClassPhase.dropped
-        ? LiveClassPhase.dropped
-        : LiveClassPhase.lobby;
+    final retryPhase = switch (state.phase) {
+      LiveClassPhase.dropped || LiveClassPhase.replaced => state.phase,
+      _ => LiveClassPhase.lobby,
+    };
     emit(state.copyWith(phase: LiveClassPhase.joining));
     final result = await _joinLiveClass(sessionId);
     if (isClosed) return;
@@ -117,12 +130,9 @@ class LiveClassCubit extends Cubit<LiveClassState> {
     );
   }
 
-  void roomClosed({required bool classEnded}) {
-    emit(
-      state.copyWith(
-        phase: classEnded ? LiveClassPhase.ended : LiveClassPhase.dropped,
-      ),
-    );
+  // One of ended, dropped, replaced or removed.
+  void roomClosed(LiveClassPhase phase) {
+    emit(state.copyWith(phase: phase));
   }
 
   void roomFailed(String message) {

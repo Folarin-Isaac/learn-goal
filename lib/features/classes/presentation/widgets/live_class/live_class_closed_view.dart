@@ -5,16 +5,43 @@ import 'package:lengoal/features/classes/presentation/bloc/live_class/live_class
 import 'package:lengoal/features/classes/presentation/models/live_class_session.dart';
 
 class LiveClassClosedView extends StatelessWidget {
-  const new ended({required this.session, super.key}) : canRejoin = false;
-
-  const new dropped({required this.session, super.key}) : canRejoin = true;
+  const new({required this.session, required this.phase, super.key});
 
   final LiveClassSession session;
-  final bool canRejoin;
+  final LiveClassPhase phase;
+
+  bool get canRejoin =>
+      phase == LiveClassPhase.dropped || phase == LiveClassPhase.replaced;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final (icon, iconColor, title, body) = switch (phase) {
+      LiveClassPhase.replaced => (
+        Icons.devices_outlined,
+        context.colors.onSurfaceVariant,
+        l10n.liveClassReplacedTitle,
+        l10n.liveClassReplacedBody,
+      ),
+      LiveClassPhase.removed => (
+        Icons.person_remove_outlined,
+        context.colors.onSurfaceVariant,
+        l10n.liveClassRemovedTitle,
+        l10n.liveClassRemovedBody,
+      ),
+      LiveClassPhase.dropped => (
+        Icons.wifi_off_rounded,
+        context.colors.onSurfaceVariant,
+        l10n.liveClassDroppedTitle,
+        l10n.liveClassDroppedBody,
+      ),
+      _ => (
+        Icons.event_available,
+        AppColors.successGreen,
+        l10n.liveClassEndedTitle,
+        l10n.liveClassEndedBody,
+      ),
+    };
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -26,26 +53,16 @@ class LiveClassClosedView extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Icon(
-                    canRejoin ? Icons.wifi_off_rounded : Icons.event_available,
-                    size: 56,
-                    color: canRejoin
-                        ? context.colors.onSurfaceVariant
-                        : AppColors.successGreen,
-                  ),
+                  Icon(icon, size: 56, color: iconColor),
                   const Gap(AppSpacing.s16),
                   Text(
-                    canRejoin
-                        ? l10n.liveClassDroppedTitle
-                        : l10n.liveClassEndedTitle,
+                    title,
                     textAlign: TextAlign.center,
                     style: context.textTheme.headlineSmall,
                   ),
                   const Gap(AppSpacing.s8),
                   Text(
-                    canRejoin
-                        ? l10n.liveClassDroppedBody
-                        : l10n.liveClassEndedBody,
+                    body,
                     textAlign: TextAlign.center,
                     style: context.textTheme.bodyMedium?.copyWith(
                       color: context.colors.onSurfaceVariant,

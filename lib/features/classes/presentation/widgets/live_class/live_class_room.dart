@@ -54,17 +54,32 @@ class _LiveClassRoomState extends State<LiveClassRoom> {
     if (_controller.connection != LiveRoomConnection.closed) return;
     _handledClose = true;
     if (!mounted) return;
+    _dismissPopups();
     final cubit = context.read<LiveClassCubit>();
     switch (_controller.closeKind) {
       case LiveRoomCloseKind.left:
         context.pop();
       case LiveRoomCloseKind.classEnded:
-        cubit.roomClosed(classEnded: true);
+        cubit.roomClosed(LiveClassPhase.ended);
+      case LiveRoomCloseKind.replaced:
+        cubit.roomClosed(LiveClassPhase.replaced);
+      case LiveRoomCloseKind.removed:
+        cubit.roomClosed(LiveClassPhase.removed);
       case LiveRoomCloseKind.failed:
         cubit.roomFailed(context.l10n.liveClassConnectFailed);
       case LiveRoomCloseKind.dropped:
       case null:
-        cubit.roomClosed(classEnded: false);
+        cubit.roomClosed(LiveClassPhase.dropped);
+    }
+  }
+
+  void _dismissPopups() {
+    final navigators = {
+      Navigator.of(context),
+      Navigator.of(context, rootNavigator: true),
+    };
+    for (final navigator in navigators) {
+      navigator.popUntil((route) => route is! PopupRoute);
     }
   }
 

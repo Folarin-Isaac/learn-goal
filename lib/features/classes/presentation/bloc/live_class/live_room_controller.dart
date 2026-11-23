@@ -10,7 +10,7 @@ import 'package:livekit_client/livekit_client.dart';
 
 enum LiveRoomConnection { connecting, connected, reconnecting, closed }
 
-enum LiveRoomCloseKind { left, classEnded, dropped, failed }
+enum LiveRoomCloseKind { left, classEnded, dropped, failed, replaced, removed }
 
 // A participant as the room UI draws it: their camera or shared screen,
 // or null to fall back to an avatar.
@@ -234,9 +234,12 @@ class LiveRoomController extends ChangeNotifier {
       ..on<RoomReconnectingEvent>(
         (_) => _setConnection(LiveRoomConnection.reconnecting),
       )
-      ..on<RoomReconnectedEvent>(
-        (_) => _setConnection(LiveRoomConnection.connected),
-      )
+      ..on<RoomReconnectedEvent>((_) {
+        _setConnection(LiveRoomConnection.connected);
+        // Hands raised or lowered while we were away weren't received;
+        // ask again, as on joining.
+        if (canSignal) unawaited(_send(const HandStateQuerySignal()));
+      })
       ..on<RoomDisconnectedEvent>(_onDisconnected)
       ..on<RoomRecordingStatusChanged>((_) => _notify())
       ..on<TrackSubscribedEvent>((_) => _notify())
@@ -276,7 +279,12 @@ class LiveRoomController extends ChangeNotifier {
     AppLogger.d('[live] disconnected: ${event.reason}');
     _closeKind ??= switch (event.reason) {
       DisconnectReason.clientInitiated => LiveRoomCloseKind.left,
-      DisconnectReason.roomDeleted => LiveRoomCloseKind.classEnded,
+      DisconnectReason.roomDeleted ||
+      DisconnectReason.roomClosed => LiveRoomCloseKind.classEnded,
+      // Same account joined the class elsewhere (e.g. the web).
+      DisconnectReason.duplicateIdentity => LiveRoomCloseKind.replaced,
+      // The educator removed this learner from the session.
+      DisconnectReason.participantRemoved => LiveRoomCloseKind.removed,
       _ => LiveRoomCloseKind.dropped,
     };
     _setConnection(LiveRoomConnection.closed);
