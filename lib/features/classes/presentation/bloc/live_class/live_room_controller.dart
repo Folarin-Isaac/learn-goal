@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:lengoal/core/utils/logger.dart';
 import 'package:lengoal/features/classes/domain/entities/live_class_access.dart';
+import 'package:lengoal/features/classes/presentation/bloc/live_class/live_room_chat.dart';
 import 'package:lengoal/features/classes/presentation/bloc/live_class/live_room_people.dart';
 import 'package:lengoal/features/classes/presentation/bloc/live_class/live_room_signals.dart';
 import 'package:livekit_client/livekit_client.dart';
@@ -99,6 +100,102 @@ class LiveRoomController extends ChangeNotifier {
       _raisedHands.containsKey(participant.identity);
 
   int get raisedHandCount => _raisedHands.length;
+
+  static const int _maxChatMessages = 500;
+
+  final List<LiveChatMessage> _chat = [];
+  bool _chatOpen = false;
+  int _unreadChat = 0;
+
+  List<LiveChatMessage> get chatMessages => List.unmodifiable(_chat);
+
+  // Messages from others that arrived while the chat panel was closed.
+  // Cleared when the panel opens, like the web's Chat button badge.
+  int get unreadChatCount => _unreadChat;
+
+  // Closing never changes anything on screen, so it doesn't notify; that
+  // keeps it safe to call from a widget's dispose.
+  void setChatOpen({required bool open}) {
+    _chatOpen = open;
+    if (open && _unreadChat != 0) {
+      _unreadChat = 0;
+      _notify();
+    }
+  }
+
+  Future<bool> sendChat(String text) async {
+    final message = text.trim();
+    final local = room.localParticipant;
+    if (message.isEmpty || local == null || !canSignal) return false;
+    final payload = LiveChatPayload(
+      id: newChatId(),
+      message: message,
+      timestamp: DateTime.now().millisecondsSinceEpoch,
+    );
+    try {
+      await local.publishData(
+        payload.encode(),
+        reliable: true,
+        topic: LiveChatPayload.topic,
+      );
+    } on Object catch (e) {
+      AppLogger.e('[live] chat send failed: $e');
+      return false;
+    }
+    _addChat(
+      LiveChatMessage(
+        id: payload.id,
+        message: payload.message,
+        timestamp: payload.timestamp,
+        fromIdentity: local.identity,
+        fromName: _myName,
+        isLocal: true,
+      ),
+    );
+    return true;
+  }
+
+  void _onChatData(DataReceivedEvent event, {required bool isUpdate}) {
+    final payload = LiveChatPayload.decode(event.data);
+    if (payload == null) return;
+    final identity = event.participant?.identity ?? event.participantIdentity;
+    final existing = _chat.indexWhere(
+      (m) => m.id == payload.id && m.fromIdentity == identity,
+    );
+    if (existing >= 0) {
+      final old = _chat[existing];
+      _chat[existing] = LiveChatMessage(
+        id: old.id,
+        message: payload.message,
+        timestamp: old.timestamp,
+        fromIdentity: old.fromIdentity,
+        fromName: old.fromName,
+        isLocal: old.isLocal,
+        isEdited: isUpdate || old.isEdited,
+      );
+      _notify();
+      return;
+    }
+    final name = event.participant?.name.trim() ?? '';
+    if (!_chatOpen) _unreadChat++;
+    _addChat(
+      LiveChatMessage(
+        id: payload.id,
+        message: payload.message,
+        timestamp: payload.timestamp,
+        fromIdentity: identity,
+        fromName: name.isNotEmpty ? name : identity,
+        isLocal: false,
+        isEdited: isUpdate,
+      ),
+    );
+  }
+
+  void _addChat(LiveChatMessage message) {
+    _chat.add(message);
+    if (_chat.length > _maxChatMessages) _chat.removeAt(0);
+    _notify();
+  }
 
   // Everyone in the room for the People list, in the web's order.
   List<LivePerson> get people {
@@ -247,6 +344,14 @@ class LiveRoomController extends ChangeNotifier {
   }
 
   void _onData(DataReceivedEvent event) {
+    switch (event.topic) {
+      case LiveChatPayload.topic:
+        _onChatData(event, isUpdate: false);
+        return;
+      case LiveChatPayload.updateTopic:
+        _onChatData(event, isUpdate: true);
+        return;
+    }
     final signal = LiveSignal.decode(event.data);
     if (signal == null) return;
     final me = room.localParticipant?.identity;

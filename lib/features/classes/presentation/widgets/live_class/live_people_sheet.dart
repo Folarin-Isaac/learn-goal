@@ -1,7 +1,6 @@
 import 'package:lengoal/core/core.dart';
 import 'package:lengoal/features/classes/presentation/bloc/live_class/live_room_controller.dart';
 import 'package:lengoal/features/classes/presentation/bloc/live_class/live_room_people.dart';
-import 'package:livekit_client/livekit_client.dart';
 
 class LivePeopleSheet extends StatefulWidget {
   const new({required this.controller, super.key});
@@ -29,7 +28,6 @@ class LivePeopleSheet extends StatefulWidget {
   static const Color _you = Color(0xFF6366F1);
   static const Color _presenting = Color(0xFF818CF8);
   static const Color _speaking = Color(0xFF22C55E);
-  static const Color _speakingText = Color(0xFF4ADE80);
   static const Color _muted = Color(0xFFF87171);
   static const List<Color> _avatarColors = [
     Color(0xFF6366F1),
@@ -283,42 +281,6 @@ class _PersonRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final small = context.textTheme.labelSmall;
-    final quality = _qualityLabel(context, person.quality);
-    final status = <Widget>[
-      if (quality != null) ...[
-        Container(
-          width: 7,
-          height: 7,
-          decoration: BoxDecoration(
-            color: _qualityColor(person.quality),
-            shape: BoxShape.circle,
-          ),
-        ),
-        const Gap(AppSpacing.s4),
-        Text(quality, style: small?.copyWith(color: Colors.white38)),
-      ],
-      if (person.isPresenting) ...[
-        if (quality != null) _dot(),
-        Text(
-          l10n.liveClassSectionPresenting,
-          style: small?.copyWith(
-            color: LivePeopleSheet._presenting,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
-      if (person.isSpeaking) ...[
-        if (quality != null || person.isPresenting) _dot(),
-        Text(
-          l10n.liveClassSectionSpeaking,
-          style: small?.copyWith(
-            color: LivePeopleSheet._speakingText,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
-    ];
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.s16,
@@ -329,38 +291,26 @@ class _PersonRow extends StatelessWidget {
           _Avatar(person: person),
           const Gap(10),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Wrap(
+              spacing: 5,
+              runSpacing: 2,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                Wrap(
-                  spacing: 5,
-                  runSpacing: 2,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    Text(
-                      person.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: context.textTheme.titleSmall?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    if (person.isLocal)
-                      _Tag(l10n.liveClassYou, LivePeopleSheet._you),
-                    if (person.isHost)
-                      _Tag(l10n.liveClassTagHost, LivePeopleSheet._amber),
-                    if (person.isHandRaised)
-                      _Tag(l10n.liveClassTagRaised, LivePeopleSheet._amber),
-                  ],
-                ),
-                if (status.isNotEmpty) ...[
-                  const Gap(2),
-                  Wrap(
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: status,
+                Text(
+                  person.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: context.textTheme.titleSmall?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
                   ),
-                ],
+                ),
+                if (person.isLocal)
+                  _Tag(l10n.liveClassYou, LivePeopleSheet._you),
+                if (person.isHost)
+                  _Tag(l10n.liveClassTagHost, LivePeopleSheet._amber),
+                if (person.isHandRaised)
+                  _Tag(l10n.liveClassTagRaised, LivePeopleSheet._amber),
               ],
             ),
           ),
@@ -401,30 +351,6 @@ class _PersonRow extends StatelessWidget {
       ),
     );
   }
-
-  static Widget _dot() => const Padding(
-    padding: EdgeInsets.symmetric(horizontal: AppSpacing.s4),
-    child: Text('·', style: TextStyle(color: Colors.white24, fontSize: 10)),
-  );
-
-  static String? _qualityLabel(BuildContext context, ConnectionQuality q) {
-    final l10n = context.l10n;
-    return switch (q) {
-      ConnectionQuality.excellent => l10n.liveClassConnectionExcellent,
-      ConnectionQuality.good => l10n.liveClassConnectionGood,
-      ConnectionQuality.poor => l10n.liveClassConnectionPoor,
-      ConnectionQuality.lost => l10n.liveClassConnectionLost,
-      ConnectionQuality.unknown => null,
-    };
-  }
-
-  static Color _qualityColor(ConnectionQuality q) => switch (q) {
-    ConnectionQuality.excellent => const Color(0xFF22C55E),
-    ConnectionQuality.good => const Color(0xFF84CC16),
-    ConnectionQuality.poor => const Color(0xFFF59E0B),
-    ConnectionQuality.lost => const Color(0xFFEF4444),
-    ConnectionQuality.unknown => Colors.white24,
-  };
 }
 
 class _Avatar extends StatelessWidget {
