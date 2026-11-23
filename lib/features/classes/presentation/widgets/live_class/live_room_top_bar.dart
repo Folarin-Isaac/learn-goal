@@ -34,6 +34,7 @@ class LiveRoomTopBar extends StatelessWidget {
               foregroundColor: AppColors.errorBorder,
               side: const BorderSide(color: AppColors.errorRed),
               visualDensity: VisualDensity.compact,
+              minimumSize: const Size(0, 36),
             ),
           ),
           const Gap(AppSpacing.s16),

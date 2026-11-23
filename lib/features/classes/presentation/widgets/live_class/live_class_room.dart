@@ -5,7 +5,9 @@ import 'package:lengoal/features/classes/domain/entities/live_class_access.dart'
 import 'package:lengoal/features/classes/presentation/bloc/live_class/live_class_cubit.dart';
 import 'package:lengoal/features/classes/presentation/bloc/live_class/live_room_controller.dart';
 import 'package:lengoal/features/classes/presentation/models/live_class_session.dart';
+import 'package:lengoal/features/classes/presentation/widgets/live_class/live_reaction_picker.dart';
 import 'package:lengoal/features/classes/presentation/widgets/live_class/live_room_controls.dart';
+import 'package:lengoal/features/classes/presentation/widgets/live_class/live_room_moments_layer.dart';
 import 'package:lengoal/features/classes/presentation/widgets/live_class/live_room_participant_view.dart';
 import 'package:lengoal/features/classes/presentation/widgets/live_class/live_room_top_bar.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -88,6 +90,12 @@ class _LiveClassRoomState extends State<LiveClassRoom> {
     if (!ok && mounted) AppSnackbar.error(context.l10n.liveClassCameraBlocked);
   }
 
+  Future<void> _pickReaction() async {
+    final reaction = await LiveReactionPicker.show(context);
+    if (reaction == null || !mounted) return;
+    await _controller.react(reaction);
+  }
+
   @override
   void dispose() {
     unawaited(WakelockPlus.disable());
@@ -122,19 +130,39 @@ class _LiveClassRoomState extends State<LiveClassRoom> {
                   if (controller.connection == LiveRoomConnection.reconnecting)
                     const _ReconnectingBanner(),
                   Expanded(
-                    child: ListenableBuilder(
-                      listenable: Listenable.merge(controller.participants),
-                      builder: (context, _) => _Stage(controller: controller),
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: ListenableBuilder(
+                            listenable: Listenable.merge(
+                              controller.participants,
+                            ),
+                            builder: (context, _) =>
+                                _Stage(controller: controller),
+                          ),
+                        ),
+                        Positioned.fill(
+                          child: LiveRoomMomentsLayer(
+                            moments: controller.moments,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  if (controller.canPublish)
+                  if (controller.connection != LiveRoomConnection.connecting &&
+                      (controller.canPublish || controller.canSignal))
                     LiveRoomControls(
+                      showDevices: controller.canPublish,
+                      showSignals: controller.canSignal,
                       micOn: controller.isMicOn,
                       cameraOn: controller.isCameraOn,
+                      handRaised: controller.isMyHandRaised,
                       busy: controller.busy,
                       onMic: _toggleMic,
                       onCamera: _toggleCamera,
                       onFlipCamera: () => unawaited(controller.flipCamera()),
+                      onHand: () => unawaited(controller.toggleHand()),
+                      onReact: () => unawaited(_pickReaction()),
                     ),
                 ],
               );
@@ -167,6 +195,7 @@ class _Stage extends StatelessWidget {
             tile: stage,
             isLocal: false,
             isEducator: controller.isEducator(stage.participant),
+            handRaised: controller.isHandRaised(stage.participant),
             large: true,
           );
     final landscape =
@@ -227,6 +256,7 @@ class _Filmstrip extends StatelessWidget {
           tile: tile,
           isLocal: identical(tile.participant, local),
           isEducator: controller.isEducator(tile.participant),
+          handRaised: controller.isHandRaised(tile.participant),
         );
         return axis == Axis.horizontal
             ? SizedBox(width: 150, child: view)

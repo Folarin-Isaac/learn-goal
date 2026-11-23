@@ -8,6 +8,7 @@ class LiveRoomParticipantView extends StatelessWidget {
     required this.isLocal,
     required this.isEducator,
     this.large = false,
+    this.handRaised = false,
     super.key,
   });
 
@@ -15,6 +16,7 @@ class LiveRoomParticipantView extends StatelessWidget {
   final bool isLocal;
   final bool isEducator;
   final bool large;
+  final bool handRaised;
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +30,11 @@ class LiveRoomParticipantView extends StatelessWidget {
         color: const Color(0xFF1F1F1F),
         borderRadius: BorderRadius.circular(AppSpacing.r12),
         border: Border.all(
-          color: highlight ? AppColors.brandGreen : Colors.transparent,
+          color: handRaised && !tile.isScreenShare
+              ? const Color(0xFFF59E0B)
+              : highlight
+              ? AppColors.brandGreen
+              : Colors.transparent,
           width: 2,
         ),
       ),
@@ -62,6 +68,19 @@ class LiveRoomParticipantView extends StatelessWidget {
               ),
             ),
           ),
+          if (handRaised && !tile.isScreenShare)
+            Positioned(
+              top: AppSpacing.s8,
+              right: AppSpacing.s8,
+              child: Container(
+                padding: const EdgeInsets.all(AppSpacing.s4),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF59E0B),
+                  shape: BoxShape.circle,
+                ),
+                child: Text('✋', style: TextStyle(fontSize: large ? 20 : 14)),
+              ),
+            ),
         ],
       ),
     );

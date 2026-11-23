@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:lengoal/core/utils/logger.dart';
 import 'package:lengoal/features/classes/domain/entities/live_class_access.dart';
+import 'package:lengoal/features/classes/presentation/bloc/live_class/live_room_signals.dart';
 import 'package:livekit_client/livekit_client.dart';
 
 enum LiveRoomConnection { connecting, connected, reconnecting, closed }
@@ -68,10 +69,39 @@ class LiveRoomController extends ChangeNotifier {
   CameraPosition _cameraPosition = CameraPosition.front;
   bool _disposed = false;
 
+  // Raised hands by participant identity, with the time they went up. Kept
+  // in sync with the web through LiveSignal messages.
+  final Map<String, int> _raisedHands = {};
+
+  final StreamController<LiveRoomMoment> _moments =
+      StreamController<LiveRoomMoment>.broadcast();
+
+  // Floating reactions and "raised their hand" toasts for the room to show.
+  Stream<LiveRoomMoment> get moments => _moments.stream;
+
   bool get isRecording => room.isRecording;
 
   // Learners may be listen-only; the server decides through the token.
   bool get canPublish => room.localParticipant?.permissions.canPublish ?? false;
+
+  // Hands and reactions are data messages, a separate permission from
+  // publishing audio/video.
+  bool get canSignal =>
+      room.localParticipant?.permissions.canPublishData ?? false;
+
+  bool get isMyHandRaised {
+    final identity = room.localParticipant?.identity;
+    return identity != null && _raisedHands.containsKey(identity);
+  }
+
+  bool isHandRaised(Participant participant) =>
+      _raisedHands.containsKey(participant.identity);
+
+  String get _myName {
+    final local = room.localParticipant;
+    if (local == null) return '';
+    return local.name.trim().isNotEmpty ? local.name : local.identity;
+  }
 
   bool get isMicOn => room.localParticipant?.isMicrophoneEnabled() ?? false;
 
@@ -101,7 +131,13 @@ class LiveRoomController extends ChangeNotifier {
       ..on<TrackUnmutedEvent>((_) => _notify())
       ..on<LocalTrackPublishedEvent>((_) => _notify())
       ..on<LocalTrackUnpublishedEvent>((_) => _notify())
-      ..on<ParticipantPermissionsUpdatedEvent>((_) => _notify());
+      ..on<ParticipantPermissionsUpdatedEvent>((_) => _notify())
+      ..on<DataReceivedEvent>(_onData)
+      ..on<ParticipantDisconnectedEvent>((event) {
+        if (_raisedHands.remove(event.participant.identity) != null) {
+          _notify();
+        }
+      });
     try {
       await room.connect(access.serverUrl, access.token);
     } on Object catch (e) {
@@ -116,6 +152,7 @@ class LiveRoomController extends ChangeNotifier {
       'canPublish=$canPublish remotes=${room.remoteParticipants.length}',
     );
     _setConnection(LiveRoomConnection.connected);
+    if (canSignal) unawaited(_send(const HandStateQuerySignal()));
     if (!canPublish) return;
     if (joinWithMic) await setMicrophone(enabled: true);
     if (joinWithCamera) await setCamera(enabled: true);
@@ -157,6 +194,116 @@ class LiveRoomController extends ChangeNotifier {
       await track.setCameraPosition(next);
       _cameraPosition = next;
     });
+  }
+
+  Future<void> toggleHand() async {
+    final identity = room.localParticipant?.identity;
+    if (identity == null) return;
+    final raise = !isMyHandRaised;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    if (raise) {
+      _raisedHands[identity] = now;
+    } else {
+      _raisedHands.remove(identity);
+    }
+    _notify();
+    await _send(
+      RaiseHandSignal(
+        identity: identity,
+        name: _myName,
+        isRaised: raise,
+        timestamp: now,
+      ),
+    );
+  }
+
+  Future<void> react(LiveReaction reaction) async {
+    final name = _myName;
+    _emit(ReactionMoment(emoji: reaction.emoji, name: name));
+    await _send(
+      ReactionSignal(
+        reactionId: reaction.id,
+        emoji: reaction.emoji,
+        participantName: name,
+      ),
+    );
+  }
+
+  void _onData(DataReceivedEvent event) {
+    final signal = LiveSignal.decode(event.data);
+    if (signal == null) return;
+    final me = room.localParticipant?.identity;
+    switch (signal) {
+      case RaiseHandSignal(
+        :final identity,
+        :final isRaised,
+        :final timestamp,
+        :final name,
+      ):
+        if (isRaised) {
+          final isNew = !_raisedHands.containsKey(identity);
+          _raisedHands[identity] = timestamp;
+          if (isNew && identity != me) {
+            _emit(HandRaisedMoment(_nameFor(identity, name)));
+          }
+        } else {
+          _raisedHands.remove(identity);
+        }
+      case LowerHandSignal(:final targetIdentity):
+        final removed = _raisedHands.remove(targetIdentity) != null;
+        if (removed && targetIdentity == me) {
+          _emit(const HandLoweredMoment());
+        }
+      case LowerAllHandsSignal():
+        final mine = me != null && _raisedHands.containsKey(me);
+        _raisedHands.clear();
+        if (mine) _emit(const HandLoweredMoment());
+      case HandStateQuerySignal():
+        final raisedAt = me == null ? null : _raisedHands[me];
+        if (me != null && raisedAt != null) {
+          unawaited(
+            _send(
+              RaiseHandSignal(
+                identity: me,
+                name: _myName,
+                isRaised: true,
+                timestamp: raisedAt,
+              ),
+            ),
+          );
+        }
+        return;
+      case ReactionSignal(:final emoji, :final participantName):
+        final name = participantName.isNotEmpty
+            ? participantName
+            : _nameFor(event.participantIdentity, '');
+        _emit(ReactionMoment(emoji: emoji, name: name));
+        return;
+    }
+    _notify();
+  }
+
+  String _nameFor(String identity, String fallback) {
+    if (fallback.trim().isNotEmpty) return fallback;
+    final participant = room.remoteParticipants.values
+        .where((p) => p.identity == identity)
+        .firstOrNull;
+    final name = participant?.name.trim() ?? '';
+    return name.isNotEmpty ? name : identity;
+  }
+
+  Future<void> _send(LiveSignal signal) async {
+    final local = room.localParticipant;
+    if (local == null || !canSignal) return;
+    try {
+      await local.publishData(signal.encode(), reliable: true);
+    } on Object catch (e) {
+      AppLogger.e('[live] publishData failed: $e');
+    }
+  }
+
+  void _emit(LiveRoomMoment moment) {
+    if (!_disposed && !_moments.isClosed) _moments.add(moment);
   }
 
   Future<void> leave() async {
@@ -276,6 +423,7 @@ class LiveRoomController extends ChangeNotifier {
   @override
   void dispose() {
     _disposed = true;
+    unawaited(_moments.close());
     unawaited(_events.dispose());
     unawaited(_shutdown());
     super.dispose();
