@@ -37,6 +37,12 @@ class _LiveClassRoomState extends State<LiveClassRoom> {
   bool _handledClose = false;
   bool _expanded = false;
 
+  void _collapseAfterFrame() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _expanded) setState(() => _expanded = false);
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -163,14 +169,19 @@ class _LiveClassRoomState extends State<LiveClassRoom> {
                             listenable: Listenable.merge(
                               controller.participants,
                             ),
-                            builder: (context, _) => _Stage(
-                              controller: controller,
-                              expanded: _expanded,
-                              onToggleExpand: () {
-                                AppHaptics.selection();
-                                setState(() => _expanded = !_expanded);
-                              },
-                            ),
+                            builder: (context, _) {
+                              final sharing =
+                                  controller.stage?.isScreenShare ?? false;
+                              if (_expanded && !sharing) _collapseAfterFrame();
+                              return _Stage(
+                                controller: controller,
+                                expanded: _expanded && sharing,
+                                onToggleExpand: () {
+                                  AppHaptics.selection();
+                                  setState(() => _expanded = !_expanded);
+                                },
+                              );
+                            },
                           ),
                         ),
                         Positioned.fill(
@@ -241,9 +252,10 @@ class _Stage extends StatelessWidget {
             handRaised: controller.isHandRaised(stage.participant),
             large: true,
             expanded: expanded,
-            onToggleExpand: filmstrip.isEmpty && !expanded
-                ? null
-                : onToggleExpand,
+            onToggleExpand:
+                stage.isScreenShare && (filmstrip.isNotEmpty || expanded)
+                ? onToggleExpand
+                : null,
           );
     final landscape =
         MediaQuery.orientationOf(context) == Orientation.landscape;

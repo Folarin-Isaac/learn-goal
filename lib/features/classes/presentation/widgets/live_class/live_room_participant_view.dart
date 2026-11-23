@@ -66,7 +66,7 @@ class LiveRoomParticipantView extends StatelessWidget {
           Positioned(
             left: AppSpacing.s8,
             bottom: AppSpacing.s8,
-            right: onToggleExpand == null ? AppSpacing.s8 : 60,
+            right: onToggleExpand == null ? AppSpacing.s8 : 52,
             child: Align(
               alignment: Alignment.centerLeft,
               child: _NameTag(
@@ -92,26 +92,37 @@ class LiveRoomParticipantView extends StatelessWidget {
             ),
           if (onToggleExpand != null)
             Positioned(
-              right: AppSpacing.s8,
-              bottom: AppSpacing.s4,
+              right: AppSpacing.s4,
+              bottom: 0,
               child: Tooltip(
                 message: expanded
                     ? context.l10n.liveClassExitFullScreen
                     : context.l10n.liveClassFullScreen,
-                child: Material(
-                  color: Colors.white,
-                  shape: const CircleBorder(),
-                  child: InkWell(
-                    customBorder: const CircleBorder(),
+                child: Semantics(
+                  button: true,
+                  label: expanded
+                      ? context.l10n.liveClassExitFullScreen
+                      : context.l10n.liveClassFullScreen,
+                  excludeSemantics: true,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
                     onTap: onToggleExpand,
                     child: SizedBox.square(
                       dimension: 44,
-                      child: Icon(
-                        expanded ? Icons.fullscreen_exit : Icons.fullscreen,
-                        color: Colors.black87,
-                        semanticLabel: expanded
-                            ? context.l10n.liveClassExitFullScreen
-                            : context.l10n.liveClassFullScreen,
+                      child: Center(
+                        child: Container(
+                          width: 32,
+                          height: 32,
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            expanded ? Icons.fullscreen_exit : Icons.fullscreen,
+                            size: 20,
+                            color: Colors.black87,
+                          ),
+                        ),
                       ),
                     ),
                   ),
