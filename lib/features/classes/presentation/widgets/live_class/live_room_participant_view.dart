@@ -46,7 +46,12 @@ class LiveRoomParticipantView extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          if (track != null)
+          if (track != null && large && tile.isScreenShare)
+            LiveZoomable(
+              key: ValueKey(track.sid),
+              child: VideoTrackRenderer(track),
+            )
+          else if (track != null)
             VideoTrackRenderer(
               track,
               key: ValueKey(track.sid),
@@ -122,6 +127,66 @@ class LiveRoomParticipantView extends StatelessWidget {
     final participant = tile.participant;
     final name = participant.name.trim();
     return name.isNotEmpty ? name : participant.identity;
+  }
+}
+
+class LiveZoomable extends StatefulWidget {
+  const new({required this.child, super.key});
+
+  final Widget child;
+
+  @override
+  State<LiveZoomable> createState() => _LiveZoomableState();
+}
+
+class _LiveZoomableState extends State<LiveZoomable>
+    with SingleTickerProviderStateMixin {
+  final TransformationController _transform = TransformationController();
+  late final AnimationController _reset = AnimationController(
+    vsync: this,
+    duration: AppMotion.fast,
+  );
+  Animation<Matrix4>? _resetAnimation;
+
+  static const double _maxScale = 4;
+
+  @override
+  void initState() {
+    super.initState();
+    _reset.addListener(() {
+      final animation = _resetAnimation;
+      if (animation != null) _transform.value = animation.value;
+    });
+  }
+
+  @override
+  void dispose() {
+    _reset.dispose();
+    _transform.dispose();
+    super.dispose();
+  }
+
+  void _resetZoom() {
+    if (_transform.value.isIdentity()) return;
+    AppHaptics.selection();
+    _resetAnimation = Matrix4Tween(
+      begin: _transform.value,
+      end: Matrix4.identity(),
+    ).animate(CurvedAnimation(parent: _reset, curve: Curves.easeOut));
+    _reset.forward(from: 0);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onDoubleTap: _resetZoom,
+      child: InteractiveViewer(
+        transformationController: _transform,
+        maxScale: _maxScale,
+        onInteractionStart: (_) => _reset.stop(),
+        child: SizedBox.expand(child: widget.child),
+      ),
+    );
   }
 }
 
