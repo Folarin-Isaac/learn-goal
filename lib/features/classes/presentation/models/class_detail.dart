@@ -43,7 +43,7 @@ class ClassDetail {
       outline: htmlToPlainText(lengoalClass.description ?? ''),
       instructorTitle: lengoalClass.educatorTierName ?? '',
       sessions: [
-        for (final session in lengoalClass.sessions)
+        for (final session in scheduleOrder(lengoalClass.sessions, current))
           calendarSessionFor(session, host, current),
       ],
       quizzes: const [],
@@ -62,6 +62,21 @@ class ClassDetail {
   final List<ClassQuiz> quizzes;
   final List<ClassMaterial> materials;
   final bool hasCertificate;
+}
+
+List<ClassSession> scheduleOrder(List<ClassSession> sessions, DateTime now) {
+  int rank(ClassSession s) => now.isAfter(s.endDate)
+      ? 2
+      : now.isBefore(s.startDate)
+      ? 1
+      : 0;
+  return [...sessions]..sort((a, b) {
+    final byRank = rank(a).compareTo(rank(b));
+    if (byRank != 0) return byRank;
+    return rank(a) == 2
+        ? b.startDate.compareTo(a.startDate)
+        : a.startDate.compareTo(b.startDate);
+  });
 }
 
 CalendarSession calendarSessionFor(
