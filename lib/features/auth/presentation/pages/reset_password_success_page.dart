@@ -13,14 +13,22 @@ class ResetPasswordSuccessPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Gap(AppSpacing.s24),
-              const Align(
+              Align(
                 alignment: Alignment.centerLeft,
-                child: AppBackButton(),
+                child: Column(
+                  children: [
+                    const AppBackButton(),
+                    const Gap(AppSpacing.s24),
+                    SuccessPop(
+                      child: Assets.icons.successCheckIcon.svg(
+                        width: 96,
+                        height: 96,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const Gap(AppSpacing.s24),
-              SuccessPop(
-                child: Assets.icons.successCheckIcon.svg(width: 96, height: 96),
-              ),
+
               const Gap(AppSpacing.s24),
               Text(
                 context.l10n.resetPasswordSuccessTitle,

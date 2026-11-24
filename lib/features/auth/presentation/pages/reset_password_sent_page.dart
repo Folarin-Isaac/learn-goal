@@ -22,7 +22,12 @@ class ResetPasswordSentPage extends StatelessWidget {
                   children: [
                     const AppBackButton(),
                     const Gap(AppSpacing.s24),
-                    Assets.images.envelopeIllustration.image(width: 72, height: 72),
+                    SuccessPop(
+                      child: Assets.images.envelopeIllustration.image(
+                        width: 72,
+                        height: 72,
+                      ),
+                    ),
                   ],
                 ),
               ),
