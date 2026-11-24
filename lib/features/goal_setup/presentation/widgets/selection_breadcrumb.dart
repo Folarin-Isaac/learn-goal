@@ -29,11 +29,14 @@ class SelectionBreadcrumb extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  crumbs[i],
-                  style: Theme.of(context).textTheme.bodySmall
-                      ?.copyWith(color: colorScheme.primary),
-                  overflow: TextOverflow.ellipsis,
+                Flexible(
+                  child: Text(
+                    crumbs[i],
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall
+                        ?.copyWith(color: colorScheme.primary),
+                  ),
                 ),
                 const SizedBox(width: 4),
                 Icon(Icons.check_circle, size: 14, color: colorScheme.primary),
