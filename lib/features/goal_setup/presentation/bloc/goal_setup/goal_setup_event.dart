@@ -50,25 +50,31 @@ class GoalSelected extends GoalSetupEvent {
   List<Object?> get props => [goal];
 }
 
-// Fired when the stage page mounts — loads stages for the selected goal.
-class GoalStageStepEntered extends GoalSetupEvent {
-  const new();
-}
-
-class GoalStageSelected extends GoalSetupEvent {
-  const new(this.stage);
-  final ExamStage stage;
+// Step 3, goals with levels: one level at a time (tapping the chosen level
+// again clears it), then any of that level's subjects.
+class GoalLevelTapped extends GoalSetupEvent {
+  const new(this.levelId);
+  final String levelId;
 
   @override
-  List<Object?> get props => [stage];
+  List<Object?> get props => [levelId];
 }
 
-class GoalTopicToggled extends GoalSetupEvent {
-  const new(this.topicId);
-  final String topicId;
+class GoalLevelSubjectToggled extends GoalSetupEvent {
+  const new(this.subjectId);
+  final String subjectId;
 
   @override
-  List<Object?> get props => [topicId];
+  List<Object?> get props => [subjectId];
+}
+
+// Step 3, goals with subjects (no levels): any number of subjects.
+class GoalSubjectToggled extends GoalSetupEvent {
+  const new(this.subjectId);
+  final String subjectId;
+
+  @override
+  List<Object?> get props => [subjectId];
 }
 
 class GoalTargetDateChanged extends GoalSetupEvent {

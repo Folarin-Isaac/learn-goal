@@ -1,10 +1,8 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lengoal/features/goal_setup/domain/entities/exam_goal.dart';
-import 'package:lengoal/features/goal_setup/domain/entities/exam_stage.dart';
 import 'package:lengoal/features/goal_setup/domain/entities/goal_category.dart';
 import 'package:lengoal/features/goal_setup/domain/usecases/get_categories_usecase.dart';
-import 'package:lengoal/features/goal_setup/domain/usecases/get_exam_stages_usecase.dart';
 import 'package:lengoal/features/goal_setup/domain/usecases/get_goals_usecase.dart';
 import 'package:lengoal/features/goal_setup/domain/usecases/save_goal_usecase.dart';
 
@@ -17,11 +15,9 @@ class GoalSetupBloc extends Bloc<GoalSetupEvent, GoalSetupState> {
   new({
     required GetCategoriesUseCase getCategoriesUseCase,
     required GetGoalsUseCase getGoalsUseCase,
-    required GetExamStagesUseCase getExamStagesUseCase,
     required SaveGoalUseCase saveGoalUseCase,
   }) : _getCategoriesUseCase = getCategoriesUseCase,
        _getGoalsUseCase = getGoalsUseCase,
-       _getExamStagesUseCase = getExamStagesUseCase,
        _saveGoalUseCase = saveGoalUseCase,
        super(const GoalSetupState()) {
     on<GoalSetupStarted>(_onStarted);
@@ -33,22 +29,35 @@ class GoalSetupBloc extends Bloc<GoalSetupEvent, GoalSetupState> {
     on<GoalQueryChanged>(
       (event, emit) => emit(state.copyWith(goalQuery: event.query)),
     );
-    on<GoalSelected>(
-      (event, emit) => emit(state.copyWith(selectedGoal: event.goal)),
+    on<GoalSelected>(_onGoalSelected);
+    on<GoalLevelTapped>(_onLevelTapped);
+    on<GoalLevelSubjectToggled>(
+      (event, emit) => emit(
+        state.copyWith(
+          levelSubjectIds: _toggle(state.levelSubjectIds, event.subjectId),
+        ),
+      ),
     );
-    on<GoalStageStepEntered>(_onStageStepEntered);
-    on<GoalStageSelected>(_onStageSelected);
-    on<GoalTopicToggled>(_onTopicToggled);
+    on<GoalSubjectToggled>(
+      (event, emit) => emit(
+        state.copyWith(subjectIds: _toggle(state.subjectIds, event.subjectId)),
+      ),
+    );
     on<GoalTargetDateChanged>(
-      (event, emit) => emit(state.copyWith(targetDate: event.date)),
+      (event, emit) => emit(state.copyWith(targetDate: () => event.date)),
     );
     on<GoalSaveRequested>(_onSaveRequested);
   }
 
   final GetCategoriesUseCase _getCategoriesUseCase;
   final GetGoalsUseCase _getGoalsUseCase;
-  final GetExamStagesUseCase _getExamStagesUseCase;
   final SaveGoalUseCase _saveGoalUseCase;
+
+  static Set<String> _toggle(Set<String> ids, String id) {
+    final updated = {...ids};
+    if (!updated.add(id)) updated.remove(id);
+    return updated;
+  }
 
   Future<void> _onStarted(
     GoalSetupStarted event,
@@ -114,57 +123,60 @@ class GoalSetupBloc extends Bloc<GoalSetupEvent, GoalSetupState> {
     );
   }
 
-  Future<void> _onStageStepEntered(
-    GoalStageStepEntered event,
-    Emitter<GoalSetupState> emit,
-  ) async {
-    final goal = state.selectedGoal;
-    if (goal == null || state.stagesStatus == GoalOptionsStatus.loaded) return;
-    emit(state.copyWith(stagesStatus: GoalOptionsStatus.loading));
-    final result = await _getExamStagesUseCase(examId: goal.id);
-    result.match(
-      (failure) => emit(
-        state.copyWith(
-          stagesStatus: GoalOptionsStatus.failure,
-          errorMessage: failure.message,
-        ),
-      ),
-      (stages) => emit(
-        state.copyWith(stagesStatus: GoalOptionsStatus.loaded, stages: stages),
+  // A different goal has different levels/subjects, so step 3's choices
+  // start over.
+  void _onGoalSelected(GoalSelected event, Emitter<GoalSetupState> emit) {
+    if (state.selectedGoal?.id == event.goal.id) return;
+    emit(
+      state.copyWith(
+        selectedGoal: event.goal,
+        selectedLevelId: () => null,
+        levelSubjectIds: const {},
+        subjectIds: const {},
+        targetDate: () => null,
       ),
     );
   }
 
-  void _onStageSelected(GoalStageSelected event, Emitter<GoalSetupState> emit) {
-    // Switching stages resets the topic checklist — a topic id from the
-    // previous stage has no meaning against the new one.
-    emit(state.copyWith(selectedStage: event.stage, selectedTopicIds: {}));
-  }
-
-  void _onTopicToggled(GoalTopicToggled event, Emitter<GoalSetupState> emit) {
-    final updated = {...state.selectedTopicIds};
-    if (!updated.add(event.topicId)) {
-      updated.remove(event.topicId);
-    }
-    emit(state.copyWith(selectedTopicIds: updated));
+  // Same as the web: one level at a time; picking another level (or the
+  // same one again) clears the ticked subjects.
+  void _onLevelTapped(GoalLevelTapped event, Emitter<GoalSetupState> emit) {
+    final same = state.selectedLevelId == event.levelId;
+    emit(
+      state.copyWith(
+        selectedLevelId: () => same ? null : event.levelId,
+        levelSubjectIds: const {},
+      ),
+    );
   }
 
   Future<void> _onSaveRequested(
     GoalSaveRequested event,
     Emitter<GoalSetupState> emit,
   ) async {
-    final category = state.selectedCategory;
     final goal = state.selectedGoal;
     final date = state.targetDate;
-    if (category == null || goal == null || date == null) return;
+    if (goal == null || date == null) return;
+    if (state.saveStatus == GoalSaveStatus.saving) return;
 
+    final level = state.selectedLevel;
     emit(state.copyWith(saveStatus: GoalSaveStatus.saving));
     final result = await _saveGoalUseCase(
-      fieldId: category.id,
-      examId: goal.id,
-      stageId: state.selectedStage?.id ?? '',
-      topicIds: state.selectedTopicIds.toList(),
+      goalId: goal.id,
       targetDate: date,
+      levels: [
+        if (level != null)
+          GoalLevel(
+            id: level.id,
+            name: level.name,
+            subjects: level.subjects
+                .where((s) => state.levelSubjectIds.contains(s.id))
+                .toList(),
+          ),
+      ],
+      subjects: goal.subjects
+          .where((s) => state.subjectIds.contains(s.id))
+          .toList(),
     );
 
     result.match(

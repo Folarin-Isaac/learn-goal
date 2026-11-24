@@ -5,10 +5,5 @@ class GoalApiEndpoints {
 
   static const String categories = '/api/v1/Category/GetAllCategories';
   static const String goals = '/api/v1/Goal/GetAllGoals';
-
-  // Step 3 ("Create Goal") is not wired yet — the backend endpoint for
-  // submitting examTargetDate is still being confirmed. This path is the
-  // old placeholder and is not deployed.
-  static const String saveGoal = '/goals';
-  static const String examStages = '/goals/exam-stages';
+  static const String addLearnerGoal = '/api/v1/Learner/AddLearnerGoal';
 }

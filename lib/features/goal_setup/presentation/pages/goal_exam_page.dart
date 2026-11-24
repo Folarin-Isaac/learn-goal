@@ -7,6 +7,8 @@ class GoalExamPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final firstSetup = getIt<AuthRepository>().needsGoalSetup;
+
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -24,91 +26,106 @@ class GoalExamPage extends StatelessWidget {
                 ),
               ),
               const Gap(AppSpacing.s8),
-              Entrance(
-                index: 1,
-                child: Text(
-                  context.l10n.goalExamTitle,
-                  style: Theme.of(context).textTheme.headlineMedium,
-                ),
-              ),
-              const Gap(AppSpacing.s8),
-              Entrance(
-                index: 2,
-                child: BlocBuilder<GoalSetupBloc, GoalSetupState>(
-                  buildWhen: (previous, current) =>
-                      previous.selectedCategory != current.selectedCategory,
-                  builder: (context, state) {
-                    final category = state.selectedCategory;
-                    if (category == null) return const SizedBox.shrink();
-                    return SelectionBreadcrumb(crumbs: [category.name]);
-                  },
-                ),
-              ),
-              const Gap(AppSpacing.s4),
-              Entrance(
-                index: 3,
-                child: Text(
-                  context.l10n.goalExamSubtitle,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-              ),
-              const Gap(AppSpacing.s24),
-              Entrance(
-                index: 4,
-                child: GoalSearchField(
-                  hint: context.l10n.goalSearchHint,
-                  onChanged: (query) => context.read<GoalSetupBloc>().add(
-                    GoalQueryChanged(query),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Entrance(
+                        index: 1,
+                        child: Text(
+                          context.l10n.goalExamTitle,
+                          style: context.textTheme.headlineMedium,
+                        ),
+                      ),
+                      const Gap(AppSpacing.s8),
+                      Entrance(
+                        index: 2,
+                        child: BlocBuilder<GoalSetupBloc, GoalSetupState>(
+                          buildWhen: (previous, current) =>
+                              previous.selectedCategory !=
+                              current.selectedCategory,
+                          builder: (context, state) {
+                            final category = state.selectedCategory;
+                            if (category == null) {
+                              return const SizedBox.shrink();
+                            }
+                            return SelectionBreadcrumb(crumbs: [category.name]);
+                          },
+                        ),
+                      ),
+                      const Gap(AppSpacing.s4),
+                      Entrance(
+                        index: 3,
+                        child: Text(
+                          context.l10n.goalExamSubtitle,
+                          style: context.textTheme.bodyMedium,
+                        ),
+                      ),
+                      const Gap(AppSpacing.s24),
+                      Entrance(
+                        index: 4,
+                        child: GoalSearchField(
+                          hint: context.l10n.goalSearchHint,
+                          onChanged: (query) => context
+                              .read<GoalSetupBloc>()
+                              .add(GoalQueryChanged(query)),
+                        ),
+                      ),
+                      const Gap(AppSpacing.s16),
+                      BlocConsumer<GoalSetupBloc, GoalSetupState>(
+                        listenWhen: (previous, current) =>
+                            previous.goalsStatus != current.goalsStatus,
+                        listener: (context, state) {
+                          if (state.goalsStatus == GoalOptionsStatus.failure) {
+                            AppSnackbar.error(
+                              state.errorMessage ?? context.l10n.errorGeneric,
+                            );
+                          }
+                        },
+                        builder: (context, state) {
+                          if (state.goalsStatus == GoalOptionsStatus.loading ||
+                              state.goalsStatus == GoalOptionsStatus.initial) {
+                            return const SelectableListSkeleton();
+                          }
+                          if (state.goalsStatus == GoalOptionsStatus.failure) {
+                            return ErrorView(
+                              message:
+                                  state.errorMessage ??
+                                  context.l10n.errorGeneric,
+                              retryLabel: context.l10n.commonRetry,
+                              onRetry: () => context.read<GoalSetupBloc>().add(
+                                const GoalStepTwoEntered(),
+                              ),
+                            );
+                          }
+                          if (state.goals.isEmpty) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: AppSpacing.s24,
+                              ),
+                              child: Text(
+                                context.l10n.goalExamEmpty,
+                                textAlign: TextAlign.center,
+                                style: context.textTheme.bodyMedium,
+                              ),
+                            );
+                          }
+                          return SelectableListCard(
+                            items: state.filteredGoals,
+                            labelOf: (goal) => goal.goalName,
+                            selected: state.selectedGoal,
+                            onSelected: (goal) => context
+                                .read<GoalSetupBloc>()
+                                .add(GoalSelected(goal)),
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ),
               ),
               const Gap(AppSpacing.s16),
-              BlocConsumer<GoalSetupBloc, GoalSetupState>(
-                listenWhen: (previous, current) =>
-                    previous.goalsStatus != current.goalsStatus,
-                listener: (context, state) {
-                  if (state.goalsStatus == GoalOptionsStatus.failure) {
-                    AppSnackbar.error(
-                      state.errorMessage ?? context.l10n.errorGeneric,
-                    );
-                  }
-                },
-                builder: (context, state) {
-                  if (state.goalsStatus == GoalOptionsStatus.loading ||
-                      state.goalsStatus == GoalOptionsStatus.initial) {
-                    return const SelectableListSkeleton();
-                  }
-                  if (state.goalsStatus == GoalOptionsStatus.failure) {
-                    return ErrorView(
-                      message: state.errorMessage ?? context.l10n.errorGeneric,
-                      retryLabel: context.l10n.commonRetry,
-                      onRetry: () => context.read<GoalSetupBloc>().add(
-                        const GoalStepTwoEntered(),
-                      ),
-                    );
-                  }
-                  if (state.goals.isEmpty) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: AppSpacing.s24,
-                      ),
-                      child: Text(
-                        context.l10n.goalExamEmpty,
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                    );
-                  }
-                  return SelectableListCard(
-                    items: state.filteredGoals,
-                    labelOf: (goal) => goal.goalName,
-                    selected: state.selectedGoal,
-                    onSelected: (goal) =>
-                        context.read<GoalSetupBloc>().add(GoalSelected(goal)),
-                  );
-                },
-              ),
-              const Spacer(),
               BlocBuilder<GoalSetupBloc, GoalSetupState>(
                 buildWhen: (previous, current) =>
                     previous.selectedGoal != current.selectedGoal,
@@ -119,25 +136,24 @@ class GoalExamPage extends StatelessWidget {
                         ? null
                         : () {
                             AppHaptics.selection();
-                            context.read<GoalSetupBloc>().add(
-                              const GoalStageStepEntered(),
-                            );
-                            context.pushNamed(RouteNames.goalStage);
+                            unawaited(context.pushNamed(RouteNames.goalStage));
                           },
                   );
                 },
               ),
-              const Gap(AppSpacing.s8),
-              AppButton(
-                label: context.l10n.goalSetupLater,
-                isOutlined: true,
-                foregroundColor: context.colors.primary,
-                onPressed: () {
-                  AppHaptics.selection();
-                  getIt<AuthRepository>().completeGoalSetup();
-                  context.goNamed(RouteNames.explore);
-                },
-              ),
+              if (firstSetup) ...[
+                const Gap(AppSpacing.s8),
+                AppButton(
+                  label: context.l10n.goalSetupLater,
+                  isOutlined: true,
+                  foregroundColor: context.colors.primary,
+                  onPressed: () {
+                    AppHaptics.selection();
+                    unawaited(getIt<AuthRepository>().completeGoalSetup());
+                    context.goNamed(RouteNames.explore);
+                  },
+                ),
+              ],
             ],
           ),
         ),

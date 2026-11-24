@@ -70,7 +70,6 @@ import 'package:lengoal/features/goal_setup/data/datasources/goal_remote_data_so
 import 'package:lengoal/features/goal_setup/data/datasources/goal_remote_data_source_impl.dart';
 import 'package:lengoal/features/goal_setup/data/repositories/goal_repository_impl.dart';
 import 'package:lengoal/features/goal_setup/domain/repositories/goal_repository.dart';
-import 'package:lengoal/features/goal_setup/domain/usecases/get_exam_stages_usecase.dart';
 import 'package:lengoal/features/goal_setup/domain/usecases/get_goals_usecase.dart';
 import 'package:lengoal/features/goal_setup/domain/usecases/get_categories_usecase.dart';
 import 'package:lengoal/features/goal_setup/domain/usecases/save_goal_usecase.dart';
@@ -420,7 +419,6 @@ void _initGoalSetup() {
     )
     ..registerLazySingleton(() => GetCategoriesUseCase(getIt()))
     ..registerLazySingleton(() => GetGoalsUseCase(getIt()))
-    ..registerLazySingleton(() => GetExamStagesUseCase(getIt()))
     ..registerLazySingleton(() => SaveGoalUseCase(getIt()))
     ..registerLazySingleton(() => GetLearnerGoalsUseCase(getIt()))
     ..registerLazySingleton(
@@ -436,7 +434,6 @@ void _initGoalSetup() {
       () => GoalSetupBloc(
         getCategoriesUseCase: getIt(),
         getGoalsUseCase: getIt(),
-        getExamStagesUseCase: getIt(),
         saveGoalUseCase: getIt(),
       ),
     );

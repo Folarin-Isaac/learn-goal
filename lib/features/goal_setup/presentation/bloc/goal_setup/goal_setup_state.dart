@@ -14,10 +14,9 @@ class GoalSetupState extends Equatable {
     this.goals = const [],
     this.goalQuery = '',
     this.selectedGoal,
-    this.stagesStatus = GoalOptionsStatus.initial,
-    this.stages = const [],
-    this.selectedStage,
-    this.selectedTopicIds = const {},
+    this.selectedLevelId,
+    this.levelSubjectIds = const {},
+    this.subjectIds = const {},
     this.targetDate,
     this.saveStatus = GoalSaveStatus.initial,
     this.errorMessage,
@@ -33,10 +32,9 @@ class GoalSetupState extends Equatable {
   final String goalQuery;
   final ExamGoal? selectedGoal;
 
-  final GoalOptionsStatus stagesStatus;
-  final List<ExamStage> stages;
-  final ExamStage? selectedStage;
-  final Set<String> selectedTopicIds;
+  final String? selectedLevelId;
+  final Set<String> levelSubjectIds;
+  final Set<String> subjectIds;
   final DateTime? targetDate;
 
   final GoalSaveStatus saveStatus;
@@ -58,6 +56,9 @@ class GoalSetupState extends Equatable {
             )
             .toList();
 
+  GoalLevel? get selectedLevel =>
+      selectedGoal?.levels.where((l) => l.id == selectedLevelId).firstOrNull;
+
   bool get canSave => selectedGoal != null && targetDate != null;
 
   GoalSetupState copyWith({
@@ -69,11 +70,10 @@ class GoalSetupState extends Equatable {
     List<ExamGoal>? goals,
     String? goalQuery,
     ExamGoal? selectedGoal,
-    GoalOptionsStatus? stagesStatus,
-    List<ExamStage>? stages,
-    ExamStage? selectedStage,
-    Set<String>? selectedTopicIds,
-    DateTime? targetDate,
+    String? Function()? selectedLevelId,
+    Set<String>? levelSubjectIds,
+    Set<String>? subjectIds,
+    DateTime? Function()? targetDate,
     GoalSaveStatus? saveStatus,
     String? errorMessage,
   }) {
@@ -86,11 +86,12 @@ class GoalSetupState extends Equatable {
       goals: goals ?? this.goals,
       goalQuery: goalQuery ?? this.goalQuery,
       selectedGoal: selectedGoal ?? this.selectedGoal,
-      stagesStatus: stagesStatus ?? this.stagesStatus,
-      stages: stages ?? this.stages,
-      selectedStage: selectedStage ?? this.selectedStage,
-      selectedTopicIds: selectedTopicIds ?? this.selectedTopicIds,
-      targetDate: targetDate ?? this.targetDate,
+      selectedLevelId: selectedLevelId != null
+          ? selectedLevelId()
+          : this.selectedLevelId,
+      levelSubjectIds: levelSubjectIds ?? this.levelSubjectIds,
+      subjectIds: subjectIds ?? this.subjectIds,
+      targetDate: targetDate != null ? targetDate() : this.targetDate,
       saveStatus: saveStatus ?? this.saveStatus,
       errorMessage: errorMessage,
     );
@@ -106,10 +107,9 @@ class GoalSetupState extends Equatable {
     goals,
     goalQuery,
     selectedGoal,
-    stagesStatus,
-    stages,
-    selectedStage,
-    selectedTopicIds,
+    selectedLevelId,
+    levelSubjectIds,
+    subjectIds,
     targetDate,
     saveStatus,
     errorMessage,

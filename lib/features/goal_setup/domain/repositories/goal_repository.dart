@@ -1,9 +1,7 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:lengoal/core/error/failures.dart';
 import 'package:lengoal/features/goal_setup/domain/entities/exam_goal.dart';
-import 'package:lengoal/features/goal_setup/domain/entities/exam_stage.dart';
 import 'package:lengoal/features/goal_setup/domain/entities/goal_category.dart';
-import 'package:lengoal/features/goal_setup/domain/entities/learning_goal.dart';
 
 abstract class GoalRepository {
   Future<Either<Failure, List<GoalCategory>>> getCategories({
@@ -19,15 +17,11 @@ abstract class GoalRepository {
     required String learnerId,
   });
 
-  Future<Either<Failure, List<ExamStage>>> getExamStages({
-    required String examId,
-  });
-
-  Future<Either<Failure, LearningGoal>> saveGoal({
-    required String fieldId,
-    required String examId,
-    required String stageId,
-    required List<String> topicIds,
+  // `levels` carry only the subjects the learner ticked.
+  Future<Either<Failure, Unit>> addLearnerGoal({
+    required String goalId,
     required DateTime targetDate,
+    List<GoalLevel> levels = const [],
+    List<GoalSubject> subjects = const [],
   });
 }
