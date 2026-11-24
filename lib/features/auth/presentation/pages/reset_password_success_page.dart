@@ -1,4 +1,4 @@
-﻿import 'package:lengoal/core/core.dart';
+import 'package:lengoal/core/core.dart';
 
 class ResetPasswordSuccessPage extends StatelessWidget {
   const new({super.key});
@@ -16,6 +16,7 @@ class ResetPasswordSuccessPage extends StatelessWidget {
               Align(
                 alignment: Alignment.centerLeft,
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const AppBackButton(padding: EdgeInsets.zero),
                     const Gap(AppSpacing.s24),

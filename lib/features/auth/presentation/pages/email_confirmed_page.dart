@@ -1,4 +1,4 @@
-﻿import 'package:lengoal/core/core.dart';
+import 'package:lengoal/core/core.dart';
 
 class EmailConfirmedPage extends StatelessWidget {
   const new({required this.email, super.key});
@@ -18,6 +18,7 @@ class EmailConfirmedPage extends StatelessWidget {
               Align(
                 alignment: Alignment.centerLeft,
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const AppBackButton(padding: EdgeInsets.zero),
                     const Gap(AppSpacing.s24),
