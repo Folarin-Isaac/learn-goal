@@ -24,138 +24,107 @@ class _GoalStagePageState extends State<GoalStagePage> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    return Scaffold(
-      body: SafeArea(
-        child: BlocConsumer<GoalSetupBloc, GoalSetupState>(
-          listenWhen: (previous, current) =>
-              previous.saveStatus != current.saveStatus,
-          listener: _onSaveStatus,
-          builder: (context, state) {
-            final category = state.selectedCategory;
-            final goal = state.selectedGoal;
-            final date = state.targetDate;
-            final formatted = date == null ? '' : _dateFormat.format(date);
-            if (_dateController.text != formatted) {
-              _dateController.text = formatted;
-            }
-            return Padding(
-              padding: const EdgeInsets.all(AppSpacing.s24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Entrance(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        AppBackButton(),
-                        StepBadge(step: 3, totalSteps: 3),
-                      ],
-                    ),
-                  ),
-                  const Gap(AppSpacing.s8),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Entrance(
-                            index: 1,
-                            child: Text(
-                              l10n.goalStageTitle,
-                              style: context.textTheme.headlineMedium,
-                            ),
-                          ),
-                          const Gap(AppSpacing.s8),
-                          if (category != null && goal != null)
-                            Entrance(
-                              index: 2,
-                              child: SelectionBreadcrumb(
-                                crumbs: [category.name, goal.goalName],
-                              ),
-                            ),
-                          const Gap(AppSpacing.s4),
-                          if (goal != null)
-                            Entrance(
-                              index: 3,
-                              child: Text(
-                                _prompt(context, goal),
-                                style: context.textTheme.bodyMedium,
-                              ),
-                            ),
-                          const Gap(AppSpacing.s24),
-                          if (goal != null && _showsLevels(goal)) ...[
-                            GoalChoiceList.levels(
-                              levels: goal.levels,
-                              selectedLevelId: state.selectedLevelId,
-                              selectedSubjectIds: state.levelSubjectIds,
-                              onLevelTap: (id) => context
-                                  .read<GoalSetupBloc>()
-                                  .add(GoalLevelTapped(id)),
-                              onSubjectToggle: (id) => context
-                                  .read<GoalSetupBloc>()
-                                  .add(GoalLevelSubjectToggled(id)),
-                            ),
-                            const Gap(AppSpacing.s24),
-                          ] else if (goal != null && _showsSubjects(goal)) ...[
-                            GoalChoiceList.subjects(
-                              subjects: goal.subjects,
-                              selectedSubjectIds: state.subjectIds,
-                              onSubjectToggle: (id) => context
-                                  .read<GoalSetupBloc>()
-                                  .add(GoalSubjectToggled(id)),
-                            ),
-                            const Gap(AppSpacing.s24),
-                          ],
-                          AppTextField(
-                            controller: _dateController,
-                            label: l10n.goalTargetDateLabel,
-                            hint: 'DD/MM/YYYY',
-                            readOnly: true,
-                            suffixIcon: const Icon(
-                              Icons.calendar_today_outlined,
-                            ),
-                            onTap: () => _pickDate(context, date),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const Gap(AppSpacing.s8),
-                  AppButton(
-                    label: l10n.goalSaveGoal,
-                    isLoading: state.saveStatus == GoalSaveStatus.saving,
-                    onPressed: !state.canSave
-                        ? null
-                        : () {
-                            AppHaptics.selection();
-                            context.read<GoalSetupBloc>().add(
-                              const GoalSaveRequested(),
-                            );
-                          },
-                  ),
-                  if (getIt<AuthRepository>().needsGoalSetup) ...[
-                    const Gap(AppSpacing.s8),
-                    AppButton(
-                      label: l10n.goalSetupLater,
-                      isOutlined: true,
-                      foregroundColor: context.colors.primary,
-                      onPressed: state.saveStatus == GoalSaveStatus.saving
-                          ? null
-                          : () {
-                              AppHaptics.selection();
-                              unawaited(
-                                getIt<AuthRepository>().completeGoalSetup(),
-                              );
-                              context.goNamed(RouteNames.explore);
-                            },
-                    ),
-                  ],
-                ],
+    return BlocConsumer<GoalSetupBloc, GoalSetupState>(
+      listenWhen: (previous, current) =>
+          previous.saveStatus != current.saveStatus,
+      listener: _onSaveStatus,
+      builder: (context, state) {
+        final category = state.selectedCategory;
+        final goal = state.selectedGoal;
+        final date = state.targetDate;
+        final formatted = date == null ? '' : _dateFormat.format(date);
+        if (_dateController.text != formatted) {
+          _dateController.text = formatted;
+        }
+        return GoalStepLayout(
+          step: 3,
+          body: [
+            Entrance(
+              index: 1,
+              child: Text(
+                l10n.goalStageTitle,
+                style: context.textTheme.headlineMedium,
               ),
-            );
-          },
-        ),
-      ),
+            ),
+            const Gap(AppSpacing.s8),
+            if (category != null && goal != null)
+              Entrance(
+                index: 2,
+                child: SelectionBreadcrumb(
+                  crumbs: [category.name, goal.goalName],
+                ),
+              ),
+            const Gap(AppSpacing.s4),
+            if (goal != null)
+              Entrance(
+                index: 3,
+                child: Text(
+                  _prompt(context, goal),
+                  style: context.textTheme.bodyMedium,
+                ),
+              ),
+            const Gap(AppSpacing.s24),
+            if (goal != null && _showsLevels(goal)) ...[
+              GoalChoiceList.levels(
+                levels: goal.levels,
+                selectedLevelId: state.selectedLevelId,
+                selectedSubjectIds: state.levelSubjectIds,
+                onLevelTap: (id) =>
+                    context.read<GoalSetupBloc>().add(GoalLevelTapped(id)),
+                onSubjectToggle: (id) => context.read<GoalSetupBloc>().add(
+                  GoalLevelSubjectToggled(id),
+                ),
+              ),
+              const Gap(AppSpacing.s24),
+            ] else if (goal != null && _showsSubjects(goal)) ...[
+              GoalChoiceList.subjects(
+                subjects: goal.subjects,
+                selectedSubjectIds: state.subjectIds,
+                onSubjectToggle: (id) =>
+                    context.read<GoalSetupBloc>().add(GoalSubjectToggled(id)),
+              ),
+              const Gap(AppSpacing.s24),
+            ],
+            AppTextField(
+              controller: _dateController,
+              label: l10n.goalTargetDateLabel,
+              hint: 'DD/MM/YYYY',
+              readOnly: true,
+              suffixIcon: const Icon(Icons.calendar_today_outlined),
+              onTap: () => _pickDate(context, date),
+            ),
+          ],
+          footer: [
+            AppButton(
+              label: l10n.goalSaveGoal,
+              isLoading: state.saveStatus == GoalSaveStatus.saving,
+              onPressed: !state.canSave
+                  ? null
+                  : () {
+                      AppHaptics.selection();
+                      context.read<GoalSetupBloc>().add(
+                        const GoalSaveRequested(),
+                      );
+                    },
+            ),
+            if (getIt<AuthRepository>().needsGoalSetup) ...[
+              const Gap(AppSpacing.s8),
+              AppButton(
+                label: l10n.goalSetupLater,
+                isOutlined: true,
+                foregroundColor: context.colors.primary,
+                onPressed: state.saveStatus == GoalSaveStatus.saving
+                    ? null
+                    : () {
+                        AppHaptics.selection();
+                        unawaited(getIt<AuthRepository>().completeGoalSetup());
+                        context.goNamed(RouteNames.explore);
+                      },
+              ),
+            ],
+          ],
+        );
+      },
     );
   }
 

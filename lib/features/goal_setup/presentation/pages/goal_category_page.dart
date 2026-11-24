@@ -9,137 +9,104 @@ class GoalCategoryPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final firstSetup = getIt<AuthRepository>().needsGoalSetup;
 
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.s24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Entrance(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    AppBackButton(),
-                    StepBadge(step: 1, totalSteps: 3),
-                  ],
-                ),
-              ),
-              const Gap(AppSpacing.s8),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Entrance(
-                        index: 1,
-                        child: Text(
-                          firstSetup
-                              ? context.l10n.goalFieldTitleFirstLogin
-                              : context.l10n.goalFieldTitle,
-                          style: context.textTheme.headlineMedium,
-                        ),
-                      ),
-                      const Gap(AppSpacing.s4),
-                      Entrance(
-                        index: 2,
-                        child: Text(
-                          context.l10n.goalCategorySubtitle,
-                          style: context.textTheme.bodyMedium,
-                        ),
-                      ),
-                      const Gap(AppSpacing.s24),
-                      Entrance(
-                        index: 3,
-                        child: GoalSearchField(
-                          hint: context.l10n.goalCategorySearchHint,
-                          onChanged: (query) => context
-                              .read<GoalSetupBloc>()
-                              .add(GoalCategoryQueryChanged(query)),
-                        ),
-                      ),
-                      const Gap(AppSpacing.s16),
-                      BlocConsumer<GoalSetupBloc, GoalSetupState>(
-                        listenWhen: (previous, current) =>
-                            previous.categoriesStatus !=
-                            current.categoriesStatus,
-                        listener: (context, state) {
-                          if (state.categoriesStatus ==
-                              GoalOptionsStatus.failure) {
-                            AppSnackbar.error(
-                              state.errorMessage ?? context.l10n.errorGeneric,
-                            );
-                          }
-                        },
-                        builder: (context, state) {
-                          if (state.categoriesStatus ==
-                                  GoalOptionsStatus.loading ||
-                              state.categoriesStatus ==
-                                  GoalOptionsStatus.initial) {
-                            return const SelectableListSkeleton();
-                          }
-                          if (state.categoriesStatus ==
-                              GoalOptionsStatus.failure) {
-                            return ErrorView(
-                              message:
-                                  state.errorMessage ??
-                                  context.l10n.errorGeneric,
-                              retryLabel: context.l10n.commonRetry,
-                              onRetry: () => context.read<GoalSetupBloc>().add(
-                                const GoalSetupStarted(),
-                              ),
-                            );
-                          }
-                          return SelectableListCard(
-                            items: state.filteredCategories,
-                            labelOf: (category) => category.name,
-                            selected: state.selectedCategory,
-                            onSelected: (category) => context
-                                .read<GoalSetupBloc>()
-                                .add(GoalCategorySelected(category)),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const Gap(AppSpacing.s16),
-              BlocBuilder<GoalSetupBloc, GoalSetupState>(
-                buildWhen: (previous, current) =>
-                    previous.selectedCategory != current.selectedCategory,
-                builder: (context, state) {
-                  return AppButton(
-                    label: context.l10n.commonNext,
-                    onPressed: state.selectedCategory == null
-                        ? null
-                        : () {
-                            AppHaptics.selection();
-                            context.read<GoalSetupBloc>().add(
-                              const GoalStepTwoEntered(),
-                            );
-                            unawaited(context.pushNamed(RouteNames.goalExam));
-                          },
-                  );
-                },
-              ),
-              if (firstSetup) ...[
-                const Gap(AppSpacing.s8),
-                AppButton(
-                  label: context.l10n.goalSetupLater,
-                  isOutlined: true,
-                  foregroundColor: context.colors.primary,
-                  onPressed: () {
-                    AppHaptics.selection();
-                    unawaited(getIt<AuthRepository>().completeGoalSetup());
-                    context.goNamed(RouteNames.explore);
-                  },
-                ),
-              ],
-            ],
+    return GoalStepLayout(
+      step: 1,
+      body: [
+        Entrance(
+          index: 1,
+          child: Text(
+            firstSetup
+                ? context.l10n.goalFieldTitleFirstLogin
+                : context.l10n.goalFieldTitle,
+            style: context.textTheme.headlineMedium,
           ),
         ),
-      ),
+        const Gap(AppSpacing.s4),
+        Entrance(
+          index: 2,
+          child: Text(
+            context.l10n.goalCategorySubtitle,
+            style: context.textTheme.bodyMedium,
+          ),
+        ),
+        const Gap(AppSpacing.s24),
+        Entrance(
+          index: 3,
+          child: GoalSearchField(
+            hint: context.l10n.goalCategorySearchHint,
+            onChanged: (query) => context.read<GoalSetupBloc>().add(
+              GoalCategoryQueryChanged(query),
+            ),
+          ),
+        ),
+        const Gap(AppSpacing.s16),
+        BlocConsumer<GoalSetupBloc, GoalSetupState>(
+          listenWhen: (previous, current) =>
+              previous.categoriesStatus != current.categoriesStatus,
+          listener: (context, state) {
+            if (state.categoriesStatus == GoalOptionsStatus.failure) {
+              AppSnackbar.error(
+                state.errorMessage ?? context.l10n.errorGeneric,
+              );
+            }
+          },
+          builder: (context, state) {
+            if (state.categoriesStatus == GoalOptionsStatus.loading ||
+                state.categoriesStatus == GoalOptionsStatus.initial) {
+              return const SelectableListSkeleton();
+            }
+            if (state.categoriesStatus == GoalOptionsStatus.failure) {
+              return ErrorView(
+                message: state.errorMessage ?? context.l10n.errorGeneric,
+                retryLabel: context.l10n.commonRetry,
+                onRetry: () =>
+                    context.read<GoalSetupBloc>().add(const GoalSetupStarted()),
+              );
+            }
+            return SelectableListCard(
+              items: state.filteredCategories,
+              labelOf: (category) => category.name,
+              selected: state.selectedCategory,
+              onSelected: (category) => context.read<GoalSetupBloc>().add(
+                GoalCategorySelected(category),
+              ),
+            );
+          },
+        ),
+      ],
+      footer: [
+        BlocBuilder<GoalSetupBloc, GoalSetupState>(
+          buildWhen: (previous, current) =>
+              previous.selectedCategory != current.selectedCategory,
+          builder: (context, state) {
+            return AppButton(
+              label: context.l10n.commonNext,
+              onPressed: state.selectedCategory == null
+                  ? null
+                  : () {
+                      AppHaptics.selection();
+                      context.read<GoalSetupBloc>().add(
+                        const GoalStepTwoEntered(),
+                      );
+                      unawaited(context.pushNamed(RouteNames.goalExam));
+                    },
+            );
+          },
+        ),
+        if (firstSetup) ...[
+          const Gap(AppSpacing.s8),
+          AppButton(
+            label: context.l10n.goalSetupLater,
+            isOutlined: true,
+            foregroundColor: context.colors.primary,
+            onPressed: () {
+              AppHaptics.selection();
+              unawaited(getIt<AuthRepository>().completeGoalSetup());
+              context.goNamed(RouteNames.explore);
+            },
+          ),
+        ],
+      ],
     );
   }
 }

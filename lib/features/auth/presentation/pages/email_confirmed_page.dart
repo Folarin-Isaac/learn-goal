@@ -19,7 +19,7 @@ class EmailConfirmedPage extends StatelessWidget {
                 alignment: Alignment.centerLeft,
                 child: Column(
                   children: [
-                    const AppBackButton(),
+                    const AppBackButton(padding: EdgeInsets.zero),
                     const Gap(AppSpacing.s24),
                     SuccessPop(
                       child: Assets.images.envelopeIllustration.image(

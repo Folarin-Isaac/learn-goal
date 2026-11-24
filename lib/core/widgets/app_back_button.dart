@@ -3,9 +3,16 @@ import 'package:go_router/go_router.dart';
 import 'package:lengoal/gen/assets.gen.dart';
 
 class AppBackButton extends StatelessWidget {
-  const new({super.key, this.onPressed});
+  const new({super.key, this.onPressed, this.padding = defaultPadding});
 
   final VoidCallback? onPressed;
+  final EdgeInsetsGeometry padding;
+
+  static const EdgeInsets defaultPadding = EdgeInsets.only(
+    right: 20,
+    top: 14,
+    bottom: 14,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +28,7 @@ class AppBackButton extends StatelessWidget {
       onTap: handler,
       behavior: HitTestBehavior.opaque,
       child: Padding(
-        padding: const EdgeInsets.only(right: 20, top: 14, bottom: 14),
+        padding: padding,
         child: Assets.icons.backArrowIcon.svg(
           width: 12,
           height: 16,

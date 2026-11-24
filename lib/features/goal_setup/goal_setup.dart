@@ -10,6 +10,7 @@ export 'presentation/pages/goal_exam_page.dart';
 export 'presentation/pages/goal_stage_page.dart';
 export 'presentation/widgets/goal_choice_list.dart';
 export 'presentation/widgets/goal_search_field.dart';
+export 'presentation/widgets/goal_step_layout.dart';
 export 'presentation/widgets/selectable_list_card.dart';
 export 'presentation/widgets/selectable_list_skeleton.dart';
 export 'presentation/widgets/selection_breadcrumb.dart';

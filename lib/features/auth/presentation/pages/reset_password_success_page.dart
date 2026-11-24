@@ -17,7 +17,7 @@ class ResetPasswordSuccessPage extends StatelessWidget {
                 alignment: Alignment.centerLeft,
                 child: Column(
                   children: [
-                    const AppBackButton(),
+                    const AppBackButton(padding: EdgeInsets.zero),
                     const Gap(AppSpacing.s24),
                     SuccessPop(
                       child: Assets.icons.successCheckIcon.svg(
@@ -28,7 +28,6 @@ class ResetPasswordSuccessPage extends StatelessWidget {
                   ],
                 ),
               ),
-
               const Gap(AppSpacing.s24),
               Text(
                 context.l10n.resetPasswordSuccessTitle,
