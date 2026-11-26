@@ -8,7 +8,7 @@ class GetClassReplayUseCase {
 
   final ClassRepository _repository;
 
-  Future<Either<Failure, ClassReplay>> call(String classOutlineId) {
+  Future<Either<Failure, ClassReplay?>> call(String classOutlineId) {
     return _repository.getClassReplay(classOutlineId);
   }
 }

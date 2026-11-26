@@ -27,4 +27,11 @@ class AppColors {
   static const Color errorBorder = Color(0xFFF08787);
   static const Color errorSurface = Color(0xFFFBE0E0);
   static const Color errorSurfaceMuted = Color(0xFFF2D6D6);
+
+  static const Color noticeAmber = Color(0xFFFEBB23);
+  static const Color badgeScrim = Color(0x99000000);
+  static const Color badgeLive = Color(0xFF34D399);
+  static const Color badgePending = Color(0xFFFBBF24);
+  static const Color badgeMuted = Color(0xFFBABDCC);
+  static const Color badgeError = Color(0xFFF08787);
 }

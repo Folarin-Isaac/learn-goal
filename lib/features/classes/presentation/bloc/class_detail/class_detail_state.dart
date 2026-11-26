@@ -1,6 +1,31 @@
 part of 'class_detail_bloc.dart';
 
-enum ClassDetailEffectKind { share, open, error, showReplay, enrolled }
+enum ClassDetailEffectKind {
+  share,
+  open,
+  error,
+  showReplay,
+  replayNotReady,
+  enrolled,
+}
+
+// The pill on the header cover. Set from what is actually known: the
+// session times, the class-replay answer and didClassHold.
+enum ReplayBadge {
+  // Nothing to say: no session has ended yet, or a replay is showing.
+  none,
+  // A session is running now (by its schedule), as on the web.
+  live,
+  // class-replay is being asked for the first time.
+  loading,
+  // The session ended and held, but the server has no video yet. The bloc
+  // re-checks every 15s, like the web.
+  processing,
+  // The latest session ended without being held (didClassHold: false).
+  notHeld,
+  // The check itself failed (offline, 5xx). Tapping the pill retries.
+  failed,
+}
 
 class ClassDetailEffect extends Equatable {
   const new share(this.value) : kind = ClassDetailEffectKind.share;
@@ -10,6 +35,10 @@ class ClassDetailEffect extends Equatable {
   const new error(this.value) : kind = ClassDetailEffectKind.error;
 
   const new showReplay() : kind = ClassDetailEffectKind.showReplay, value = '';
+
+  const new replayNotReady()
+    : kind = ClassDetailEffectKind.replayNotReady,
+      value = '';
 
   const new enrolled() : kind = ClassDetailEffectKind.enrolled, value = '';
 
@@ -32,6 +61,7 @@ class ClassDetailState extends Equatable {
     this.featuredReplay,
     this.activeReplay,
     this.autoPlayReplay = false,
+    this.replayBadge = ReplayBadge.none,
     this.effect,
     this.effectCount = 0,
   });
@@ -57,6 +87,7 @@ class ClassDetailState extends Equatable {
   // true when the learner picked it from the Schedule tab.
   final ClassReplay? activeReplay;
   final bool autoPlayReplay;
+  final ReplayBadge replayBadge;
 
   // One-off action for the page to perform (share sheet, open URL,
   // snackbar). effectCount bumps on every emission so the same effect
@@ -72,6 +103,7 @@ class ClassDetailState extends Equatable {
     bool? isEnrolling,
     bool? subscriptionKnown,
     String? loadingReplayId,
+    ReplayBadge? replayBadge,
   }) {
     return ClassDetailState(
       lengoalClass: lengoalClass ?? this.lengoalClass,
@@ -84,11 +116,13 @@ class ClassDetailState extends Equatable {
       featuredReplay: featuredReplay,
       activeReplay: activeReplay,
       autoPlayReplay: autoPlayReplay,
+      replayBadge: replayBadge ?? this.replayBadge,
       effect: effect,
       effectCount: effectCount,
     );
   }
 
+  // A found replay replaces whatever the badge was saying.
   ClassDetailState withFeaturedReplay(ClassReplay replay) {
     final showIt = activeReplay == null;
     return ClassDetailState(
@@ -122,6 +156,7 @@ class ClassDetailState extends Equatable {
       featuredReplay: featuredReplay,
       activeReplay: replay,
       autoPlayReplay: autoPlay,
+      replayBadge: replayBadge,
       effect: effect,
       effectCount: effectCount,
     );
@@ -142,6 +177,7 @@ class ClassDetailState extends Equatable {
       featuredReplay: featuredReplay,
       activeReplay: activeReplay,
       autoPlayReplay: autoPlayReplay,
+      replayBadge: replayBadge,
       effect: effect,
       effectCount: effectCount + 1,
     );
@@ -159,6 +195,7 @@ class ClassDetailState extends Equatable {
     featuredReplay,
     activeReplay,
     autoPlayReplay,
+    replayBadge,
     effect,
     effectCount,
   ];

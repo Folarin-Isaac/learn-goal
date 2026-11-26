@@ -126,7 +126,7 @@ class ClassRepositoryImpl implements ClassRepository {
   }
 
   @override
-  Future<Either<Failure, ClassReplay>> getClassReplay(String classOutlineId) {
+  Future<Either<Failure, ClassReplay?>> getClassReplay(String classOutlineId) {
     return _guard(() => _remoteDataSource.getClassReplay(classOutlineId));
   }
 

@@ -28,6 +28,21 @@ final class ClassDetailReplayClosed extends ClassDetailEvent {
   const new();
 }
 
+// Tap on the header pill after a failed replay check.
+final class ClassDetailReplayRetried extends ClassDetailEvent {
+  const new();
+}
+
+// Internal: the 15s re-check while a replay is processing.
+final class _ClassDetailReplayPolled extends ClassDetailEvent {
+  const new();
+}
+
+// Internal: a session just started or ended, so the badge may change.
+final class _ClassDetailScheduleTicked extends ClassDetailEvent {
+  const new();
+}
+
 final class ClassDetailPaymentCompleted extends ClassDetailEvent {
   const new();
 }

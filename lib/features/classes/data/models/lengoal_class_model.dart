@@ -27,6 +27,7 @@ class LengoalClassModel extends LengoalClass {
     super.categoryName,
     super.guaranteeBadge,
     super.refundPolicyDescription,
+    super.accessEndsAt,
     super.sessions,
     super.materials,
   });
@@ -114,6 +115,9 @@ class LengoalClassModel extends LengoalClass {
       categoryName: category?['name'] as String?,
       guaranteeBadge: json['guaranteeBadge'] as String?,
       refundPolicyDescription: refund?['policyDescription'] as String?,
+      accessEndsAt: parseServerDate(
+        json['postClassRestrictionDate'] as String?,
+      ),
       sessions: outline
           .cast<Map<String, dynamic>>()
           .where((session) => session['isDeleted'] != true)

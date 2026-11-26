@@ -5,6 +5,8 @@ import 'package:lengoal/features/classes/domain/entities/class_replay.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_detail/class_detail_bloc.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_list/class_list_bloc.dart';
 import 'package:lengoal/features/classes/presentation/models/class_detail.dart';
+import 'package:lengoal/features/classes/presentation/widgets/class_details/class_access_banner.dart';
+import 'package:lengoal/features/classes/presentation/widgets/class_details/replay_badge_pill.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_list_loader.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_thumbnail.dart';
 import 'package:lengoal/features/classes/presentation/widgets/replay_player/class_replay_player.dart';
@@ -17,6 +19,7 @@ class ClassDetailHeader extends StatelessWidget {
     this.subscriptionKnown = true,
     this.activeReplay,
     this.autoPlayReplay = false,
+    this.replayBadge = ReplayBadge.none,
     super.key,
   });
 
@@ -26,6 +29,7 @@ class ClassDetailHeader extends StatelessWidget {
   final bool subscriptionKnown;
   final ClassReplay? activeReplay;
   final bool autoPlayReplay;
+  final ReplayBadge replayBadge;
 
   @override
   Widget build(BuildContext context) {
@@ -41,10 +45,15 @@ class ClassDetailHeader extends StatelessWidget {
         ? Assets.icons.freeTagIcon
         : Assets.icons.premiumTagIcon;
     final replay = activeReplay;
+    final accessEndsAt = detail.source.accessEndsAt;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (accessEndsAt != null) ...[
+          ClassAccessBanner(until: accessEndsAt),
+          const Gap(AppSpacing.s16),
+        ],
         ClipRRect(
           borderRadius: BorderRadius.circular(AppSpacing.r16),
           child: AspectRatio(
@@ -52,7 +61,36 @@ class ClassDetailHeader extends StatelessWidget {
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 250),
               child: replay == null
-                  ? ClassCover(key: const ValueKey('cover'), item: item)
+                  ? Stack(
+                      key: const ValueKey('cover'),
+                      fit: StackFit.expand,
+                      children: [
+                        ClassCover(item: item),
+                        PositionedDirectional(
+                          top: AppSpacing.s8,
+                          start: AppSpacing.s8,
+                          end: AppSpacing.s8,
+                          child: Align(
+                            alignment: AlignmentDirectional.topStart,
+                            child: AnimatedSwitcher(
+                              duration: AppMotion.base,
+                              child: replayBadge == ReplayBadge.none
+                                  ? const SizedBox.shrink()
+                                  : ReplayBadgePill(
+                                      key: ValueKey(replayBadge),
+                                      badge: replayBadge,
+                                      onRetry: () {
+                                        AppHaptics.selection();
+                                        context.read<ClassDetailBloc>().add(
+                                          const ClassDetailReplayRetried(),
+                                        );
+                                      },
+                                    ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
                   : ClassReplayPlayer(
                       key: ValueKey((replay, autoPlayReplay)),
                       replay: replay,

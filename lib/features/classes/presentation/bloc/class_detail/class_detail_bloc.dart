@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lengoal/core/utils/logger.dart';
@@ -36,6 +38,9 @@ class ClassDetailBloc extends Bloc<ClassDetailEvent, ClassDetailState> {
     on<ClassDetailShareRequested>(_onShareRequested);
     on<ClassDetailReplayRequested>(_onReplayRequested);
     on<ClassDetailReplayClosed>(_onReplayClosed);
+    on<ClassDetailReplayRetried>(_onReplayRetried);
+    on<_ClassDetailReplayPolled>(_onReplayPolled);
+    on<_ClassDetailScheduleTicked>(_onScheduleTicked);
     on<ClassDetailPaymentCompleted>(_onPaymentCompleted);
     on<ClassDetailFreeEnrollRequested>(_onFreeEnrollRequested);
   }
@@ -84,37 +89,175 @@ class ClassDetailBloc extends Bloc<ClassDetailEvent, ClassDetailState> {
   // Mirrors the web: the header card shows the most recent session that
   // has ended and has a recording. isClassRecorded isn't trusted (the web
   // calls class-replay regardless), so ended sessions are tried newest
-  // first, a few at most. Only subscribers can watch replays; a failure
-  // just leaves the cover image in place.
+  // first, a few at most. Only subscribers can watch replays.
+  //
+  // When no video is found, replayBadge says why, based on the newest
+  // ended session: the check failed, it didn't hold, or it is processing.
+  // Unlike the web, a failed check isn't shown as "processing".
   static const int _maxReplayLookups = 3;
+  static const Duration _pollInterval = Duration(seconds: 15);
+
+  // Session starts/ends further away than this aren't timed; a refresh or
+  // reopening the page picks them up.
+  static const Duration _maxScheduleWait = Duration(hours: 12);
+
+  Timer? _pollTimer;
+  Timer? _scheduleTimer;
+  String? _pollSessionId;
+  bool _polling = false;
+
+  // Bumped on every reload so answers from an older run are ignored.
+  int _replayRun = 0;
 
   Future<void> _loadFeaturedReplay(Emitter<ClassDetailState> emit) async {
+    final run = ++_replayRun;
+    _stopPolling();
+    _armScheduleTimer();
     final lengoalClass = state.lengoalClass;
-    if (!lengoalClass.isSubscribed) {
-      AppLogger.d('[replay] skipped: not subscribed (${lengoalClass.id})');
+    final now = DateTime.now();
+    final live = lengoalClass.sessions.any(
+      (s) => !now.isBefore(s.startDate) && now.isBefore(s.endDate),
+    );
+    if (live && state.featuredReplay == null) {
+      emit(state.copyWith(replayBadge: ReplayBadge.live));
       return;
     }
-    if (state.featuredReplay != null) return;
-    final now = DateTime.now();
+    if (!lengoalClass.isSubscribed) {
+      AppLogger.d('[replay] skipped: not subscribed (${lengoalClass.id})');
+      emit(state.copyWith(replayBadge: ReplayBadge.none));
+      return;
+    }
+    if (state.featuredReplay != null) {
+      emit(state.copyWith(replayBadge: ReplayBadge.none));
+      return;
+    }
     final ended =
         lengoalClass.sessions.where((s) => now.isAfter(s.endDate)).toList()
           ..sort((a, b) => b.endDate.compareTo(a.endDate));
     AppLogger.d(
       '[replay] ${lengoalClass.sessions.length} sessions, '
       '${ended.length} ended: '
-      '${ended.map((s) => '${s.topic}(recorded=${s.isClassRecorded})')}',
+      '${ended.map((s) => '${s.topic}(held=${s.didClassHold})')}',
     );
-    for (final session in ended.take(_maxReplayLookups)) {
-      final result = await _getClassReplayUseCase(session.id);
-      final replay = result.getRight().toNullable();
-      final outcome = replay == null
-          ? 'none (${result.getLeft().toNullable()?.message})'
-          : '${replay.sources}';
-      AppLogger.d('[replay] ${session.topic}: $outcome');
-      if (replay == null) continue;
-      if (state.featuredReplay == null) emit(state.withFeaturedReplay(replay));
+    if (ended.isEmpty) {
+      emit(state.copyWith(replayBadge: ReplayBadge.none));
       return;
     }
+    emit(state.copyWith(replayBadge: ReplayBadge.loading));
+    var newestFailed = false;
+    for (final session in ended.take(_maxReplayLookups)) {
+      final result = await _getClassReplayUseCase(session.id);
+      if (isClosed || run != _replayRun) return;
+      final failure = result.getLeft().toNullable();
+      final replay = result.getRight().toNullable();
+      final outcome = failure != null
+          ? 'failed (${failure.message})'
+          : replay == null
+          ? 'not ready'
+          : '${replay.sources}';
+      AppLogger.d('[replay] ${session.topic}: $outcome');
+      if (failure != null && session == ended.first) newestFailed = true;
+      if (replay == null) continue;
+      if (state.featuredReplay == null) {
+        emit(
+          state
+              .withFeaturedReplay(replay)
+              .copyWith(replayBadge: ReplayBadge.none),
+        );
+      }
+      return;
+    }
+    final newest = ended.first;
+    if (newestFailed) {
+      emit(state.copyWith(replayBadge: ReplayBadge.failed));
+      return;
+    }
+    emit(
+      state.copyWith(
+        replayBadge: newest.didClassHold
+            ? ReplayBadge.processing
+            : ReplayBadge.notHeld,
+      ),
+    );
+    // Polled even when didClassHold is false, in case the flag is wrong:
+    // a video that turns up still replaces the message.
+    _startPolling(newest.id);
+  }
+
+  void _startPolling(String sessionId) {
+    _pollSessionId = sessionId;
+    _pollTimer = Timer.periodic(
+      _pollInterval,
+      (_) => add(const _ClassDetailReplayPolled()),
+    );
+  }
+
+  void _stopPolling() {
+    _pollTimer?.cancel();
+    _pollTimer = null;
+    _pollSessionId = null;
+  }
+
+  Future<void> _onReplayPolled(
+    _ClassDetailReplayPolled event,
+    Emitter<ClassDetailState> emit,
+  ) async {
+    final sessionId = _pollSessionId;
+    if (sessionId == null || _polling) return;
+    _polling = true;
+    final run = _replayRun;
+    final result = await _getClassReplayUseCase(sessionId);
+    _polling = false;
+    if (isClosed || run != _replayRun) return;
+    // A failed poll keeps the current message; the next tick tries again.
+    final replay = result.getRight().toNullable();
+    if (replay == null) return;
+    AppLogger.d('[replay] poll found: ${replay.sources}');
+    _stopPolling();
+    if (state.featuredReplay != null) return;
+    emit(
+      state.withFeaturedReplay(replay).copyWith(replayBadge: ReplayBadge.none),
+    );
+  }
+
+  // Wakes the bloc at the next session start or end, so "live" appears
+  // and disappears on time without a refresh.
+  void _armScheduleTimer() {
+    _scheduleTimer?.cancel();
+    _scheduleTimer = null;
+    final now = DateTime.now();
+    DateTime? next;
+    for (final session in state.lengoalClass.sessions) {
+      for (final edge in [session.startDate, session.endDate]) {
+        if (edge.isAfter(now) && (next == null || edge.isBefore(next))) {
+          next = edge;
+        }
+      }
+    }
+    if (next == null) return;
+    final wait = next.difference(now) + const Duration(seconds: 1);
+    if (wait > _maxScheduleWait) return;
+    _scheduleTimer = Timer(wait, () => add(const _ClassDetailScheduleTicked()));
+  }
+
+  Future<void> _onScheduleTicked(
+    _ClassDetailScheduleTicked event,
+    Emitter<ClassDetailState> emit,
+  ) => _loadFeaturedReplay(emit);
+
+  Future<void> _onReplayRetried(
+    ClassDetailReplayRetried event,
+    Emitter<ClassDetailState> emit,
+  ) async {
+    if (state.replayBadge != ReplayBadge.failed) return;
+    await _loadFeaturedReplay(emit);
+  }
+
+  @override
+  Future<void> close() {
+    _stopPolling();
+    _scheduleTimer?.cancel();
+    return super.close();
   }
 
   Future<ClassEducator?> _loadEducator(String? educatorId) async {
@@ -170,9 +313,11 @@ class ClassDetailBloc extends Bloc<ClassDetailEvent, ClassDetailState> {
       (failure) =>
           emit(state.withEffect(ClassDetailEffect.error(failure.message))),
       (replay) => emit(
-        state
-            .withActiveReplay(replay, autoPlay: true)
-            .withEffect(const ClassDetailEffect.showReplay()),
+        replay == null
+            ? state.withEffect(const ClassDetailEffect.replayNotReady())
+            : state
+                  .withActiveReplay(replay, autoPlay: true)
+                  .withEffect(const ClassDetailEffect.showReplay()),
       ),
     );
   }

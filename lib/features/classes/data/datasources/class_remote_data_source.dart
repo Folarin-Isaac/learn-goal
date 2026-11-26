@@ -43,7 +43,8 @@ abstract class ClassRemoteDataSource {
 
   Future<List<ClassEducatorModel>> getClassEducators(String classId);
 
-  Future<ClassReplay> getClassReplay(String classOutlineId);
+  // Null when the session has no video yet (still processing).
+  Future<ClassReplay?> getClassReplay(String classOutlineId);
 
   Future<ClassReferral> generateClassReferral(String classId);
 

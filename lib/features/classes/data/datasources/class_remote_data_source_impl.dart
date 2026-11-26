@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:lengoal/core/error/exceptions.dart';
 import 'package:lengoal/core/network/api_client.dart';
+import 'package:lengoal/core/utils/logger.dart';
 import 'package:lengoal/core/utils/server_date.dart';
 import 'package:lengoal/features/classes/data/class_api_endpoints.dart';
 import 'package:lengoal/features/classes/data/datasources/class_remote_data_source.dart';
@@ -272,18 +273,22 @@ class ClassRemoteDataSourceImpl implements ClassRemoteDataSource {
   }
 
   @override
-  Future<ClassReplay> getClassReplay(String classOutlineId) async {
+  Future<ClassReplay?> getClassReplay(String classOutlineId) async {
     try {
       final response = await _apiClient.dio.get<Map<String, dynamic>>(
         ClassApiEndpoints.classReplay,
         queryParameters: {'ClassOutlineId': classOutlineId},
       );
-      final data = _unwrapObject(response.data!);
+      final body = response.data;
+      if (body == null || body['succeeded'] == false) {
+        AppLogger.d('[replay] not ready: ${body?['message']}');
+        return null;
+      }
+      final data = body['data'];
+      if (data is! Map<String, dynamic>) return null;
       final fileUrl = _nonEmpty(data['recordFileUrl']);
       final streamId = _nonEmpty(data['streamId']);
-      if (fileUrl == null && streamId == null) {
-        throw ServerException('This replay is not available yet.');
-      }
+      if (fileUrl == null && streamId == null) return null;
       // streamId is a Mux playback ID: the web player loads this exact
       // manifest (confirmed from its network log), and it serves
       // adaptive quality, which suits mobile data better than the MP4.
@@ -299,6 +304,11 @@ class ClassRemoteDataSourceImpl implements ClassRemoteDataSource {
         startDate: parseServerDate(data['startDate'] as String?),
       );
     } on DioException catch (e) {
+      final status = e.response?.statusCode;
+      if (status == 400 || status == 404) {
+        AppLogger.d('[replay] not ready: HTTP $status');
+        return null;
+      }
       throw _mapException(e);
     }
   }

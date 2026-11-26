@@ -27,6 +27,7 @@ class LengoalClass extends Equatable {
     this.categoryName,
     this.guaranteeBadge,
     this.refundPolicyDescription,
+    this.accessEndsAt,
     this.sessions = const [],
     this.materials = const [],
   });
@@ -57,6 +58,10 @@ class LengoalClass extends Equatable {
   final String? categoryName;
   final String? guaranteeBadge;
   final String? refundPolicyDescription;
+
+  // postClassRestrictionDate: recordings and materials stay open until
+  // then. Only GetClass-shaped payloads carry it.
+  final DateTime? accessEndsAt;
   final List<ClassSession> sessions;
   final List<ClassMaterialFile> materials;
 
@@ -92,6 +97,7 @@ class LengoalClass extends Equatable {
       categoryName: categoryName,
       guaranteeBadge: guaranteeBadge,
       refundPolicyDescription: refundPolicyDescription,
+      accessEndsAt: accessEndsAt,
       sessions: sessions,
       materials: materials,
     );
@@ -125,6 +131,7 @@ class LengoalClass extends Equatable {
     categoryName,
     guaranteeBadge,
     refundPolicyDescription,
+    accessEndsAt,
     sessions,
     materials,
   ];

@@ -66,7 +66,8 @@ class _ClassDetailsPageState extends State<ClassDetailsPage> {
             previous.subscriptionKnown != current.subscriptionKnown ||
             previous.loadingReplayId != current.loadingReplayId ||
             previous.activeReplay != current.activeReplay ||
-            previous.autoPlayReplay != current.autoPlayReplay,
+            previous.autoPlayReplay != current.autoPlayReplay ||
+            previous.replayBadge != current.replayBadge,
         builder: (context, state) => _ClassDetailsView(
           detail: ClassDetail.fromClass(state.lengoalClass),
           educators: state.educators,
@@ -76,6 +77,7 @@ class _ClassDetailsPageState extends State<ClassDetailsPage> {
           loadingReplayId: state.loadingReplayId,
           activeReplay: state.activeReplay,
           autoPlayReplay: state.autoPlayReplay,
+          replayBadge: state.replayBadge,
           scrollKey: _scrollKey,
         ),
       ),
@@ -103,6 +105,8 @@ class _ClassDetailsPageState extends State<ClassDetailsPage> {
       case ClassDetailEffectKind.error:
         AppHaptics.error();
         AppSnackbar.error(effect.value);
+      case ClassDetailEffectKind.replayNotReady:
+        AppSnackbar.info(l10n.replayNotReadyMessage);
       case ClassDetailEffectKind.enrolled:
         AppHaptics.success();
         AppSnackbar.success(l10n.classDetailsEnrolledMessage);
@@ -137,6 +141,7 @@ class _ClassDetailsView extends StatelessWidget {
     required this.loadingReplayId,
     required this.activeReplay,
     required this.autoPlayReplay,
+    required this.replayBadge,
     required this.scrollKey,
   });
 
@@ -148,6 +153,7 @@ class _ClassDetailsView extends StatelessWidget {
   final String? loadingReplayId;
   final ClassReplay? activeReplay;
   final bool autoPlayReplay;
+  final ReplayBadge replayBadge;
   final GlobalKey<NestedScrollViewState> scrollKey;
 
   @override
@@ -206,6 +212,7 @@ class _ClassDetailsView extends StatelessWidget {
                           subscriptionKnown: subscriptionKnown,
                           activeReplay: activeReplay,
                           autoPlayReplay: autoPlayReplay,
+                          replayBadge: replayBadge,
                         ),
                       ),
                     ],

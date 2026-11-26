@@ -51,7 +51,8 @@ abstract class ClassRepository {
 
   Future<Either<Failure, ClassAttendance>> getClassAttendance(String classId);
 
-  Future<Either<Failure, ClassReplay>> getClassReplay(String classOutlineId);
+  // Right(null) when the session has no video yet (still processing).
+  Future<Either<Failure, ClassReplay?>> getClassReplay(String classOutlineId);
 
   Future<Either<Failure, ClassReferral>> generateClassReferral(String classId);
 
