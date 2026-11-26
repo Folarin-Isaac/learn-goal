@@ -148,7 +148,10 @@ class ClassDetailHeader extends StatelessWidget {
         Text(item.instructor, style: context.textTheme.bodyLarge),
         if (detail.reviewCount > 0) ...[
           const Gap(AppSpacing.s8),
-          Row(
+          Wrap(
+            spacing: AppSpacing.s4,
+            runSpacing: AppSpacing.s4,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               Text(
                 detail.rating.toStringAsFixed(1),
@@ -157,9 +160,7 @@ class ClassDetailHeader extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              const Gap(AppSpacing.s4),
               _RatingStars(rating: detail.rating),
-              const Gap(AppSpacing.s4),
               Text(
                 context.l10n.classDetailsRatingCount(detail.reviewCount),
                 style: context.textTheme.bodyMedium,
@@ -168,7 +169,10 @@ class ClassDetailHeader extends StatelessWidget {
           ),
         ],
         const Gap(AppSpacing.s16),
-        Row(
+        Wrap(
+          spacing: AppSpacing.s8,
+          runSpacing: AppSpacing.s8,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             Container(
               padding: const EdgeInsets.symmetric(
@@ -184,18 +188,19 @@ class ClassDetailHeader extends StatelessWidget {
                 children: [
                   tagIcon.svg(width: 24, height: 24),
                   const Gap(AppSpacing.s8),
-                  Text(
-                    isFree ? context.l10n.dashboardFreeTag : item.priceLabel!,
-                    style: context.textTheme.headlineSmall?.copyWith(
-                      color: tagForeground,
-                      fontWeight: FontWeight.w500,
+                  Flexible(
+                    child: Text(
+                      isFree ? context.l10n.dashboardFreeTag : item.priceLabel!,
+                      style: context.textTheme.headlineSmall?.copyWith(
+                        color: tagForeground,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-            if (!isFree && item.isSubscribed) ...[
-              const Gap(AppSpacing.s8),
+            if (!isFree && item.isSubscribed)
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.s8,
@@ -213,7 +218,6 @@ class ClassDetailHeader extends StatelessWidget {
                   ),
                 ),
               ),
-            ],
           ],
         ),
         if (!item.isSubscribed && !subscriptionKnown) ...[
