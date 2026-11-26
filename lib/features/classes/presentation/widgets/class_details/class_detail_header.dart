@@ -146,28 +146,28 @@ class ClassDetailHeader extends StatelessWidget {
         ),
         const Gap(AppSpacing.s8),
         Text(item.instructor, style: context.textTheme.bodyLarge),
-        if (detail.reviewCount > 0) ...[
-          const Gap(AppSpacing.s8),
-          Wrap(
-            spacing: AppSpacing.s4,
-            runSpacing: AppSpacing.s4,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              Text(
-                detail.rating.toStringAsFixed(1),
-                style: context.textTheme.bodyLarge?.copyWith(
-                  color: const Color(0xFFF2A93B),
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              _RatingStars(rating: detail.rating),
-              Text(
-                context.l10n.classDetailsRatingCount(detail.reviewCount),
-                style: context.textTheme.bodyMedium,
-              ),
-            ],
-          ),
-        ],
+        // if (detail.reviewCount > 0) ...[
+        //   const Gap(AppSpacing.s8),
+        //   Wrap(
+        //     spacing: AppSpacing.s4,
+        //     runSpacing: AppSpacing.s4,
+        //     crossAxisAlignment: WrapCrossAlignment.center,
+        //     children: [
+        //       Text(
+        //         detail.rating.toStringAsFixed(1),
+        //         style: context.textTheme.bodyLarge?.copyWith(
+        //           color: const Color(0xFFF2A93B),
+        //           fontWeight: FontWeight.w700,
+        //         ),
+        //       ),
+        //       _RatingStars(rating: detail.rating),
+        //       Text(
+        //         context.l10n.classDetailsRatingCount(detail.reviewCount),
+        //         style: context.textTheme.bodyMedium,
+        //       ),
+        //     ],
+        //   ),
+        // ],
         const Gap(AppSpacing.s16),
         Wrap(
           spacing: AppSpacing.s8,
@@ -309,46 +309,46 @@ class _ActionsSkeleton extends StatelessWidget {
   }
 }
 
-class _RatingStars extends StatelessWidget {
-  const new({required this.rating});
-
-  final double rating;
-
-  static const double _size = 14;
-
-  @override
-  Widget build(BuildContext context) {
-    final empty = ColorFilter.mode(
-      context.colors.outlineVariant,
-      BlendMode.srcIn,
-    );
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        for (var i = 0; i < 5; i++)
-          Padding(
-            padding: const EdgeInsets.only(right: 1),
-            child: Stack(
-              children: [
-                Assets.icons.starIcon.svg(
-                  width: _size,
-                  height: _size,
-                  colorFilter: empty,
-                ),
-                ClipRect(
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    widthFactor: (rating - i).clamp(0.0, 1.0),
-                    child: Assets.icons.starIcon.svg(
-                      width: _size,
-                      height: _size,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-      ],
-    );
-  }
-}
+// class _RatingStars extends StatelessWidget {
+//   const new({required this.rating});
+//
+//   final double rating;
+//
+//   static const double _size = 14;
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     final empty = ColorFilter.mode(
+//       context.colors.outlineVariant,
+//       BlendMode.srcIn,
+//     );
+//     return Row(
+//       mainAxisSize: MainAxisSize.min,
+//       children: [
+//         for (var i = 0; i < 5; i++)
+//           Padding(
+//             padding: const EdgeInsets.only(right: 1),
+//             child: Stack(
+//               children: [
+//                 Assets.icons.starIcon.svg(
+//                   width: _size,
+//                   height: _size,
+//                   colorFilter: empty,
+//                 ),
+//                 ClipRect(
+//                   child: Align(
+//                     alignment: Alignment.centerLeft,
+//                     widthFactor: (rating - i).clamp(0.0, 1.0),
+//                     child: Assets.icons.starIcon.svg(
+//                       width: _size,
+//                       height: _size,
+//                     ),
+//                   ),
+//                 ),
+//               ],
+//             ),
+//           ),
+//       ],
+//     );
+//   }
+// }
