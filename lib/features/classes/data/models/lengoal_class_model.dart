@@ -1,5 +1,6 @@
 import 'package:lengoal/core/utils/server_date.dart';
 import 'package:lengoal/features/classes/data/models/class_session_model.dart';
+import 'package:lengoal/features/classes/domain/entities/class_discount.dart';
 import 'package:lengoal/features/classes/domain/entities/class_material_file.dart';
 import 'package:lengoal/features/classes/domain/entities/lengoal_class.dart';
 
@@ -21,6 +22,7 @@ class LengoalClassModel extends LengoalClass {
     super.startDate,
     super.endDate,
     super.discountPrice,
+    super.discount,
     super.numberOfSubscribers,
     super.isSubscriptionClosed,
     super.goalName,
@@ -39,7 +41,14 @@ class LengoalClassModel extends LengoalClass {
     final refund = json['refundPolicy'] as Map<String, dynamic>?;
     final outline = json['classOutline'] as List<dynamic>? ?? const [];
     final price = (json['price'] as num?)?.toDouble() ?? 0;
-    final isDiscounted = json['isDiscounted'] as bool? ?? false;
+    final discountDto = json['discount'] as Map<String, dynamic>?;
+    final isDiscounted =
+        discountDto?['isDiscounted'] as bool? ??
+        json['isDiscounted'] as bool? ??
+        false;
+    final discountPrice =
+        (discountDto?['discountPrice'] as num?)?.toDouble() ??
+        (json['discountPrice'] as num?)?.toDouble();
 
     return LengoalClassModel(
       id: json['classId'] as String,
@@ -58,8 +67,14 @@ class LengoalClassModel extends LengoalClass {
       bgColorKey: json['bgColorKey'] as String?,
       startDate: parseServerDate(json['startDate'] as String?),
       endDate: parseServerDate(json['endDate'] as String?),
-      discountPrice: isDiscounted
-          ? (json['discountPrice'] as num?)?.toDouble()
+      discountPrice: isDiscounted ? discountPrice : null,
+      discount: isDiscounted && discountPrice != null
+          ? _discountTerms(
+              discountDto,
+              null,
+              flatPercentage: json['discountPercentage'],
+              flatExpiry: json['earlyBirdExpiry'],
+            )
           : null,
       numberOfSubscribers: json['subscribedLearnersCount'] as int? ?? 0,
       goalName: json['goal'] as String?,
@@ -88,6 +103,7 @@ class LengoalClassModel extends LengoalClass {
 
     final price = (json['pricePerLearner'] as num?)?.toDouble() ?? 0;
     final isDiscounted = discount?['isDiscounted'] as bool? ?? false;
+    final discountPrice = (discount?['discountPrice'] as num?)?.toDouble();
 
     return LengoalClassModel(
       id: json['id'] as String,
@@ -106,8 +122,12 @@ class LengoalClassModel extends LengoalClass {
       bgColorKey: json['bgColorKey'] as String?,
       startDate: parseServerDate(json['classStartDate'] as String?),
       endDate: parseServerDate(json['classEndDate'] as String?),
-      discountPrice: isDiscounted
-          ? (discount?['discountPrice'] as num?)?.toDouble()
+      discountPrice: isDiscounted ? discountPrice : null,
+      discount: isDiscounted && discountPrice != null
+          ? _discountTerms(
+              discount,
+              pricing?['earlyBirdConditions'] as Map<String, dynamic>?,
+            )
           : null,
       numberOfSubscribers: json['numberOfSubscribers'] as int? ?? 0,
       isSubscriptionClosed: json['isSubscriptionClosed'] as bool? ?? false,
@@ -135,6 +155,45 @@ class LengoalClassModel extends LengoalClass {
             ),
           )
           .toList(),
+    );
+  }
+
+  // The server's ClassDiscountDto (`discount`) is preferred; it already
+  // says whether the discount applies. pricingModel.earlyBirdConditions
+  // (what the web reads) and the Landing flat fields fill any gaps. Only
+  // called while the discount is active.
+  static ClassDiscount? _discountTerms(
+    Map<String, dynamic>? dto,
+    Map<String, dynamic>? earlyBird, {
+    Object? flatPercentage,
+    Object? flatExpiry,
+  }) {
+    final percentage =
+        (dto?['discountPercentage'] as num?)?.toDouble() ??
+        (earlyBird?['discountPercentage'] as num?)?.toDouble() ??
+        (flatPercentage as num?)?.toDouble();
+    if (percentage == null || percentage <= 0) return null;
+    final expiry =
+        dto?['earlyBirdExpiry'] as String? ??
+        earlyBird?['deadline'] as String? ??
+        flatExpiry as String?;
+    final byPeople =
+        dto?['isNumberOfPeople'] as bool? ??
+        earlyBird?['isNumberOfPeople'] as bool? ??
+        false;
+    final byDate =
+        dto?['isTimePeriod'] as bool? ??
+        earlyBird?['isTimePeriod'] as bool? ??
+        expiry != null;
+    final threshold =
+        (dto?['thresholdValue'] as num?)?.toInt() ??
+        (earlyBird?['thresholdValue'] as num?)?.toInt();
+    return ClassDiscount(
+      percentage: percentage,
+      forFirstPeople: byPeople && threshold != null && threshold > 0
+          ? threshold
+          : null,
+      validUntil: byDate ? parseServerDate(expiry) : null,
     );
   }
 }

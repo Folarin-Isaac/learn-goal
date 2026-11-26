@@ -7,6 +7,7 @@ import 'package:lengoal/features/classes/presentation/bloc/class_list/class_list
 import 'package:lengoal/features/classes/presentation/models/class_detail.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_details/class_access_banner.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_details/replay_badge_pill.dart';
+import 'package:lengoal/features/classes/presentation/widgets/class_discount_text.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_list_loader.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_thumbnail.dart';
 import 'package:lengoal/features/classes/presentation/widgets/replay_player/class_replay_player.dart';
@@ -218,6 +219,8 @@ class ClassDetailHeader extends StatelessWidget {
                   ),
                 ),
               ),
+            if (!item.isSubscribed && ClassDiscountText.showsFor(item))
+              ClassDiscountText(item: item),
           ],
         ),
         if (!item.isSubscribed && !subscriptionKnown) ...[

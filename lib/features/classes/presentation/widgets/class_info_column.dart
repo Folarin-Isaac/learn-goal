@@ -1,6 +1,7 @@
 import 'package:lengoal/core/core.dart';
 import 'package:lengoal/features/classes/presentation/bloc/class_attendance/class_attendance_store.dart';
 import 'package:lengoal/features/classes/presentation/models/class_summary.dart';
+import 'package:lengoal/features/classes/presentation/widgets/class_discount_text.dart';
 
 class ClassInfoColumn extends StatelessWidget {
   const new({
@@ -13,6 +14,8 @@ class ClassInfoColumn extends StatelessWidget {
   final ClassSummary item;
   final bool stackDate;
   final bool showProgress;
+
+  static const double _maxTagShare = 0.6;
 
   @override
   Widget build(BuildContext context) {
@@ -68,13 +71,24 @@ class ClassInfoColumn extends StatelessWidget {
           const Gap(AppSpacing.s8),
           date,
         ] else
-          Row(
-            children: [
-              Flexible(child: tag),
-              const Gap(AppSpacing.s8),
-              Expanded(child: date),
-            ],
+          LayoutBuilder(
+            builder: (context, constraints) => Row(
+              children: [
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: constraints.maxWidth * _maxTagShare,
+                  ),
+                  child: tag,
+                ),
+                const Gap(AppSpacing.s8),
+                Expanded(child: date),
+              ],
+            ),
           ),
+        if (!item.isSubscribed && ClassDiscountText.showsFor(item)) ...[
+          const Gap(AppSpacing.s4),
+          ClassDiscountText(item: item, maxLines: 2),
+        ],
         Gap(stackDate ? 6 : AppSpacing.s4),
         Text(
           item.title,

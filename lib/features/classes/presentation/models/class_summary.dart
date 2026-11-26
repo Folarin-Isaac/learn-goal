@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:lengoal/features/classes/domain/entities/class_discount.dart';
 import 'package:lengoal/features/classes/domain/entities/lengoal_class.dart';
 
 class ClassSummary {
@@ -13,11 +14,17 @@ class ClassSummary {
     this.sessionCount = 0,
     this.imageUrl,
     this.priceLabel,
+    this.originalPriceLabel,
+    this.discount,
     this.isFavorite = false,
     this.isSubscribed = false,
   });
 
   factory fromClass(LengoalClass lengoalClass, {bool isFavorite = false}) {
+    final discounted =
+        !lengoalClass.isFree &&
+        lengoalClass.discountPrice != null &&
+        lengoalClass.discountPrice! < lengoalClass.price;
     return ClassSummary(
       id: lengoalClass.id,
       title: lengoalClass.cohortName,
@@ -33,6 +40,8 @@ class ClassSummary {
       priceLabel: lengoalClass.isFree
           ? null
           : formatNaira(lengoalClass.effectivePrice),
+      originalPriceLabel: discounted ? formatNaira(lengoalClass.price) : null,
+      discount: discounted ? lengoalClass.discount : null,
       isFavorite: isFavorite,
       isSubscribed: lengoalClass.isSubscribed,
     );
@@ -48,6 +57,8 @@ class ClassSummary {
   final String? imageUrl;
 
   final String? priceLabel;
+  final String? originalPriceLabel;
+  final ClassDiscount? discount;
   final bool isFavorite;
   final bool isSubscribed;
 }

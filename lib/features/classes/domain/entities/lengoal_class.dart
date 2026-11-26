@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:lengoal/features/classes/domain/entities/class_discount.dart';
 import 'package:lengoal/features/classes/domain/entities/class_material_file.dart';
 import 'package:lengoal/features/classes/domain/entities/class_review.dart';
 import 'package:lengoal/features/classes/domain/entities/class_session.dart';
@@ -21,6 +22,7 @@ class LengoalClass extends Equatable {
     this.startDate,
     this.endDate,
     this.discountPrice,
+    this.discount,
     this.numberOfSubscribers = 0,
     this.isSubscriptionClosed = false,
     this.goalName,
@@ -52,6 +54,9 @@ class LengoalClass extends Equatable {
 
   // Set only while an early-bird discount is active.
   final double? discountPrice;
+
+  // The discount's terms, set alongside discountPrice when they're known.
+  final ClassDiscount? discount;
   final int numberOfSubscribers;
   final bool isSubscriptionClosed;
   final String? goalName;
@@ -91,6 +96,7 @@ class LengoalClass extends Equatable {
       startDate: startDate,
       endDate: endDate,
       discountPrice: discountPrice,
+      discount: discount,
       numberOfSubscribers: numberOfSubscribers,
       isSubscriptionClosed: isSubscriptionClosed,
       goalName: goalName,
@@ -125,6 +131,7 @@ class LengoalClass extends Equatable {
     startDate,
     endDate,
     discountPrice,
+    discount,
     numberOfSubscribers,
     isSubscriptionClosed,
     goalName,
