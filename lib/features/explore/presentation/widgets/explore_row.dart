@@ -8,6 +8,7 @@ class ExploreRow<T> extends StatelessWidget {
     required this.cardWidth,
     required this.emptyMessage,
     required this.itemBuilder,
+    this.equalHeights = false,
     super.key,
   });
 
@@ -15,6 +16,7 @@ class ExploreRow<T> extends StatelessWidget {
   final double cardWidth;
   final String emptyMessage;
   final Widget Function(BuildContext context, T item, int index) itemBuilder;
+  final bool equalHeights;
 
   static const EdgeInsets _padding = EdgeInsets.symmetric(
     horizontal: AppSpacing.s16,
@@ -46,22 +48,25 @@ class ExploreRow<T> extends StatelessWidget {
         ),
       );
     }
+    final row = Row(
+      crossAxisAlignment: equalHeights
+          ? CrossAxisAlignment.stretch
+          : CrossAxisAlignment.start,
+      children: [
+        for (var i = 0; i < items.length; i++) ...[
+          if (i > 0) const Gap(AppSpacing.s16),
+          Entrance(
+            index: i,
+            offset: const Offset(20, 0),
+            child: RepaintBoundary(child: itemBuilder(context, items[i], i)),
+          ),
+        ],
+      ],
+    );
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       padding: _padding,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          for (var i = 0; i < items.length; i++) ...[
-            if (i > 0) const Gap(AppSpacing.s16),
-            Entrance(
-              index: i,
-              offset: const Offset(20, 0),
-              child: RepaintBoundary(child: itemBuilder(context, items[i], i)),
-            ),
-          ],
-        ],
-      ),
+      child: equalHeights ? IntrinsicHeight(child: row) : row,
     );
   }
 }

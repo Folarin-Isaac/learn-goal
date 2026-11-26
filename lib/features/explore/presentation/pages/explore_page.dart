@@ -123,6 +123,7 @@ class _ExploreView extends StatelessWidget {
                     section: state.categoryClasses,
                     cardWidth: cardWidth,
                     emptyMessage: l10n.classesEmpty,
+                    equalHeights: true,
                     itemBuilder: (context, item, _) =>
                         ExploreClassCard(item: item, width: cardWidth),
                   ),
@@ -141,6 +142,7 @@ class _ExploreView extends StatelessWidget {
                     section: state.ongoing,
                     cardWidth: cardWidth,
                     emptyMessage: l10n.classesEmpty,
+                    equalHeights: true,
                     itemBuilder: (context, item, _) =>
                         ExploreClassCard(item: item, width: cardWidth),
                   ),
@@ -159,6 +161,7 @@ class _ExploreView extends StatelessWidget {
                     section: state.upcoming,
                     cardWidth: cardWidth,
                     emptyMessage: l10n.classesEmpty,
+                    equalHeights: true,
                     itemBuilder: (context, item, _) => ExploreClassCard(
                       item: item,
                       width: cardWidth,

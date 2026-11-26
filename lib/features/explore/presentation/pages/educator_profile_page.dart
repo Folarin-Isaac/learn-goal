@@ -202,6 +202,7 @@ class _ProfileBody extends StatelessWidget {
           ),
           cardWidth: cardWidth,
           emptyMessage: l10n.educatorProfileNoCohorts,
+          equalHeights: true,
           itemBuilder: (context, item, _) =>
               ExploreClassCard(item: item, width: cardWidth),
         ),

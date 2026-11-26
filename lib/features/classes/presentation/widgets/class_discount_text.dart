@@ -9,6 +9,8 @@ class ClassDiscountText extends StatelessWidget {
   final ClassSummary item;
   final int? maxLines;
 
+  static const double _strikeThickness = 2.2;
+
   static bool showsFor(ClassSummary item) {
     final discount = item.discount;
     return item.originalPriceLabel != null &&
@@ -43,6 +45,7 @@ class ClassDiscountText extends StatelessWidget {
               style: TextStyle(
                 decoration: TextDecoration.lineThrough,
                 decorationColor: color,
+                decorationThickness: _strikeThickness,
               ),
             ),
             TextSpan(text: ' ($terms)'),

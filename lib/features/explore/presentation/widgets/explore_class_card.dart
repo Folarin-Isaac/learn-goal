@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:lengoal/core/core.dart';
 import 'package:lengoal/features/classes/presentation/models/class_summary.dart';
+import 'package:lengoal/features/classes/presentation/widgets/class_discount_text.dart';
 import 'package:lengoal/features/classes/presentation/widgets/class_thumbnail.dart';
 import 'package:lengoal/features/explore/domain/entities/explore_class.dart';
 
@@ -49,44 +50,60 @@ class ExploreClassCard extends StatelessWidget {
             border: Border.all(color: accent.withValues(alpha: 0.35)),
           ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              AspectRatio(
-                aspectRatio: _imageAspectRatio,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(AppSpacing.r12),
-                  child: ClassCover(item: summary),
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AspectRatio(
+                    aspectRatio: _imageAspectRatio,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(AppSpacing.r12),
+                      child: ClassCover(item: summary),
+                    ),
+                  ),
+                  const Gap(12),
+                  _TagChip(label: item.tag, color: accent),
+                  const Gap(AppSpacing.s8),
+                  Text(
+                    lengoalClass.cohortName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: context.textTheme.titleMedium,
+                  ),
+                  const Gap(AppSpacing.s4),
+                  Text(
+                    lengoalClass.educatorName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: context.textTheme.bodySmall,
+                  ),
+                  const Gap(AppSpacing.s8),
+                  _progress(context),
+                  const Gap(AppSpacing.s8),
+                  _dates(context, summary.dateRange),
+                ],
               ),
-              const Gap(12),
-              _TagChip(label: item.tag, color: accent),
-              const Gap(AppSpacing.s8),
-              Text(
-                lengoalClass.cohortName,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: context.textTheme.titleMedium,
-              ),
-              const Gap(AppSpacing.s4),
-              Text(
-                lengoalClass.educatorName,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: context.textTheme.bodySmall,
-              ),
-              const Gap(AppSpacing.s8),
-              _progress(context),
-              const Gap(AppSpacing.s8),
-              _dates(context, summary.dateRange),
-              const Gap(12),
-              _priceRow(context, summary),
-              const Gap(12),
-              AppButton(
-                label: lengoalClass.isSubscribed
-                    ? context.l10n.exploreViewClass
-                    : context.l10n.exploreJoinNow,
-                height: 44,
-                onPressed: () => _open(context),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Gap(12),
+                  _priceRow(context, summary),
+                  if (!summary.isSubscribed &&
+                      ClassDiscountText.showsFor(summary)) ...[
+                    const Gap(AppSpacing.s4),
+                    ClassDiscountText(item: summary, maxLines: 2),
+                  ],
+                  const Gap(12),
+                  AppButton(
+                    label: lengoalClass.isSubscribed
+                        ? context.l10n.exploreViewClass
+                        : context.l10n.exploreJoinNow,
+                    height: 44,
+                    onPressed: () => _open(context),
+                  ),
+                ],
               ),
             ],
           ),
